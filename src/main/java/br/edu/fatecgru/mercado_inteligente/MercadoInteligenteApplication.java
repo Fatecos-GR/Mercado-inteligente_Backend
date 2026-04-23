@@ -11,4 +11,5 @@ public class MercadoInteligenteApplication {
 		SpringApplication.run(MercadoInteligenteApplication.class, args);
 	}
 
+	// Cometário Teste pt. 2
 }
