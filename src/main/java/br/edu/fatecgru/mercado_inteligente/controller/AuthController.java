@@ -73,7 +73,7 @@ public class AuthController {
         novoUsuario.setEmail(request.email());
         novoUsuario.setTelefone(request.telefone());
         novoUsuario.setSenha(passwordEncoder.encode(request.senha()));
-        novoUsuario.setTipo(TipoUsuario.CLIENTE); // TEMPORÁRIO PARA TESTE
+        novoUsuario.setTipo(TipoUsuario.CLIENTE); // Segurança: Forçar CLIENTE
 
         usuarioRepository.save(novoUsuario);
 
