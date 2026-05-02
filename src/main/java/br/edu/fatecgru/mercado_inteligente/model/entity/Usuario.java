@@ -48,7 +48,7 @@ public class Usuario implements UserDetails {
 	// Pode ser opcional
 	private String imagem;
 
-	// Para salvar o tipo apenas como "Admin" ou "Cliente"
+	// Para salvar o tipo apenas como "Cliente" ou "Funcionário"
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private TipoUsuario tipo;
@@ -150,8 +150,8 @@ public class Usuario implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		if (this.tipo == TipoUsuario.ADMIN) {
-			return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+		if (this.tipo == TipoUsuario.FUNCIONARIO) {
+			return List.of(new SimpleGrantedAuthority("ROLE_FUNCIONARIO"));
 		} else {
 			return List.of(new SimpleGrantedAuthority("ROLE_CLIENTE"));
 		}
