@@ -25,57 +25,57 @@ import jakarta.servlet.http.HttpServletResponse;
 @ExtendWith(MockitoExtension.class)
 class SecurityFilterTest {
 
-    @Mock
-    private TokenService tokenService;
+	@Mock
+	private TokenService tokenService;
 
-    @Mock
-    private AutenticacaoService autenticacaoService;
+	@Mock
+	private AutenticacaoService autenticacaoService;
 
-    @Mock
-    private HttpServletRequest request;
+	@Mock
+	private HttpServletRequest request;
 
-    @Mock
-    private HttpServletResponse response;
+	@Mock
+	private HttpServletResponse response;
 
-    @Mock
-    private FilterChain filterChain;
+	@Mock
+	private FilterChain filterChain;
 
-    @Mock
-    private UserDetails userDetails;
+	@Mock
+	private UserDetails userDetails;
 
-    @InjectMocks
-    private SecurityFilter securityFilter;
+	@InjectMocks
+	private SecurityFilter securityFilter;
 
-    @Test
-    void deveAutenticarQuandoTokenForValido() throws ServletException, IOException {
-        // Arrange
-        SecurityContextHolder.clearContext();
-        String token = "token-valido";
-        String email = "teste@email.com";
+	@Test
+	void deveAutenticarQuandoTokenForValido() throws ServletException, IOException {
+		// Arrange
+		SecurityContextHolder.clearContext();
+		String token = "token-valido";
+		String email = "teste@email.com";
 
-        when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(tokenService.getSubject(token)).thenReturn(email);
-        when(autenticacaoService.loadUserByUsername(email)).thenReturn(userDetails);
+		when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+		when(tokenService.getSubject(token)).thenReturn(email);
+		when(autenticacaoService.loadUserByUsername(email)).thenReturn(userDetails);
 
-        // Act
-        securityFilter.doFilterInternal(request, response, filterChain);
+		// Act
+		securityFilter.doFilterInternal(request, response, filterChain);
 
-        // Assert
-        assertNotNull(SecurityContextHolder.getContext().getAuthentication());
-        verify(filterChain).doFilter(request, response);
-    }
+		// Assert
+		assertNotNull(SecurityContextHolder.getContext().getAuthentication());
+		verify(filterChain).doFilter(request, response);
+	}
 
-    @Test
-    void naoDeveAutenticarQuandoTokenForInexistente() throws ServletException, IOException {
-        // Arrange
-        SecurityContextHolder.clearContext();
-        when(request.getHeader("Authorization")).thenReturn(null);
+	@Test
+	void naoDeveAutenticarQuandoTokenForInexistente() throws ServletException, IOException {
+		// Arrange
+		SecurityContextHolder.clearContext();
+		when(request.getHeader("Authorization")).thenReturn(null);
 
-        // Act
-        securityFilter.doFilterInternal(request, response, filterChain);
+		// Act
+		securityFilter.doFilterInternal(request, response, filterChain);
 
-        // Assert
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
-        verify(filterChain).doFilter(request, response);
-    }
+		// Assert
+		assertNull(SecurityContextHolder.getContext().getAuthentication());
+		verify(filterChain).doFilter(request, response);
+	}
 }

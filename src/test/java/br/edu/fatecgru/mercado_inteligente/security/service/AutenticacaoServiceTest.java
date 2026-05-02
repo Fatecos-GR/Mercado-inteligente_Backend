@@ -20,28 +20,28 @@ import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 @ExtendWith(MockitoExtension.class)
 class AutenticacaoServiceTest {
 
-    @Mock
-    private UsuarioRepository repository;
+	@Mock
+	private UsuarioRepository repository;
 
-    @InjectMocks
-    private AutenticacaoService service;
+	@InjectMocks
+	private AutenticacaoService service;
 
-    @Test
-    void deveCarregarUsuarioPorEmail() {
-        Usuario usuario = new Usuario();
-        usuario.setEmail("teste@email.com");
-        
-        when(repository.findByEmail("teste@email.com")).thenReturn(Optional.of(usuario));
+	@Test
+	void deveCarregarUsuarioPorEmail() {
+		Usuario usuario = new Usuario();
+		usuario.setEmail("teste@email.com");
 
-        UserDetails userDetails = service.loadUserByUsername("teste@email.com");
+		when(repository.findByEmail("teste@email.com")).thenReturn(Optional.of(usuario));
 
-        assertEquals("teste@email.com", userDetails.getUsername());
-    }
+		UserDetails userDetails = service.loadUserByUsername("teste@email.com");
 
-    @Test
-    void deveLancarExcecaoQuandoUsuarioNaoExiste() {
-        when(repository.findByEmail("naoexiste@email.com")).thenReturn(Optional.empty());
+		assertEquals("teste@email.com", userDetails.getUsername());
+	}
 
-        assertThrows(UsernameNotFoundException.class, () -> service.loadUserByUsername("naoexiste@email.com"));
-    }
+	@Test
+	void deveLancarExcecaoQuandoUsuarioNaoExiste() {
+		when(repository.findByEmail("naoexiste@email.com")).thenReturn(Optional.empty());
+
+		assertThrows(UsernameNotFoundException.class, () -> service.loadUserByUsername("naoexiste@email.com"));
+	}
 }
