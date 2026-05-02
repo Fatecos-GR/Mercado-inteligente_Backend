@@ -1,7 +1,7 @@
 package br.edu.fatecgru.mercado_inteligente;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ class MercadoInteligenteApplicationTests {
 		usuario.setSenha("123456");
 		usuario.setEmail("joao@teste.com");
 		usuario.setTipo(TipoUsuario.CLIENTE);
-		
+
 		usuarioRepository.save(usuario);
 
 		// 2. Executa (Usa o seu método findByEmail)
@@ -47,4 +47,3 @@ class MercadoInteligenteApplicationTests {
 	}
 
 }
-

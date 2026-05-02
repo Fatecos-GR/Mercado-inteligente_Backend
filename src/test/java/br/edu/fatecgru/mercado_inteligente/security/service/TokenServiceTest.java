@@ -12,27 +12,27 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 
 class TokenServiceTest {
 
-    private TokenService tokenService;
+	private TokenService tokenService;
 
-    @BeforeEach
-    void setUp() {
-        tokenService = new TokenService();
-        ReflectionTestUtils.setField(tokenService, "secret", "minha-senha-secreta");
-    }
+	@BeforeEach
+	void setUp() {
+		tokenService = new TokenService();
+		ReflectionTestUtils.setField(tokenService, "secret", "minha-senha-secreta");
+	}
 
-    @Test
-    void deveGerarTokenValido() {
-        Usuario usuario = new Usuario();
-        usuario.setEmail("teste@email.com");
+	@Test
+	void deveGerarTokenValido() {
+		Usuario usuario = new Usuario();
+		usuario.setEmail("teste@email.com");
 
-        String token = tokenService.gerarToken(usuario);
+		String token = tokenService.gerarToken(usuario);
 
-        assertNotNull(token);
-        assertEquals("teste@email.com", tokenService.getSubject(token));
-    }
+		assertNotNull(token);
+		assertEquals("teste@email.com", tokenService.getSubject(token));
+	}
 
-    @Test
-    void deveLancarExcecaoParaTokenInvalido() {
-        assertThrows(RuntimeException.class, () -> tokenService.getSubject("token-invalido"));
-    }
+	@Test
+	void deveLancarExcecaoParaTokenInvalido() {
+		assertThrows(RuntimeException.class, () -> tokenService.getSubject("token-invalido"));
+	}
 }

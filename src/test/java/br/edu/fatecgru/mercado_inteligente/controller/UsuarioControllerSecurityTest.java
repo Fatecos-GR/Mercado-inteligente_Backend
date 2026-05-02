@@ -19,39 +19,34 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("test")
 class UsuarioControllerSecurityTest {
 
-    private MockMvc mockMvc;
+	private MockMvc mockMvc;
 
-    @Autowired
-    private WebApplicationContext context;
+	@Autowired
+	private WebApplicationContext context;
 
-    @BeforeEach
-    void setup() {
-        this.mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(SecurityMockMvcConfigurers.springSecurity())
-                .build();
-    }
+	@BeforeEach
+	void setup() {
+		this.mockMvc = MockMvcBuilders.webAppContextSetup(context).apply(SecurityMockMvcConfigurers.springSecurity())
+				.build();
+	}
 
-    @Test
-    @DisplayName("Deve retornar 403 ao tentar listar usuários como CLIENTE")
-    @WithMockUser(roles = "CLIENTE")
-    void listarUsuariosComoCliente() throws Exception {
-        mockMvc.perform(get("/api/usuarios"))
-                .andExpect(status().isForbidden());
-    }
+	@Test
+	@DisplayName("Deve retornar 403 ao tentar listar usuários como CLIENTE")
+	@WithMockUser(roles = "CLIENTE")
+	void listarUsuariosComoCliente() throws Exception {
+		mockMvc.perform(get("/api/usuarios")).andExpect(status().isForbidden());
+	}
 
-    @Test
-    @DisplayName("Deve retornar 200 ao tentar listar usuários como ADMIN")
-    @WithMockUser(roles = "ADMIN")
-    void listarUsuariosComoAdmin() throws Exception {
-        mockMvc.perform(get("/api/usuarios"))
-                .andExpect(status().isOk());
-    }
+	@Test
+	@DisplayName("Deve retornar 200 ao tentar listar usuários como ADMIN")
+	@WithMockUser(roles = "ADMIN")
+	void listarUsuariosComoAdmin() throws Exception {
+		mockMvc.perform(get("/api/usuarios")).andExpect(status().isOk());
+	}
 
-    @Test
-    @DisplayName("Deve retornar 401 ao tentar listar usuários sem autenticação")
-    void listarUsuariosSemAutenticacao() throws Exception {
-        mockMvc.perform(get("/api/usuarios"))
-                .andExpect(status().isUnauthorized());
-    }
+	@Test
+	@DisplayName("Deve retornar 401 ao tentar listar usuários sem autenticação")
+	void listarUsuariosSemAutenticacao() throws Exception {
+		mockMvc.perform(get("/api/usuarios")).andExpect(status().isUnauthorized());
+	}
 }
