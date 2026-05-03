@@ -11,12 +11,12 @@ import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 @Service
 public class AutenticacaoService implements UserDetailsService {
 
-    @Autowired
-    private UsuarioRepository repository;
+	@Autowired
+	private UsuarioRepository repository;
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return repository.findByEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o email: " + username));
-    }
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		return repository.findByEmail(username)
+				.orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado com o email: " + username));
+	}
 }

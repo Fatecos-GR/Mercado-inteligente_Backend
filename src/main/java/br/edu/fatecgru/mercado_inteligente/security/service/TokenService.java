@@ -16,38 +16,31 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 @Service
 public class TokenService {
 
-    @Value("${api.security.token.secret}")
-    private String secret;
+	@Value("${api.security.token.secret}")
+	private String secret;
 
-    private static final String ISSUER = "mercado-inteligente";
+	private static final String ISSUER = "mercado-inteligente";
 
-    public String gerarToken(Usuario usuario) {
-        try {
-            Algorithm algoritmo = Algorithm.HMAC256(secret);
-            return JWT.create()
-                    .withIssuer(ISSUER)
-                    .withSubject(usuario.getEmail())
-                    .withExpiresAt(dataExpiracao())
-                    .sign(algoritmo);
-        } catch (JWTCreationException exception) {
-            throw new RuntimeException("Erro ao gerar token jwt", exception);
-        }
-    }
+	public String gerarToken(Usuario usuario) {
+		try {
+			Algorithm algoritmo = Algorithm.HMAC256(secret);
+			return JWT.create().withIssuer(ISSUER).withSubject(usuario.getEmail()).withExpiresAt(dataExpiracao())
+					.sign(algoritmo);
+		} catch (JWTCreationException exception) {
+			throw new RuntimeException("Erro ao gerar token jwt", exception);
+		}
+	}
 
-    public String getSubject(String tokenJWT) {
-        try {
-            Algorithm algoritmo = Algorithm.HMAC256(secret);
-            return JWT.require(algoritmo)
-                    .withIssuer(ISSUER)
-                    .build()
-                    .verify(tokenJWT)
-                    .getSubject();
-        } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Token JWT inválido ou expirado!");
-        }
-    }
+	public String getSubject(String tokenJWT) {
+		try {
+			Algorithm algoritmo = Algorithm.HMAC256(secret);
+			return JWT.require(algoritmo).withIssuer(ISSUER).build().verify(tokenJWT).getSubject();
+		} catch (JWTVerificationException exception) {
+			throw new RuntimeException("Token JWT inválido ou expirado!");
+		}
+	}
 
-    private Instant dataExpiracao() {
-        return Instant.now().plus(2, ChronoUnit.HOURS);
-    }
+	private Instant dataExpiracao() {
+		return Instant.now().plus(2, ChronoUnit.HOURS);
+	}
 }

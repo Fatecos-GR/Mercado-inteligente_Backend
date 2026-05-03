@@ -11,20 +11,20 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 @ActiveProfiles("test")
 class TesteManualToken {
 
-    @Autowired
-    private TokenService tokenService;
+	@Autowired
+	private TokenService tokenService;
 
-    @Test
-    void gerarTokenParaValidarNoSite() {
-        Usuario usuario = new Usuario();
-        usuario.setEmail("admin@mercado.com");
+	@Test
+	void gerarTokenParaValidarNoSite() {
+		Usuario usuario = new Usuario();
+		usuario.setEmail("admin@mercado.com");
 
-        String token = tokenService.gerarToken(usuario);
-        
-        System.out.println("\n==================================================================");
-        System.out.println("COPIE O TOKEN ABAIXO E COLE EM HTTPS://JWT.IO");
-        System.out.println("==================================================================");
-        System.out.println(token);
-        System.out.println("==================================================================\n");
-    }
+		String token = tokenService.gerarToken(usuario);
+
+		System.out.println("\n==================================================================");
+		System.out.println("COPIE O TOKEN ABAIXO E COLE EM HTTPS://JWT.IO");
+		System.out.println("==================================================================");
+		System.out.println(token);
+		System.out.println("==================================================================\n");
+	}
 }
