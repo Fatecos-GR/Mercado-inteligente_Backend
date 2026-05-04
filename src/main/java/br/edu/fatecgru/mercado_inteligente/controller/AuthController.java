@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,9 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginRequest;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroRequest;
-import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
-import br.edu.fatecgru.mercado_inteligente.security.service.RateLimitingService;
-import br.edu.fatecgru.mercado_inteligente.security.service.TokenService;
 import br.edu.fatecgru.mercado_inteligente.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,22 +29,7 @@ public class AuthController {
 	private static final Logger log = LoggerFactory.getLogger(AuthController.class);
 
 	@Autowired
-	private AuthenticationManager authenticationManager;
-
-	@Autowired
-	private TokenService tokenService;
-
-	@Autowired
 	private AuthService authService;
-
-	@Autowired
-	private UsuarioRepository usuarioRepository;
-
-	@Autowired
-	private PasswordEncoder passwordEncoder;
-
-	@Autowired
-	private RateLimitingService rateLimitingService;
 
 	@PostMapping("/login")
 	@Operation(summary = "Realiza o login de um usuário e retorna o token JWT")
