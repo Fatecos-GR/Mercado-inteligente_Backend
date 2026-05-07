@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginRequest;
 import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroRequest;
-import br.edu.fatecgru.mercado_inteligente.model.entity.TipoUsuario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 import br.edu.fatecgru.mercado_inteligente.security.service.RateLimitingService;
@@ -58,9 +57,6 @@ public class AuthService {
 
 		// Senha criptografada
 		novoUsuario.setSenha(passwordEncoder.encode(request.senha()));
-
-		// Criação como cliente --> É cliente quando vem desse endpoint
-		novoUsuario.setTipo(TipoUsuario.CLIENTE);
 
 		usuarioRepository.save(novoUsuario);
 	}

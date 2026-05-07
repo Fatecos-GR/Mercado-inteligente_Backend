@@ -4,50 +4,35 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+// Funcionário herda os atributos do usuário
 @Entity
 @Table(name = "funcionarios")
-public class Funcionario {
+public class Funcionario extends Usuario {
 
 	// Atributos
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
-
 	// Para salvar o tipo apenas como "Estoquista" ou "Administrador"
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private TipoFuncionario tipo;
+	private TipoFuncionario tipoFuncionario;
 
 	// Construtores
 	public Funcionario() {
 
 	}
 
-	public Funcionario(Long id, TipoFuncionario tipo) {
-		this.id = id;
-		this.tipo = tipo;
+	public Funcionario(TipoFuncionario tipoFuncionario) {
+		this.tipoFuncionario = tipoFuncionario;
 	}
 
 	// Getters e Setters
-	public Long getId() {
-		return id;
+	public TipoFuncionario getTipoFuncionario() {
+		return tipoFuncionario;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public TipoFuncionario getTipo() {
-		return tipo;
-	}
-
-	public void setTipo(TipoFuncionario tipo) {
-		this.tipo = tipo;
+	public void setTipoFuncionario(TipoFuncionario tipoFuncionario) {
+		this.tipoFuncionario = tipoFuncionario;
 	}
 
 }

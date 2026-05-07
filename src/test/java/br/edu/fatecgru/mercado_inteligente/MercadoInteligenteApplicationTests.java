@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import br.edu.fatecgru.mercado_inteligente.model.entity.TipoUsuario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 
@@ -34,7 +33,6 @@ class MercadoInteligenteApplicationTests {
 		usuario.setTelefone("11999999999");
 		usuario.setSenha("123456");
 		usuario.setEmail("joao@teste.com");
-		usuario.setTipo(TipoUsuario.CLIENTE);
 
 		usuarioRepository.save(usuario);
 
