@@ -26,7 +26,7 @@ public class UsuarioService {
 	}
 
 	// Listar pelo ID do usuário
-	public Usuario getById(int id) {
+	public Usuario getById(Long id) {
 		return usuarioRepository.findById(id).orElse(null);
 	}
 

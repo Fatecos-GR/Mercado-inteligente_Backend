@@ -25,7 +25,7 @@ public class CategoriaService {
 	}
 
 	// Consulta por id categoria
-	public Categoria getById(int id) {
+	public Categoria getById(Long id) {
 		return categoriaRepository.findById(id).orElse(null);
 	}
 

@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 
-public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
+public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
 	// Método para fazer busca por nome
 	public List<Usuario> findByNomeContains(String nome);

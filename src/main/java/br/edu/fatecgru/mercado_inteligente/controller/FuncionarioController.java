@@ -29,7 +29,7 @@ public class FuncionarioController {
 
 	// Busca por ID
 	@GetMapping("/{id}")
-	public Funcionario buscarPorId(@PathVariable int id) {
+	public Funcionario buscarPorId(@PathVariable Long id) {
 		return funcionarioService.getById(id);
 	}
 

@@ -25,7 +25,7 @@ public class MarcaService {
 	}
 
 	// Consulta por ID da marca
-	public Marca getById(int id) {
+	public Marca getById(Long id) {
 		return marcaRepository.findById(id).orElse(null);
 	}
 

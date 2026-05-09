@@ -6,15 +6,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
 
-public interface ProdutoRepository extends JpaRepository<Produto, Integer> {
+public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
 	// Método para buscar produto
 	public List<Produto> findByNomeContains(String nome);
 
 	// Buscar todos os produtos de uma determinada categoria
-	public List<Produto> findByCategoriaId(int categoriaId);
+	public List<Produto> findByCategoriaId(Long categoriaId);
 
 	// Buscar todos os produtos de uma determinada marca
-	public List<Produto> findByMarcaId(int marcaId);
+	public List<Produto> findByMarcaId(Long marcaId);
 
 }

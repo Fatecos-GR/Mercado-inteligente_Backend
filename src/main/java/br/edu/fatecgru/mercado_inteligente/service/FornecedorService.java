@@ -20,7 +20,7 @@ public class FornecedorService {
 	}
 
 	// Listar pelo ID do fornecedor
-	public Fornecedor getById(int id) {
+	public Fornecedor getById(Long id) {
 		return fornecedorRepository.findById(id).orElse(null);
 	}
 

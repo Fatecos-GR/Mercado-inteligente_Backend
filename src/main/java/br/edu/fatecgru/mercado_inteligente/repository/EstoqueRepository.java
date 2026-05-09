@@ -4,6 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import br.edu.fatecgru.mercado_inteligente.model.entity.Estoque;
 
-public interface EstoqueRepository extends JpaRepository<Estoque, Integer> {
+public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 
 }

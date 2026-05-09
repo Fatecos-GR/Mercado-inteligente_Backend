@@ -31,7 +31,7 @@ public class UsuarioController {
 
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public Usuario buscarPorId(@PathVariable int id) {
+	public Usuario buscarPorId(@PathVariable Long id) {
 		return usuarioService.getById(id);
 	}
 

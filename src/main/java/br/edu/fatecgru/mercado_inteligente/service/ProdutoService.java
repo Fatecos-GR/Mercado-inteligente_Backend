@@ -20,7 +20,7 @@ public class ProdutoService {
 	}
 
 	// Listar pelo ID do Produto
-	public Produto getById(int id) {
+	public Produto getById(Long id) {
 		return produtoRepository.findById(id).orElse(null);
 	}
 
@@ -30,12 +30,12 @@ public class ProdutoService {
 	}
 
 	// Listar por ID da categoria
-	public List<Produto> getByCategoryId(int categoriaId) {
+	public List<Produto> getByCategoryId(Long categoriaId) {
 		return produtoRepository.findByCategoriaId(categoriaId);
 	}
 
 	// Listar por ID da marca
-	public List<Produto> getByBrandId(int marcaId) {
+	public List<Produto> getByBrandId(Long marcaId) {
 		return produtoRepository.findByMarcaId(marcaId);
 	}
 

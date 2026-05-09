@@ -29,7 +29,7 @@ public class FornecedorController {
 
 	// Busca por ID
 	@GetMapping("/{id}")
-	public Fornecedor buscarPorId(@PathVariable int id) {
+	public Fornecedor buscarPorId(@PathVariable Long id) {
 		return fornecedorService.getById(id);
 	}
 
