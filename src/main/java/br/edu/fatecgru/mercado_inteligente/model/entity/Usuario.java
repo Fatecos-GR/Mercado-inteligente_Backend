@@ -11,16 +11,17 @@ import org.springframework.security.core.userdetails.UserDetails;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "usuarios")
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Usuario implements UserDetails {
 
 	// Atributos
@@ -48,11 +49,6 @@ public class Usuario implements UserDetails {
 	// Pode ser opcional
 	private String imagem;
 
-	// Para salvar o tipo apenas como "Cliente" ou "Funcionário"
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private TipoUsuario tipo;
-
 	// Cascade --> Ações feitas no usuário também afetam o endereço
 	@OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
 	private List<Endereco> enderecos = new ArrayList<>();
@@ -63,7 +59,7 @@ public class Usuario implements UserDetails {
 	}
 
 	public Usuario(Long id, String nome, String sobrenome, String telefone, String senha, String email, String imagem,
-			TipoUsuario tipo, List<Endereco> enderecos) {
+			List<Endereco> enderecos) {
 		this.id = id;
 		this.nome = nome;
 		this.sobrenome = sobrenome;
@@ -71,7 +67,6 @@ public class Usuario implements UserDetails {
 		this.senha = senha;
 		this.email = email;
 		this.imagem = imagem;
-		this.tipo = tipo;
 		this.enderecos = enderecos;
 	}
 
@@ -132,14 +127,6 @@ public class Usuario implements UserDetails {
 		this.imagem = imagem;
 	}
 
-	public TipoUsuario getTipo() {
-		return tipo;
-	}
-
-	public void setTipo(TipoUsuario tipo) {
-		this.tipo = tipo;
-	}
-
 	public List<Endereco> getEnderecos() {
 		return enderecos;
 	}
@@ -150,11 +137,17 @@ public class Usuario implements UserDetails {
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
-		if (this.tipo == TipoUsuario.FUNCIONARIO) {
-			return List.of(new SimpleGrantedAuthority("ROLE_FUNCIONARIO"));
-		} else {
-			return List.of(new SimpleGrantedAuthority("ROLE_CLIENTE"));
+
+		if (this instanceof Funcionario funcionario) {
+
+			if (funcionario.getTipoFuncionario() == TipoFuncionario.ADMIN) {
+				return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+			}
+
+			return List.of(new SimpleGrantedAuthority("ROLE_ESTOQUISTA"));
 		}
+
+		return List.of(new SimpleGrantedAuthority("ROLE_CLIENTE"));
 	}
 
 	@Override

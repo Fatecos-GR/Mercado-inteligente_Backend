@@ -30,7 +30,7 @@ public class ProdutoController {
 
 	// Busca produto por ID
 	@GetMapping("/{id}")
-	public Produto buscarPorId(@PathVariable int id) {
+	public Produto buscarPorId(@PathVariable Long id) {
 		return produtoService.getById(id);
 	}
 
@@ -42,13 +42,13 @@ public class ProdutoController {
 
 	// Busca por ID da categoria
 	@GetMapping("/categoria/{id}")
-	public List<Produto> buscarPorIdCategoria(@PathVariable int id) {
+	public List<Produto> buscarPorIdCategoria(@PathVariable Long id) {
 		return produtoService.getByCategoryId(id);
 	}
 
 	// Busca por ID da marca
 	@GetMapping("/marca/{id}")
-	public List<Produto> buscarPorIdMarca(@PathVariable int id) {
+	public List<Produto> buscarPorIdMarca(@PathVariable Long id) {
 		return produtoService.getByBrandId(id);
 	}
 

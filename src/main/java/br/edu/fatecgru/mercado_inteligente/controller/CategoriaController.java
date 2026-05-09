@@ -30,7 +30,7 @@ public class CategoriaController {
 
 	// Busca por ID
 	@GetMapping("/{id}")
-	public Categoria buscarPorId(@PathVariable int id) {
+	public Categoria buscarPorId(@PathVariable Long id) {
 		return categoriaService.getById(id);
 	}
 

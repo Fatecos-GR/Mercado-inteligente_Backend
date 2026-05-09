@@ -20,7 +20,7 @@ public class FuncionarioService {
 	}
 
 	// Listar pelo ID do funcionário
-	public Funcionario getById(int id) {
+	public Funcionario getById(Long id) {
 		return funcionarioRepository.findById(id).orElse(null);
 	}
 
