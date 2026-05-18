@@ -39,4 +39,14 @@ public class ProdutoService {
 		return produtoRepository.findByMarcaId(marcaId);
 	}
 
+	// Método para salvar ou alterar produto
+	public Produto saveProduto(Produto produto) {
+		return produtoRepository.save(produto);
+	}
+
+	// Método para excluir produto
+	public void deleteProduto(Long id) {
+		produtoRepository.deleteById(id);
+	}
+
 }
