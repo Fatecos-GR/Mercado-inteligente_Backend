@@ -18,6 +18,8 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "usuarios")
@@ -31,22 +33,27 @@ public class Usuario implements UserDetails {
 
 	// Campos obrigatórios
 	@Column(nullable = false)
+	@NotBlank(message = "O nome é obrigatório")
 	private String nome;
 
 	@Column(nullable = false)
+	@NotBlank(message = "O sobrenome é obrigatório")
 	private String sobrenome;
 
 	@Column(nullable = false)
+	@NotBlank(message = "O telefone é obrigatório")
 	private String telefone;
 
 	@Column(nullable = false)
+	@NotBlank(message = "A senha é obrigatória")
 	private String senha;
 
 	// Email único no sistema
 	@Column(nullable = false, unique = true)
+	@NotBlank(message = "O email é obrigatório")
+	@Email(message = "Formato de email inválido")
 	private String email;
 
-	// Pode ser opcional
 	private String imagem;
 
 	// Cascade --> Ações feitas no usuário também afetam o endereço
