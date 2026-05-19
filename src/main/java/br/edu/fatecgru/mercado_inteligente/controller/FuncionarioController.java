@@ -11,11 +11,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
 import br.edu.fatecgru.mercado_inteligente.service.FuncionarioService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @CrossOrigin(origins = "*")
 @RestController
 //Cria o geral, todos precisam desse
 @RequestMapping("/api/funcionarios")
+@Tag(name = "Funcionários", description = "Endpoints relacionados aos Funcionários")
 public class FuncionarioController {
 
 	@Autowired
@@ -23,14 +26,15 @@ public class FuncionarioController {
 
 	// Lista todas os funcionários
 	@GetMapping
+	@Operation(summary = "Listar todos os funcionários")
 	public List<Funcionario> listarTodos() {
 		return funcionarioService.listarTodos();
 	}
 
 	// Busca por ID
 	@GetMapping("/{id}")
+	@Operation(summary = "Listar funcionário por ID")
 	public Funcionario buscarPorId(@PathVariable Long id) {
 		return funcionarioService.getById(id);
 	}
-
 }

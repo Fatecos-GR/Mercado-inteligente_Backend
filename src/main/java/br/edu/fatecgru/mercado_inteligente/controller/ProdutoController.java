@@ -20,12 +20,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.ProdutoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @CrossOrigin(origins = "*")
 @RestController
 //Cria o geral, todos precisam desse
 @RequestMapping("/api/produtos")
-
+@Tag(name = "Produtos", description = "Endpoints relacionados aos Produtos")
 public class ProdutoController {
 
 	@Autowired
@@ -36,30 +38,35 @@ public class ProdutoController {
 
 	// Lista todos
 	@GetMapping
+	@Operation(summary = "Listar todos os produtos")
 	public List<Produto> listarTodos() {
 		return produtoService.listarTodos();
 	}
 
 	// Busca produto por ID
 	@GetMapping("/{id}")
+	@Operation(summary = "Listar produto por ID")
 	public Produto buscarPorId(@PathVariable Long id) {
 		return produtoService.getById(id);
 	}
 
 	// Busca produto por nome
 	@GetMapping("/contem-nome/{nome}")
+	@Operation(summary = "Listar produto por Nome")
 	public List<Produto> buscarPorContemNome(@PathVariable String nome) {
 		return produtoService.getByContainsName(nome);
 	}
 
 	// Busca por ID da categoria
 	@GetMapping("/categoria/{id}")
+	@Operation(summary = "Listar produto por ID da categoria")
 	public List<Produto> buscarPorIdCategoria(@PathVariable Long id) {
 		return produtoService.getByCategoryId(id);
 	}
 
 	// Busca por ID da marca
 	@GetMapping("/marca/{id}")
+	@Operation(summary = "Listar produto por ID da Marca")
 	public List<Produto> buscarPorIdMarca(@PathVariable Long id) {
 		return produtoService.getByBrandId(id);
 	}
@@ -69,6 +76,7 @@ public class ProdutoController {
 
 	// Salvar produto
 	@PostMapping
+	@Operation(summary = "Salvar Produto")
 	public ResponseEntity<?> insert(@RequestPart("produto") String produtoJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
 
@@ -91,6 +99,7 @@ public class ProdutoController {
 
 	// Alterar produto
 	@PutMapping("/{id}")
+	@Operation(summary = "Alterar Produto")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("produto") String produtoJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
 
@@ -125,6 +134,7 @@ public class ProdutoController {
 
 	// Deletar produto
 	@DeleteMapping("/{id}")
+	@Operation(summary = "Deletar Produto")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		try {
 			Produto produto = produtoService.getById(id);
@@ -141,5 +151,4 @@ public class ProdutoController {
 			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
 		}
 	}
-
 }
