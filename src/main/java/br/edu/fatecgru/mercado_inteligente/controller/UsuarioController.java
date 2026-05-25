@@ -125,7 +125,7 @@ public class UsuarioController {
 
 		} catch (Exception e) {
 
-			return ResponseEntity.status(500).body(e.getMessage());
+			return ResponseEntity.badRequest().body(e.getMessage());
 		}
 	}
 
