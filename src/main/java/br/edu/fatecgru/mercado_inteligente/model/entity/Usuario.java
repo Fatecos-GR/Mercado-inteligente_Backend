@@ -8,6 +8,9 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,8 +21,6 @@ import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "usuarios")
@@ -33,31 +34,27 @@ public class Usuario implements UserDetails {
 
 	// Campos obrigatórios
 	@Column(nullable = false)
-	@NotBlank(message = "O nome é obrigatório")
 	private String nome;
 
 	@Column(nullable = false)
-	@NotBlank(message = "O sobrenome é obrigatório")
 	private String sobrenome;
 
 	@Column(nullable = false)
-	@NotBlank(message = "O telefone é obrigatório")
 	private String telefone;
 
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	@Column(nullable = false)
-	@NotBlank(message = "A senha é obrigatória")
 	private String senha;
 
 	// Email único no sistema
 	@Column(nullable = false, unique = true)
-	@NotBlank(message = "O email é obrigatório")
-	@Email(message = "Formato de email inválido")
 	private String email;
 
 	private String imagem;
 
 	// Cascade --> Ações feitas no usuário também afetam o endereço
-	@OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+	@JsonManagedReference
+	@OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Endereco> enderecos = new ArrayList<>();
 
 	// Construtores
