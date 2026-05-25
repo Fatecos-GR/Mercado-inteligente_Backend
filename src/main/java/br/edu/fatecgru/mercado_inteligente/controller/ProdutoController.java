@@ -88,7 +88,7 @@ public class ProdutoController {
 		return produtoService.getByBrandId(id);
 	}
 
-	// Pasta dos produtos para salvar
+	// Pasta dos produtos para salvar as imagens
 	String pastaProdutos = "products/";
 
 	// Salvar produto
@@ -164,6 +164,8 @@ public class ProdutoController {
 			atual.setCategoria(categoria);
 			atual.setMarca(marca);
 			atual.setFornecedor(fornecedor);
+
+			String imagemAntiga = atual.getImagem();
 
 			String imagemAtualizada = imagemService.substituirImagem(atual.getImagem(), imagem, pastaProdutos);
 
