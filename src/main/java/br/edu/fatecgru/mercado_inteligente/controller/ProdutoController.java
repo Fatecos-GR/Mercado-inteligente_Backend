@@ -3,6 +3,7 @@ package br.edu.fatecgru.mercado_inteligente.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -90,7 +91,7 @@ public class ProdutoController {
 				produto.setImagem(nomeImagem);
 			}
 
-			return ResponseEntity.ok(produtoService.saveProduto(produto));
+			return ResponseEntity.status(HttpStatus.CREATED).body(produtoService.saveProduto(produto));
 
 		} catch (Exception e) {
 			return ResponseEntity.status(500).body(e.getMessage());
@@ -138,6 +139,10 @@ public class ProdutoController {
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		try {
 			Produto produto = produtoService.getById(id);
+
+			if (produto == null) {
+				return ResponseEntity.notFound().build();
+			}
 
 			if (produto.getImagem() != null) {
 				imagemService.deletarImagem(produto.getImagem(), pastaProdutos);
