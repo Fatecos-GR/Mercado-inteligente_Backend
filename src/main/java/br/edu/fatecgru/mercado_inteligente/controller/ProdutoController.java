@@ -18,7 +18,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
+import br.edu.fatecgru.mercado_inteligente.repository.CategoriaRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.FornecedorRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.MarcaRepository;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +37,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api/produtos")
 @Tag(name = "Produtos", description = "Endpoints relacionados aos Produtos")
 public class ProdutoController {
+
+	@Autowired
+	private CategoriaRepository categoriaRepository;
+
+	@Autowired
+	private MarcaRepository marcaRepository;
+
+	@Autowired
+	private FornecedorRepository fornecedorRepository;
 
 	@Autowired
 	private ProdutoService produtoService;
@@ -83,14 +99,31 @@ public class ProdutoController {
 
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			Produto produto = mapper.readValue(produtoJson, Produto.class);
+			ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
+
+			Produto produto = new Produto();
+
+			produto.setNome(dto.getNome());
+			produto.setDescricao(dto.getDescricao());
+			produto.setPreco(dto.getPreco());
+			produto.setValidade(dto.getValidade());
+
+			Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+					.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+			Marca marca = marcaRepository.findById(dto.getMarcaId())
+					.orElseThrow(() -> new RuntimeException("Marca não encontrada"));
+
+			Fornecedor fornecedor = fornecedorRepository.findById(dto.getFornecedorId())
+					.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+
+			produto.setCategoria(categoria);
+			produto.setMarca(marca);
+			produto.setFornecedor(fornecedor);
 
 			String nomeImagem = imagemService.salvarImagem(imagem, pastaProdutos);
 
-			if (nomeImagem != null) {
-				produto.setImagem(nomeImagem);
-			}
-
+			produto.setImagem(nomeImagem);
 			return ResponseEntity.status(HttpStatus.CREATED).body(produtoService.saveProduto(produto));
 
 		} catch (Exception e) {
@@ -106,7 +139,7 @@ public class ProdutoController {
 
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			Produto novo = mapper.readValue(produtoJson, Produto.class);
+			ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
 
 			Produto atual = produtoService.getById(id);
 
@@ -114,13 +147,23 @@ public class ProdutoController {
 				return ResponseEntity.notFound().build();
 			}
 
-			atual.setNome(novo.getNome());
-			atual.setDescricao(novo.getDescricao());
-			atual.setPreco(novo.getPreco());
-			atual.setValidade(novo.getValidade());
-			atual.setMarca(novo.getMarca());
-			atual.setCategoria(novo.getCategoria());
-			atual.setFornecedor(novo.getFornecedor());
+			atual.setNome(dto.getNome());
+			atual.setDescricao(dto.getDescricao());
+			atual.setPreco(dto.getPreco());
+			atual.setValidade(dto.getValidade());
+
+			Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+					.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+			Marca marca = marcaRepository.findById(dto.getMarcaId())
+					.orElseThrow(() -> new RuntimeException("Marca não encontrada"));
+
+			Fornecedor fornecedor = fornecedorRepository.findById(dto.getFornecedorId())
+					.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+
+			atual.setCategoria(categoria);
+			atual.setMarca(marca);
+			atual.setFornecedor(fornecedor);
 
 			String imagemAtualizada = imagemService.substituirImagem(atual.getImagem(), imagem, pastaProdutos);
 
