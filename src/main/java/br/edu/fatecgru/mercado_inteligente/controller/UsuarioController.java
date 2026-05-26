@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioResponseDTO;
-import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.UsuarioService;
@@ -70,25 +69,7 @@ public class UsuarioController {
 		return ResponseEntity.ok(usuarioService.listarClientes());
 	}
 
-	// Método para listar administradores
-	@GetMapping("/admins")
-	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Listar admins (Apenas ADMIN)")
-	public ResponseEntity<List<Funcionario>> listarAdmins() {
-
-		return ResponseEntity.ok(usuarioService.listarAdministradores());
-	}
-
-	// Método para listar estoquistas
-	@GetMapping("/estoquistas")
-	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Listar estoquistas (Apenas ADMIN)")
-	public ResponseEntity<List<Funcionario>> listarEstoquistas() {
-
-		return ResponseEntity.ok(usuarioService.listarEstoquistas());
-	}
-
-	// Pasta dos usuário para salvar as imagens
+	// Pasta dos usuários para salvar as imagens
 	String pastaUsuarios = "users/";
 
 	// Método para cadastrar usuário

@@ -8,9 +8,7 @@ import org.springframework.stereotype.Service;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
-import br.edu.fatecgru.mercado_inteligente.model.entity.TipoFuncionario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
-import br.edu.fatecgru.mercado_inteligente.repository.FuncionarioRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 
 @Service
@@ -19,9 +17,6 @@ public class UsuarioService {
 	// Método para listar todos
 	@Autowired
 	private UsuarioRepository usuarioRepository;
-
-	@Autowired
-	private FuncionarioRepository funcionarioRepository;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -44,18 +39,6 @@ public class UsuarioService {
 	public List<Usuario> listarClientes() {
 
 		return usuarioRepository.findAll().stream().filter(usuario -> !(usuario instanceof Funcionario)).toList();
-	}
-
-	// Listar administradores
-	public List<Funcionario> listarAdministradores() {
-
-		return funcionarioRepository.findByTipoFuncionario(TipoFuncionario.ADMIN);
-	}
-
-	// Listar estoquistas
-	public List<Funcionario> listarEstoquistas() {
-
-		return funcionarioRepository.findByTipoFuncionario(TipoFuncionario.ESTOQUISTA);
 	}
 
 	// Métodos para cadastrar usuário
