@@ -165,9 +165,10 @@ public class ProdutoController {
 			atual.setMarca(marca);
 			atual.setFornecedor(fornecedor);
 
+			// substitui imagem
 			String imagemAntiga = atual.getImagem();
 
-			String imagemAtualizada = imagemService.substituirImagem(atual.getImagem(), imagem, pastaProdutos);
+			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaProdutos);
 
 			atual.setImagem(imagemAtualizada);
 

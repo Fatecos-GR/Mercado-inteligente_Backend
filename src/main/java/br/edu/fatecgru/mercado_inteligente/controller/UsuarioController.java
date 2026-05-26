@@ -145,10 +145,10 @@ public class UsuarioController {
 			// atualiza usuário
 			Usuario usuario = usuarioService.atualizar(id, dto);
 
+			// substitui imagem
 			String imagemAntiga = usuario.getImagem();
 
-			// atualiza imagem
-			String imagemAtualizada = imagemService.substituirImagem(usuario.getImagem(), imagem, pastaUsuarios);
+			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaUsuarios);
 
 			usuario.setImagem(imagemAtualizada);
 
