@@ -1,5 +1,7 @@
 package br.edu.fatecgru.mercado_inteligente.model.entity;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -40,8 +42,8 @@ public class ItemCarrinho {
 	private Integer quantidade;
 
 	// Preço congelado no momento da adição
-	@Column(name = "preco_unidade", nullable = false)
-	private Double precoUnidade;
+	@Column(name = "preco_unidade", nullable = false, precision = 10, scale = 2)
+	private BigDecimal precoUnidade;
 
 	// Construtores
 	public ItemCarrinho() {
@@ -49,7 +51,7 @@ public class ItemCarrinho {
 	}
 
 	public ItemCarrinho(Long id, Carrinho carrinho, Produto produto, @NotNull @Min(1) Integer quantidade,
-			Double precoUnidade) {
+			BigDecimal precoUnidade) {
 		this.id = id;
 		this.carrinho = carrinho;
 		this.produto = produto;
@@ -90,11 +92,11 @@ public class ItemCarrinho {
 		this.quantidade = quantidade;
 	}
 
-	public Double getPrecoUnidade() {
+	public BigDecimal getPrecoUnidade() {
 		return precoUnidade;
 	}
 
-	public void setPrecoUnidade(Double precoUnidade) {
+	public void setPrecoUnidade(BigDecimal precoUnidade) {
 		this.precoUnidade = precoUnidade;
 	}
 
