@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -93,6 +94,7 @@ public class ProdutoController {
 
 	// Salvar produto
 	@PostMapping
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Produto")
 	public ResponseEntity<?> insert(@RequestPart("produto") String produtoJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
@@ -133,6 +135,7 @@ public class ProdutoController {
 
 	// Alterar produto
 	@PutMapping("/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Produto")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("produto") String produtoJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
@@ -181,6 +184,7 @@ public class ProdutoController {
 
 	// Deletar produto
 	@DeleteMapping("/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Deletar Produto")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		try {
