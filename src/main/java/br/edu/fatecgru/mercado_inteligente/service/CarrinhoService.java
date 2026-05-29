@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -177,6 +178,21 @@ public class CarrinhoService {
         Carrinho carrinho = carrinhoRepository.findByUsuarioIdAndStatus(usuarioId, StatusCarrinho.ATIVO)
                 .orElseThrow(() -> new ResourceNotFoundException("Carrinho ativo não encontrado para o usuário: " + usuarioId));
 
+        return liberarEstoqueEFecharCarrinho(carrinho, StatusCarrinho.ABANDONADO);
+    }
+
+    @Scheduled(fixedRate = 60000) // Executa a cada 1 minuto
+    @Transactional
+    public void verificarCarrinhosExpirados() {
+        LocalDateTime limite = LocalDateTime.now().minusMinutes(3);
+        List<Carrinho> carrinhosExpirados = carrinhoRepository.findAllByStatusAndAtualizadoEmBefore(StatusCarrinho.ATIVO, limite);
+        
+        for (Carrinho carrinho : carrinhosExpirados) {
+            liberarEstoqueEFecharCarrinho(carrinho, StatusCarrinho.FINALIZADO);
+        }
+    }
+
+    private Carrinho liberarEstoqueEFecharCarrinho(Carrinho carrinho, StatusCarrinho novoStatus) {
         List<ItemCarrinho> itens = carrinho.getItens();
         
         for (ItemCarrinho item : itens) {
@@ -191,7 +207,7 @@ public class CarrinhoService {
             registrarMovimentacao(item.getProduto(), item.getQuantidade(), TipoMovimentacao.LIBERACAO, Long.valueOf(carrinho.getId()));
         }
 
-        carrinho.setStatus(StatusCarrinho.ABANDONADO);
+        carrinho.setStatus(novoStatus);
         carrinho.setAtualizadoEm(LocalDateTime.now());
         return carrinhoRepository.save(carrinho);
     }

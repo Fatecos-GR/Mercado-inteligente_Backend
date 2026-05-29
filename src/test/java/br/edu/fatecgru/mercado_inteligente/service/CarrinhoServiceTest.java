@@ -4,10 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -231,5 +236,29 @@ public class CarrinhoServiceTest {
         assertEquals(10, estoque.getQuantidadeDisponivel());
         assertEquals(0, estoque.getQuantidadeReservada());
         verify(movimentacaoEstoqueRepository).save(any(MovimentacaoEstoque.class));
+    }
+
+    @Test
+    void verificarCarrinhosExpirados_Sucesso() {
+        ItemCarrinho item1 = new ItemCarrinho();
+        item1.setProduto(produto);
+        item1.setQuantidade(2);
+        item1.setCarrinho(carrinho);
+        carrinho.getItens().add(item1);
+
+        estoque.setQuantidadeReservada(2);
+        estoque.setQuantidadeDisponivel(8);
+
+        when(carrinhoRepository.findAllByStatusAndAtualizadoEmBefore(eq(StatusCarrinho.ATIVO), any(LocalDateTime.class)))
+                .thenReturn(Collections.singletonList(carrinho));
+        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
+        when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
+
+        carrinhoService.verificarCarrinhosExpirados();
+
+        assertEquals(StatusCarrinho.FINALIZADO, carrinho.getStatus());
+        assertEquals(10, estoque.getQuantidadeDisponivel());
+        assertEquals(0, estoque.getQuantidadeReservada());
+        verify(carrinhoRepository, atLeastOnce()).save(any(Carrinho.class));
     }
 }
