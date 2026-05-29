@@ -93,7 +93,7 @@ public class CarrinhoService {
             item.setCarrinho(carrinho);
             item.setProduto(produto);
             item.setQuantidade(request.quantidade());
-            item.setPrecoUnidade(produto.getPreco()); // Congelamento direto em BigDecimal
+            item.setPrecoUnidade(produto.getPreco()); // Congelamento direto
         }
         itemCarrinhoRepository.save(item);
 
@@ -101,15 +101,84 @@ public class CarrinhoService {
         carrinho.setAtualizadoEm(LocalDateTime.now());
         
         // 8. Registrar Movimentação
-        MovimentacaoEstoque movimentacao = new MovimentacaoEstoque();
-        movimentacao.setProduto(produto);
-        movimentacao.setQuantidade(request.quantidade());
-        movimentacao.setCriadoEm(LocalDateTime.now());
-        movimentacao.setTipo(TipoMovimentacao.RESERVA);
-        movimentacao.setOrigem(OrigemMovimentacao.CARRINHO);
-        movimentacao.setReferenciaId(Long.valueOf(carrinho.getId()));
-        movimentacaoEstoqueRepository.save(movimentacao);
+        registrarMovimentacao(produto, request.quantidade(), TipoMovimentacao.RESERVA, Long.valueOf(carrinho.getId()));
 
         return carrinhoRepository.save(carrinho);
+    }
+
+    @Transactional
+    public Carrinho atualizarQuantidade(Long usuarioId, ItemCarrinhoRequest request) {
+        Carrinho carrinho = carrinhoRepository.findByUsuarioIdAndStatus(usuarioId, StatusCarrinho.ATIVO)
+                .orElseThrow(() -> new ResourceNotFoundException("Carrinho ativo não encontrado para o usuário: " + usuarioId));
+
+        ItemCarrinho item = itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(carrinho.getId(), request.produtoId())
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado no carrinho"));
+
+        if (request.quantidade() <= 0) {
+            return removerItem(usuarioId, request.produtoId());
+        }
+
+        Estoque estoque = estoqueRepository.findByProdutoId(request.produtoId())
+                .orElseThrow(() -> new EstoqueInsuficienteException("Produto não possui registro de estoque"));
+
+        int diferenca = request.quantidade() - item.getQuantidade();
+
+        if (diferenca > 0) {
+            // Aumentando quantidade: Validar e reservar mais
+            if (estoque.getQuantidadeDisponivel() < diferenca) {
+                throw new EstoqueInsuficienteException("Estoque insuficiente para aumento. Disponível: " + estoque.getQuantidadeDisponivel());
+            }
+            estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() - diferenca);
+            estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() + diferenca);
+            registrarMovimentacao(item.getProduto(), diferenca, TipoMovimentacao.RESERVA, Long.valueOf(carrinho.getId()));
+        } else if (diferenca < 0) {
+            // Diminuindo quantidade: Liberar estoque
+            int valorParaLiberar = Math.abs(diferenca);
+            estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() + valorParaLiberar);
+            estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() - valorParaLiberar);
+            registrarMovimentacao(item.getProduto(), valorParaLiberar, TipoMovimentacao.LIBERACAO, Long.valueOf(carrinho.getId()));
+        }
+
+        item.setQuantidade(request.quantidade());
+        itemCarrinhoRepository.save(item);
+        estoqueRepository.save(estoque);
+
+        carrinho.setAtualizadoEm(LocalDateTime.now());
+        return carrinhoRepository.save(carrinho);
+    }
+
+    @Transactional
+    public Carrinho removerItem(Long usuarioId, Long produtoId) {
+        Carrinho carrinho = carrinhoRepository.findByUsuarioIdAndStatus(usuarioId, StatusCarrinho.ATIVO)
+                .orElseThrow(() -> new ResourceNotFoundException("Carrinho ativo não encontrado para o usuário: " + usuarioId));
+
+        ItemCarrinho item = itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(carrinho.getId(), produtoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado no carrinho"));
+
+        Estoque estoque = estoqueRepository.findByProdutoId(produtoId)
+                .orElseThrow(() -> new EstoqueInsuficienteException("Produto não possui registro de estoque"));
+
+        // Liberar toda a reserva deste item
+        estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() + item.getQuantidade());
+        estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() - item.getQuantidade());
+        estoqueRepository.save(estoque);
+
+        registrarMovimentacao(item.getProduto(), item.getQuantidade(), TipoMovimentacao.LIBERACAO, Long.valueOf(carrinho.getId()));
+
+        itemCarrinhoRepository.delete(item);
+
+        carrinho.setAtualizadoEm(LocalDateTime.now());
+        return carrinhoRepository.save(carrinho);
+    }
+
+    private void registrarMovimentacao(Produto produto, Integer quantidade, TipoMovimentacao tipo, Long referenciaId) {
+        MovimentacaoEstoque movimentacao = new MovimentacaoEstoque();
+        movimentacao.setProduto(produto);
+        movimentacao.setQuantidade(quantidade);
+        movimentacao.setCriadoEm(LocalDateTime.now());
+        movimentacao.setTipo(tipo);
+        movimentacao.setOrigem(OrigemMovimentacao.CARRINHO);
+        movimentacao.setReferenciaId(referenciaId);
+        movimentacaoEstoqueRepository.save(movimentacao);
     }
 }

@@ -143,4 +143,70 @@ public class CarrinhoServiceTest {
             carrinhoService.adicionarItem(1L, request);
         });
     }
+
+    @Test
+    void atualizarQuantidade_Sucesso_Aumentar() {
+        ItemCarrinhoRequest request = new ItemCarrinhoRequest(1L, 5);
+        ItemCarrinho itemExistente = new ItemCarrinho();
+        itemExistente.setProduto(produto);
+        itemExistente.setQuantidade(2);
+        itemExistente.setCarrinho(carrinho);
+
+        when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
+        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1, 1L)).thenReturn(Optional.of(itemExistente));
+        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
+        when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
+
+        carrinhoService.atualizarQuantidade(1L, request);
+
+        assertEquals(5, itemExistente.getQuantidade());
+        assertEquals(7, estoque.getQuantidadeDisponivel()); // 10 - (5-2) = 7
+        assertEquals(3, estoque.getQuantidadeReservada());   // 0 + (5-2) = 3
+        verify(movimentacaoEstoqueRepository).save(any(MovimentacaoEstoque.class));
+    }
+
+    @Test
+    void atualizarQuantidade_Sucesso_Diminuir() {
+        ItemCarrinhoRequest request = new ItemCarrinhoRequest(1L, 1);
+        ItemCarrinho itemExistente = new ItemCarrinho();
+        itemExistente.setProduto(produto);
+        itemExistente.setQuantidade(4);
+        itemExistente.setCarrinho(carrinho);
+        
+        estoque.setQuantidadeReservada(4);
+        estoque.setQuantidadeDisponivel(6);
+
+        when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
+        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1, 1L)).thenReturn(Optional.of(itemExistente));
+        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
+        when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
+
+        carrinhoService.atualizarQuantidade(1L, request);
+
+        assertEquals(1, itemExistente.getQuantidade());
+        assertEquals(9, estoque.getQuantidadeDisponivel()); // 6 + (4-1) = 9
+        assertEquals(1, estoque.getQuantidadeReservada());   // 4 - (4-1) = 1
+    }
+
+    @Test
+    void removerItem_Sucesso() {
+        ItemCarrinho itemExistente = new ItemCarrinho();
+        itemExistente.setProduto(produto);
+        itemExistente.setQuantidade(3);
+        itemExistente.setCarrinho(carrinho);
+
+        estoque.setQuantidadeReservada(3);
+        estoque.setQuantidadeDisponivel(7);
+
+        when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
+        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1, 1L)).thenReturn(Optional.of(itemExistente));
+        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
+        when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
+
+        carrinhoService.removerItem(1L, 1L);
+
+        assertEquals(10, estoque.getQuantidadeDisponivel());
+        assertEquals(0, estoque.getQuantidadeReservada());
+        verify(itemCarrinhoRepository).delete(itemExistente);
+    }
 }
