@@ -1,6 +1,7 @@
 package br.edu.fatecgru.mercado_inteligente.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -167,6 +168,30 @@ public class CarrinhoService {
 
         itemCarrinhoRepository.delete(item);
 
+        carrinho.setAtualizadoEm(LocalDateTime.now());
+        return carrinhoRepository.save(carrinho);
+    }
+
+    @Transactional
+    public Carrinho abandonarCarrinho(Long usuarioId) {
+        Carrinho carrinho = carrinhoRepository.findByUsuarioIdAndStatus(usuarioId, StatusCarrinho.ATIVO)
+                .orElseThrow(() -> new ResourceNotFoundException("Carrinho ativo não encontrado para o usuário: " + usuarioId));
+
+        List<ItemCarrinho> itens = carrinho.getItens();
+        
+        for (ItemCarrinho item : itens) {
+            Estoque estoque = estoqueRepository.findByProdutoId(item.getProduto().getId())
+                    .orElseThrow(() -> new EstoqueInsuficienteException("Produto não possui registro de estoque: " + item.getProduto().getId()));
+
+            // Devolver quantidade reservada para disponível
+            estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() + item.getQuantidade());
+            estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() - item.getQuantidade());
+            estoqueRepository.save(estoque);
+
+            registrarMovimentacao(item.getProduto(), item.getQuantidade(), TipoMovimentacao.LIBERACAO, Long.valueOf(carrinho.getId()));
+        }
+
+        carrinho.setStatus(StatusCarrinho.ABANDONADO);
         carrinho.setAtualizadoEm(LocalDateTime.now());
         return carrinhoRepository.save(carrinho);
     }

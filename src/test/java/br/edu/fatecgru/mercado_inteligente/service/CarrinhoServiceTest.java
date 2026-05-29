@@ -209,4 +209,27 @@ public class CarrinhoServiceTest {
         assertEquals(0, estoque.getQuantidadeReservada());
         verify(itemCarrinhoRepository).delete(itemExistente);
     }
+
+    @Test
+    void abandonarCarrinho_Sucesso() {
+        ItemCarrinho item1 = new ItemCarrinho();
+        item1.setProduto(produto);
+        item1.setQuantidade(2);
+        item1.setCarrinho(carrinho);
+        carrinho.getItens().add(item1);
+
+        estoque.setQuantidadeReservada(2);
+        estoque.setQuantidadeDisponivel(8);
+
+        when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
+        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
+        when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
+
+        Carrinho resultado = carrinhoService.abandonarCarrinho(1L);
+
+        assertEquals(StatusCarrinho.ABANDONADO, resultado.getStatus());
+        assertEquals(10, estoque.getQuantidadeDisponivel());
+        assertEquals(0, estoque.getQuantidadeReservada());
+        verify(movimentacaoEstoqueRepository).save(any(MovimentacaoEstoque.class));
+    }
 }

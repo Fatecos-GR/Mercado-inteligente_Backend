@@ -70,4 +70,16 @@ public class CarrinhoController {
         Carrinho carrinho = carrinhoService.removerItem(usuarioId, produtoId);
         return ResponseEntity.ok(carrinho);
     }
+
+    @Operation(summary = "Abandona o carrinho ativo", 
+               description = "Muda o status do carrinho ativo do usuário para ABANDONADO e devolve todos os itens reservados para o estoque disponível.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Carrinho abandonado com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Carrinho ativo não encontrado")
+    })
+    @DeleteMapping("/{usuarioId}")
+    public ResponseEntity<Carrinho> abandonarCarrinho(@PathVariable Long usuarioId) {
+        Carrinho carrinho = carrinhoService.abandonarCarrinho(usuarioId);
+        return ResponseEntity.ok(carrinho);
+    }
 }
