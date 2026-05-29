@@ -3,7 +3,9 @@ package br.edu.fatecgru.mercado_inteligente.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,7 +19,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
+import br.edu.fatecgru.mercado_inteligente.repository.CategoriaRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.FornecedorRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.MarcaRepository;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +38,15 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api/produtos")
 @Tag(name = "Produtos", description = "Endpoints relacionados aos Produtos")
 public class ProdutoController {
+
+	@Autowired
+	private CategoriaRepository categoriaRepository;
+
+	@Autowired
+	private MarcaRepository marcaRepository;
+
+	@Autowired
+	private FornecedorRepository fornecedorRepository;
 
 	@Autowired
 	private ProdutoService produtoService;
@@ -71,26 +89,44 @@ public class ProdutoController {
 		return produtoService.getByBrandId(id);
 	}
 
-	// Pasta dos produtos para salvar
+	// Pasta dos produtos para salvar as imagens
 	String pastaProdutos = "products/";
 
 	// Salvar produto
 	@PostMapping
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Produto")
 	public ResponseEntity<?> insert(@RequestPart("produto") String produtoJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
 
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			Produto produto = mapper.readValue(produtoJson, Produto.class);
+			ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
+
+			Produto produto = new Produto();
+
+			produto.setNome(dto.getNome());
+			produto.setDescricao(dto.getDescricao());
+			produto.setPreco(dto.getPreco());
+			produto.setValidade(dto.getValidade());
+
+			Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+					.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+			Marca marca = marcaRepository.findById(dto.getMarcaId())
+					.orElseThrow(() -> new RuntimeException("Marca não encontrada"));
+
+			Fornecedor fornecedor = fornecedorRepository.findById(dto.getFornecedorId())
+					.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+
+			produto.setCategoria(categoria);
+			produto.setMarca(marca);
+			produto.setFornecedor(fornecedor);
 
 			String nomeImagem = imagemService.salvarImagem(imagem, pastaProdutos);
 
-			if (nomeImagem != null) {
-				produto.setImagem(nomeImagem);
-			}
-
-			return ResponseEntity.ok(produtoService.saveProduto(produto));
+			produto.setImagem(nomeImagem);
+			return ResponseEntity.status(HttpStatus.CREATED).body(produtoService.saveProduto(produto));
 
 		} catch (Exception e) {
 			return ResponseEntity.status(500).body(e.getMessage());
@@ -99,13 +135,14 @@ public class ProdutoController {
 
 	// Alterar produto
 	@PutMapping("/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Produto")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("produto") String produtoJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
 
 		try {
 			ObjectMapper mapper = new ObjectMapper();
-			Produto novo = mapper.readValue(produtoJson, Produto.class);
+			ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
 
 			Produto atual = produtoService.getById(id);
 
@@ -113,15 +150,28 @@ public class ProdutoController {
 				return ResponseEntity.notFound().build();
 			}
 
-			atual.setNome(novo.getNome());
-			atual.setDescricao(novo.getDescricao());
-			atual.setPreco(novo.getPreco());
-			atual.setValidade(novo.getValidade());
-			atual.setMarca(novo.getMarca());
-			atual.setCategoria(novo.getCategoria());
-			atual.setFornecedor(novo.getFornecedor());
+			atual.setNome(dto.getNome());
+			atual.setDescricao(dto.getDescricao());
+			atual.setPreco(dto.getPreco());
+			atual.setValidade(dto.getValidade());
 
-			String imagemAtualizada = imagemService.substituirImagem(atual.getImagem(), imagem, pastaProdutos);
+			Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+					.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+
+			Marca marca = marcaRepository.findById(dto.getMarcaId())
+					.orElseThrow(() -> new RuntimeException("Marca não encontrada"));
+
+			Fornecedor fornecedor = fornecedorRepository.findById(dto.getFornecedorId())
+					.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+
+			atual.setCategoria(categoria);
+			atual.setMarca(marca);
+			atual.setFornecedor(fornecedor);
+
+			// substitui imagem
+			String imagemAntiga = atual.getImagem();
+
+			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaProdutos);
 
 			atual.setImagem(imagemAtualizada);
 
@@ -134,10 +184,15 @@ public class ProdutoController {
 
 	// Deletar produto
 	@DeleteMapping("/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Deletar Produto")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		try {
 			Produto produto = produtoService.getById(id);
+
+			if (produto == null) {
+				return ResponseEntity.notFound().build();
+			}
 
 			if (produto.getImagem() != null) {
 				imagemService.deletarImagem(produto.getImagem(), pastaProdutos);

@@ -1,19 +1,31 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 
 public class EnderecoDTO {
 
 	// Para fazer as validações do endereço
+	@NotBlank(message = "CEP é obrigatório")
 	@Pattern(regexp = "^\\d{5}-\\d{3}$", message = "CEP inválido")
 	private String cep;
 
-	private String logradouro;
-	private String bairro;
+	@NotBlank(message = "Rua é obrigatória")
+	private String rua;
+
+	@NotBlank(message = "Número é obrigatório")
 	private String numero;
-	private String estado;
-	private String cidade;
+
 	private String complemento;
+
+	@NotBlank(message = "Bairro é obrigatório")
+	private String bairro;
+
+	@NotBlank(message = "Cidade é obrigatória")
+	private String cidade;
+
+	@NotBlank(message = "Estado é obrigatório")
+	private String estado;
 
 	// Getter e Setters
 	public String getCep() {
@@ -24,12 +36,12 @@ public class EnderecoDTO {
 		this.cep = cep;
 	}
 
-	public String getLogradouro() {
-		return logradouro;
+	public String getRua() {
+		return rua;
 	}
 
-	public void setLogradouro(String logradouro) {
-		this.logradouro = logradouro;
+	public void setRua(String rua) {
+		this.rua = rua;
 	}
 
 	public String getBairro() {
