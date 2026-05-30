@@ -10,6 +10,6 @@ import jakarta.persistence.LockModeType;
 
 public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
     
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    Optional<Estoque> findByProdutoId(Long produtoId);
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    java.util.Optional<Estoque> findByProdutoId(Long produtoId);
 }
