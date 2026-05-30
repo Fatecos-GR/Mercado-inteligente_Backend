@@ -29,10 +29,12 @@ public class Carrinho {
 	// Um usuário pode ter vários carrinhos (mas apenas um estará ativo)
 	@ManyToOne
 	@JoinColumn(name = "usuario_id", nullable = false)
+	@com.fasterxml.jackson.annotation.JsonIgnore
 	private Usuario usuario;
 
 	// Um carrinho possui vários itens
 	@OneToMany(mappedBy = "carrinho", cascade = CascadeType.ALL)
+	@com.fasterxml.jackson.annotation.JsonManagedReference
 	private List<ItemCarrinho> itens = new ArrayList<>();
 
 	@Column(name = "criado_em", nullable = false)

@@ -30,6 +30,7 @@ public class ItemCarrinho {
 	// Muitos itens pertencem a um carrinho
 	@ManyToOne
 	@JoinColumn(name = "carrinho_id", nullable = false)
+	@com.fasterxml.jackson.annotation.JsonBackReference
 	private Carrinho carrinho;
 
 	// Muitos itens podem apontar para um produto
