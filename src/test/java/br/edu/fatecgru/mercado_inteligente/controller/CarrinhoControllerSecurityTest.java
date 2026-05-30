@@ -68,6 +68,15 @@ public class CarrinhoControllerSecurityTest {
     }
 
     @Test
+    void devePermitirObterCarrinhoAtivoComUsuarioAutenticado() throws Exception {
+        when(carrinhoService.obterCarrinhoAtivo(anyLong())).thenReturn(new Carrinho());
+
+        mockMvc.perform(get("/api/carrinhos")
+                .with(user(usuario)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
     void devePermitirAdicionarItemComUsuarioAutenticado() throws Exception {
         when(carrinhoService.adicionarItem(anyLong(), any(ItemCarrinhoRequest.class))).thenReturn(new Carrinho());
 

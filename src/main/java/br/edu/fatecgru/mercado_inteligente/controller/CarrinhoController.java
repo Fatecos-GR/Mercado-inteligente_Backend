@@ -31,6 +31,19 @@ public class CarrinhoController {
     @Autowired
     private CarrinhoService carrinhoService;
 
+    @Operation(summary = "Obtém o carrinho ativo do usuário", 
+               description = "Retorna o carrinho atual com status ATIVO e todos os seus itens. Se o carrinho expirou ou não existe, retorna 404.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Carrinho encontrado com sucesso"),
+        @ApiResponse(responseCode = "404", description = "Nenhum carrinho ativo encontrado"),
+        @ApiResponse(responseCode = "401", description = "Token inválido ou não fornecido")
+    })
+    @GetMapping
+    public ResponseEntity<Carrinho> obterCarrinhoAtivo(@AuthenticationPrincipal Usuario usuario) {
+        Carrinho carrinho = carrinhoService.obterCarrinhoAtivo(usuario.getId());
+        return ResponseEntity.ok(carrinho);
+    }
+
     @Operation(summary = "Adiciona um item ao carrinho", 
                description = "Adiciona um produto ao carrinho ativo do usuário autenticado. Se o produto já existir, a quantidade é somada. O estoque é reservado imediatamente.")
     @ApiResponses(value = {

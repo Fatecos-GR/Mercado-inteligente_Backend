@@ -48,6 +48,12 @@ public class CarrinhoService {
     @Autowired
     private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
+    @Transactional(readOnly = true)
+    public Carrinho obterCarrinhoAtivo(Long usuarioId) {
+        return carrinhoRepository.findByUsuarioIdAndStatus(usuarioId, StatusCarrinho.ATIVO)
+                .orElseThrow(() -> new ResourceNotFoundException("Nenhum carrinho ativo encontrado para o usuário."));
+    }
+
     @Transactional
     public Carrinho adicionarItem(Long usuarioId, ItemCarrinhoRequest request) {
         // 1. Buscar Usuário (Temporário conforme plano)
