@@ -65,7 +65,7 @@ public class CarrinhoControllerSecurityTest {
         usuario.setSenha("123456");
 
         carrinho = new Carrinho();
-        carrinho.setId(1);
+        carrinho.setId(1L);
         carrinho.setUsuario(usuario);
         carrinho.setStatus(StatusCarrinho.ATIVO);
         carrinho.setCriadoEm(LocalDateTime.now());

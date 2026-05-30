@@ -79,7 +79,7 @@ public class CarrinhoServiceTest {
         estoque.setQuantidadeReservada(0);
 
         carrinho = new Carrinho();
-        carrinho.setId(1);
+        carrinho.setId(1L);
         carrinho.setUsuario(usuario);
         carrinho.setStatus(StatusCarrinho.ATIVO);
     }
@@ -92,7 +92,7 @@ public class CarrinhoServiceTest {
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produto));
         when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
-        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1, 1L)).thenReturn(Optional.empty());
+        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1L, 1L)).thenReturn(Optional.empty());
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
         Carrinho resultado = carrinhoService.adicionarItem(1L, request);
@@ -115,7 +115,7 @@ public class CarrinhoServiceTest {
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produto));
         when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
-        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1, 1L)).thenReturn(Optional.of(itemExistente));
+        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1L, 1L)).thenReturn(Optional.of(itemExistente));
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
         carrinhoService.adicionarItem(1L, request);
@@ -158,7 +158,7 @@ public class CarrinhoServiceTest {
         itemExistente.setCarrinho(carrinho);
 
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
-        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1, 1L)).thenReturn(Optional.of(itemExistente));
+        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1L, 1L)).thenReturn(Optional.of(itemExistente));
         when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
@@ -182,7 +182,7 @@ public class CarrinhoServiceTest {
         estoque.setQuantidadeDisponivel(6);
 
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
-        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1, 1L)).thenReturn(Optional.of(itemExistente));
+        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1L, 1L)).thenReturn(Optional.of(itemExistente));
         when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
@@ -204,7 +204,7 @@ public class CarrinhoServiceTest {
         estoque.setQuantidadeDisponivel(7);
 
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
-        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1, 1L)).thenReturn(Optional.of(itemExistente));
+        when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1L, 1L)).thenReturn(Optional.of(itemExistente));
         when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 

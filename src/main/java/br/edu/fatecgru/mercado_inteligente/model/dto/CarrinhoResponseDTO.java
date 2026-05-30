@@ -7,7 +7,7 @@ import java.util.List;
 import br.edu.fatecgru.mercado_inteligente.model.entity.StatusCarrinho;
 
 public record CarrinhoResponseDTO(
-    Integer id,
+    Long id,
     List<ItemCarrinhoResponseDTO> itens,
     BigDecimal valorTotal,
     LocalDateTime criadoEm,

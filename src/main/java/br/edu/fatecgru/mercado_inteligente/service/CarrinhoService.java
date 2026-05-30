@@ -109,7 +109,7 @@ public class CarrinhoService {
         carrinho.setAtualizadoEm(LocalDateTime.now());
         
         // 8. Registrar Movimentação
-        registrarMovimentacao(produto, request.quantidade(), TipoMovimentacao.RESERVA, Long.valueOf(carrinho.getId()));
+        registrarMovimentacao(estoque, request.quantidade(), TipoMovimentacao.RESERVA, carrinho.getId());
 
         return carrinhoRepository.save(carrinho);
     }
@@ -138,13 +138,13 @@ public class CarrinhoService {
             }
             estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() - diferenca);
             estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() + diferenca);
-            registrarMovimentacao(item.getProduto(), diferenca, TipoMovimentacao.RESERVA, Long.valueOf(carrinho.getId()));
+            registrarMovimentacao(estoque, diferenca, TipoMovimentacao.RESERVA, carrinho.getId());
         } else if (diferenca < 0) {
             // Diminuindo quantidade: Liberar estoque
             int valorParaLiberar = Math.abs(diferenca);
             estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() + valorParaLiberar);
             estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() - valorParaLiberar);
-            registrarMovimentacao(item.getProduto(), valorParaLiberar, TipoMovimentacao.LIBERACAO, Long.valueOf(carrinho.getId()));
+            registrarMovimentacao(estoque, valorParaLiberar, TipoMovimentacao.LIBERACAO, carrinho.getId());
         }
 
         item.setQuantidade(request.quantidade());
@@ -171,7 +171,7 @@ public class CarrinhoService {
         estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() - item.getQuantidade());
         estoqueRepository.save(estoque);
 
-        registrarMovimentacao(item.getProduto(), item.getQuantidade(), TipoMovimentacao.LIBERACAO, Long.valueOf(carrinho.getId()));
+        registrarMovimentacao(estoque, item.getQuantidade(), TipoMovimentacao.LIBERACAO, carrinho.getId());
 
         itemCarrinhoRepository.delete(item);
 
@@ -210,7 +210,7 @@ public class CarrinhoService {
             estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() - item.getQuantidade());
             estoqueRepository.save(estoque);
 
-            registrarMovimentacao(item.getProduto(), item.getQuantidade(), TipoMovimentacao.LIBERACAO, Long.valueOf(carrinho.getId()));
+            registrarMovimentacao(estoque, item.getQuantidade(), TipoMovimentacao.LIBERACAO, carrinho.getId());
         }
 
         carrinho.setStatus(novoStatus);
@@ -218,9 +218,9 @@ public class CarrinhoService {
         return carrinhoRepository.save(carrinho);
     }
 
-    private void registrarMovimentacao(Produto produto, Integer quantidade, TipoMovimentacao tipo, Long referenciaId) {
+    private void registrarMovimentacao(Estoque estoque, Integer quantidade, TipoMovimentacao tipo, Long referenciaId) {
         MovimentacaoEstoque movimentacao = new MovimentacaoEstoque();
-        movimentacao.setProduto(produto);
+        movimentacao.setEstoque(estoque);
         movimentacao.setQuantidade(quantidade);
         movimentacao.setCriadoEm(LocalDateTime.now());
         movimentacao.setTipo(tipo);

@@ -24,7 +24,7 @@ public class Carrinho {
 	// Atributos
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+	private Long id;
 
 	// Um usuário pode ter vários carrinhos (mas apenas um estará ativo)
 	@ManyToOne
@@ -53,7 +53,7 @@ public class Carrinho {
 
 	}
 
-	public Carrinho(Integer id, Usuario usuario, LocalDateTime criadoEm, LocalDateTime atualizadoEm,
+	public Carrinho(Long id, Usuario usuario, LocalDateTime criadoEm, LocalDateTime atualizadoEm,
 			StatusCarrinho status) {
 		this.id = id;
 		this.usuario = usuario;
@@ -63,11 +63,11 @@ public class Carrinho {
 	}
 
 	// Getters e Setters
-	public Integer getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(Integer id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

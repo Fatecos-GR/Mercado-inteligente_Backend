@@ -10,8 +10,8 @@ public class EnderecoDTO {
 	@Pattern(regexp = "^\\d{5}-\\d{3}$", message = "CEP inválido")
 	private String cep;
 
-	@NotBlank(message = "Rua é obrigatória")
-	private String rua;
+	@NotBlank(message = "Logradouro é obrigatório")
+	private String logradouro;
 
 	@NotBlank(message = "Número é obrigatório")
 	private String numero;
@@ -36,12 +36,12 @@ public class EnderecoDTO {
 		this.cep = cep;
 	}
 
-	public String getRua() {
-		return rua;
+	public String getLogradouro() {
+		return logradouro;
 	}
 
-	public void setRua(String rua) {
-		this.rua = rua;
+	public void setLogradouro(String logradouro) {
+		this.logradouro = logradouro;
 	}
 
 	public String getBairro() {
