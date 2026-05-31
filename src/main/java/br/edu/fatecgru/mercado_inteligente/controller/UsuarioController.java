@@ -9,9 +9,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -19,13 +21,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.AlterarSenhaDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioAtualizacaoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -82,27 +87,13 @@ public class UsuarioController {
 		try {
 
 			ObjectMapper mapper = new ObjectMapper();
-			UsuarioDTO dto = mapper.readValue(usuarioJson, UsuarioDTO.class);
+			UsuarioCadastroDTO dto = mapper.readValue(usuarioJson, UsuarioCadastroDTO.class);
 
 			// cadastra usuário
-			Usuario usuario = usuarioService.cadastrar(dto);
-
-			// salva imagem
-			String nomeImagem = imagemService.salvarImagem(imagem, pastaUsuarios);
-
-			// adiciona imagem no usuário
-			if (nomeImagem != null) {
-
-				usuario.setImagem(nomeImagem);
-
-				usuarioService.save(usuario);
-			}
+			Usuario usuario = usuarioService.cadastrar(dto, imagem);
 
 			// response
-			UsuarioResponseDTO response = new UsuarioResponseDTO(usuario.getId(), usuario.getNome(),
-					usuario.getSobrenome(), usuario.getTelefone(), usuario.getEmail());
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponseDTO.fromEntity(usuario));
 
 		} catch (Exception e) {
 
@@ -121,7 +112,7 @@ public class UsuarioController {
 
 			ObjectMapper mapper = new ObjectMapper();
 
-			UsuarioDTO dto = mapper.readValue(usuarioJson, UsuarioDTO.class);
+			UsuarioAtualizacaoDTO dto = mapper.readValue(usuarioJson, UsuarioAtualizacaoDTO.class);
 
 			// atualiza usuário
 			Usuario usuario = usuarioService.atualizar(id, dto);
@@ -136,10 +127,7 @@ public class UsuarioController {
 			usuarioService.save(usuario);
 
 			// response
-			UsuarioResponseDTO response = new UsuarioResponseDTO(usuario.getId(), usuario.getNome(),
-					usuario.getSobrenome(), usuario.getTelefone(), usuario.getEmail());
-
-			return ResponseEntity.ok(response);
+			return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
 
 		} catch (Exception e) {
 
@@ -152,24 +140,28 @@ public class UsuarioController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Excluir usuário (Apenas ADMIN)")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
+
 		try {
-			Usuario usuario = usuarioService.getById(id);
 
-			if (usuario == null) {
-				return ResponseEntity.notFound().build();
-			}
+			usuarioService.deletar(id);
 
-			if (usuario.getImagem() != null) {
-				imagemService.deletarImagem(usuario.getImagem(), pastaUsuarios);
-			}
-
-			usuarioService.deleteUsuario(id);
-
-			return ResponseEntity.noContent().build(); // 204
+			return ResponseEntity.noContent().build();
 
 		} catch (Exception e) {
+
 			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
 		}
+	}
+
+	// Método para alterar senha usuário / funcionário
+	@PatchMapping("/{id}/senha")
+	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+	@Operation(summary = "Alterar senha")
+	public ResponseEntity<?> alterarSenha(@PathVariable Long id, @Valid @RequestBody AlterarSenhaDTO dto) {
+
+		usuarioService.alterarSenha(id, dto);
+
+		return ResponseEntity.ok("Senha alterada com sucesso");
 	}
 
 }

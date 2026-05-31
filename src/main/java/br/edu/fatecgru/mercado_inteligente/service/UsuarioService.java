@@ -5,8 +5,11 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.AlterarSenhaDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioAtualizacaoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
@@ -17,6 +20,9 @@ public class UsuarioService {
 	// Método para listar todos
 	@Autowired
 	private UsuarioRepository usuarioRepository;
+
+	@Autowired
+	private ImagemService imagemService;
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
@@ -46,7 +52,7 @@ public class UsuarioService {
 		return usuarioRepository.save(usuario);
 	}
 
-	public Usuario cadastrar(UsuarioDTO dto) {
+	public Usuario cadastrar(UsuarioCadastroDTO dto, MultipartFile imagem) throws Exception {
 
 		if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
 			throw new RuntimeException("Email já cadastrado");
@@ -62,11 +68,17 @@ public class UsuarioService {
 		// senha criptografada
 		usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
 
+		String nomeImagem = imagemService.salvarImagem(imagem, "users/");
+
+		if (nomeImagem != null) {
+			usuario.setImagem(nomeImagem);
+		}
+
 		return usuarioRepository.save(usuario);
 	}
 
 	// Método para atualizar usuário
-	public Usuario atualizar(Long id, UsuarioDTO dto) {
+	public Usuario atualizar(Long id, UsuarioAtualizacaoDTO dto) {
 
 		Usuario usuario = usuarioRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -76,16 +88,34 @@ public class UsuarioService {
 		usuario.setTelefone(dto.getTelefone());
 		usuario.setEmail(dto.getEmail());
 
-		if (dto.getSenha() != null && !dto.getSenha().isBlank()) {
-			usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
-		}
-
 		return usuarioRepository.save(usuario);
 	}
 
 	// Método para excluir usuário
-	public void deleteUsuario(Long id) {
-		usuarioRepository.deleteById(id);
+	public void deletar(Long id) {
+		Usuario usuario = usuarioRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+		if (usuario.getImagem() != null) {
+			imagemService.deletarImagem(usuario.getImagem(), "users/");
+		}
+
+		usuarioRepository.delete(usuario);
+	}
+
+	// Método para alterar senha
+	public void alterarSenha(Long id, AlterarSenhaDTO dto) {
+
+		if (!dto.getSenha().equals(dto.getConfirmarSenha())) {
+			throw new RuntimeException("As senhas não coincidem");
+		}
+
+		Usuario usuario = usuarioRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+		usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
+
+		usuarioRepository.save(usuario);
 	}
 
 }

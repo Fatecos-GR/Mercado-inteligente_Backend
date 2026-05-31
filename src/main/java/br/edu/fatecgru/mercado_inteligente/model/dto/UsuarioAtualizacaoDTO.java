@@ -1,10 +1,10 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
-public class UsuarioDTO {
+public class UsuarioAtualizacaoDTO {
 
 	@NotBlank(message = "Nome é obrigatório")
 	private String nome;
@@ -19,12 +19,14 @@ public class UsuarioDTO {
 	@Email(message = "Email inválido")
 	private String email;
 
-	@NotBlank(message = "Senha é obrigatória")
-	@Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
-	private String senha;
+	private String imagem;
+
+	public static UsuarioResponseDTO fromEntity(Usuario usuario) {
+		return new UsuarioResponseDTO(usuario.getId(), usuario.getNome(), usuario.getSobrenome(), usuario.getTelefone(),
+				usuario.getEmail());
+	}
 
 	// Getters e Setters
-
 	public String getNome() {
 		return nome;
 	}
@@ -57,11 +59,12 @@ public class UsuarioDTO {
 		this.email = email;
 	}
 
-	public String getSenha() {
-		return senha;
+	public String getImagem() {
+		return imagem;
 	}
 
-	public void setSenha(String senha) {
-		this.senha = senha;
+	public void setImagem(String imagem) {
+		this.imagem = imagem;
 	}
+
 }

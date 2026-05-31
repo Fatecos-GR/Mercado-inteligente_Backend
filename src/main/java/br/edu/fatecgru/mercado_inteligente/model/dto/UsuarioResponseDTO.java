@@ -1,5 +1,7 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
+
 public class UsuarioResponseDTO {
 
 	private Long id;
@@ -19,6 +21,11 @@ public class UsuarioResponseDTO {
 		this.sobrenome = sobrenome;
 		this.telefone = telefone;
 		this.email = email;
+	}
+
+	public static UsuarioResponseDTO fromEntity(Usuario usuario) {
+		return new UsuarioResponseDTO(usuario.getId(), usuario.getNome(), usuario.getSobrenome(), usuario.getTelefone(),
+				usuario.getEmail());
 	}
 
 	// Getters e Setters
