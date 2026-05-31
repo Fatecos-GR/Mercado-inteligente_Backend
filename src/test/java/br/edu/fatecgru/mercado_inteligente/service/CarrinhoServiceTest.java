@@ -22,20 +22,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import br.edu.fatecgru.mercado_inteligente.exception.EstoqueInsuficienteException;
 import br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ItemCarrinhoRequest;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Carrinho;
-import br.edu.fatecgru.mercado_inteligente.model.entity.Estoque;
 import br.edu.fatecgru.mercado_inteligente.model.entity.ItemCarrinho;
-import br.edu.fatecgru.mercado_inteligente.model.entity.MovimentacaoEstoque;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
 import br.edu.fatecgru.mercado_inteligente.model.entity.StatusCarrinho;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.repository.CarrinhoRepository;
-import br.edu.fatecgru.mercado_inteligente.repository.EstoqueRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.ItemCarrinhoRepository;
-import br.edu.fatecgru.mercado_inteligente.repository.MovimentacaoEstoqueRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 
@@ -52,15 +47,12 @@ public class CarrinhoServiceTest {
     @Mock
     private ProdutoRepository produtoRepository;
     @Mock
-    private EstoqueRepository estoqueRepository;
+    private EstoqueService estoqueService;
     @Mock
     private UsuarioRepository usuarioRepository;
-    @Mock
-    private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
     private Usuario usuario;
     private Produto produto;
-    private Estoque estoque;
     private Carrinho carrinho;
 
     @BeforeEach
@@ -72,11 +64,6 @@ public class CarrinhoServiceTest {
         produto.setId(1L);
         produto.setPreco(new BigDecimal("10.0"));
         produto.setNome("Produto Teste");
-
-        estoque = new Estoque();
-        estoque.setProduto(produto);
-        estoque.setQuantidadeDisponivel(10);
-        estoque.setQuantidadeReservada(0);
 
         carrinho = new Carrinho();
         carrinho.setId(1L);
@@ -91,17 +78,14 @@ public class CarrinhoServiceTest {
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produto));
-        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
         when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1L, 1L)).thenReturn(Optional.empty());
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
         Carrinho resultado = carrinhoService.adicionarItem(1L, request);
 
         assertNotNull(resultado);
-        assertEquals(8, estoque.getQuantidadeDisponivel());
-        assertEquals(2, estoque.getQuantidadeReservada());
+        verify(estoqueService).reservarEstoqueParaCarrinho(1L, 2, 1L);
         verify(itemCarrinhoRepository).save(any(ItemCarrinho.class));
-        verify(movimentacaoEstoqueRepository).save(any(MovimentacaoEstoque.class));
     }
 
     @Test
@@ -114,29 +98,13 @@ public class CarrinhoServiceTest {
         when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produto));
-        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
         when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1L, 1L)).thenReturn(Optional.of(itemExistente));
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
         carrinhoService.adicionarItem(1L, request);
 
         assertEquals(5, itemExistente.getQuantidade());
-        assertEquals(7, estoque.getQuantidadeDisponivel());
-        assertEquals(3, estoque.getQuantidadeReservada());
-    }
-
-    @Test
-    void adicionarItem_Erro_EstoqueInsuficiente() {
-        ItemCarrinhoRequest request = new ItemCarrinhoRequest(1L, 15);
-
-        when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuario));
-        when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
-        when(produtoRepository.findById(1L)).thenReturn(Optional.of(produto));
-        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
-
-        assertThrows(EstoqueInsuficienteException.class, () -> {
-            carrinhoService.adicionarItem(1L, request);
-        });
+        verify(estoqueService).reservarEstoqueParaCarrinho(1L, 3, 1L);
     }
 
     @Test
@@ -159,15 +127,12 @@ public class CarrinhoServiceTest {
 
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
         when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1L, 1L)).thenReturn(Optional.of(itemExistente));
-        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
         carrinhoService.atualizarQuantidade(1L, request);
 
         assertEquals(5, itemExistente.getQuantidade());
-        assertEquals(7, estoque.getQuantidadeDisponivel()); // 10 - (5-2) = 7
-        assertEquals(3, estoque.getQuantidadeReservada());   // 0 + (5-2) = 3
-        verify(movimentacaoEstoqueRepository).save(any(MovimentacaoEstoque.class));
+        verify(estoqueService).reservarEstoqueParaCarrinho(1L, 3, 1L);
     }
 
     @Test
@@ -178,19 +143,14 @@ public class CarrinhoServiceTest {
         itemExistente.setQuantidade(4);
         itemExistente.setCarrinho(carrinho);
         
-        estoque.setQuantidadeReservada(4);
-        estoque.setQuantidadeDisponivel(6);
-
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
         when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1L, 1L)).thenReturn(Optional.of(itemExistente));
-        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
         carrinhoService.atualizarQuantidade(1L, request);
 
         assertEquals(1, itemExistente.getQuantidade());
-        assertEquals(9, estoque.getQuantidadeDisponivel()); // 6 + (4-1) = 9
-        assertEquals(1, estoque.getQuantidadeReservada());   // 4 - (4-1) = 1
+        verify(estoqueService).liberarEstoqueDeCarrinho(1L, 3, 1L);
     }
 
     @Test
@@ -200,18 +160,13 @@ public class CarrinhoServiceTest {
         itemExistente.setQuantidade(3);
         itemExistente.setCarrinho(carrinho);
 
-        estoque.setQuantidadeReservada(3);
-        estoque.setQuantidadeDisponivel(7);
-
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
         when(itemCarrinhoRepository.findByCarrinhoIdAndProdutoId(1L, 1L)).thenReturn(Optional.of(itemExistente));
-        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
         carrinhoService.removerItem(1L, 1L);
 
-        assertEquals(10, estoque.getQuantidadeDisponivel());
-        assertEquals(0, estoque.getQuantidadeReservada());
+        verify(estoqueService).liberarEstoqueDeCarrinho(1L, 3, 1L);
         verify(itemCarrinhoRepository).delete(itemExistente);
     }
 
@@ -223,19 +178,13 @@ public class CarrinhoServiceTest {
         item1.setCarrinho(carrinho);
         carrinho.getItens().add(item1);
 
-        estoque.setQuantidadeReservada(2);
-        estoque.setQuantidadeDisponivel(8);
-
         when(carrinhoRepository.findByUsuarioIdAndStatus(1L, StatusCarrinho.ATIVO)).thenReturn(Optional.of(carrinho));
-        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
         Carrinho resultado = carrinhoService.abandonarCarrinho(1L);
 
         assertEquals(StatusCarrinho.ABANDONADO, resultado.getStatus());
-        assertEquals(10, estoque.getQuantidadeDisponivel());
-        assertEquals(0, estoque.getQuantidadeReservada());
-        verify(movimentacaoEstoqueRepository).save(any(MovimentacaoEstoque.class));
+        verify(estoqueService).liberarEstoqueDeCarrinho(1L, 2, 1L);
     }
 
     @Test
@@ -246,19 +195,14 @@ public class CarrinhoServiceTest {
         item1.setCarrinho(carrinho);
         carrinho.getItens().add(item1);
 
-        estoque.setQuantidadeReservada(2);
-        estoque.setQuantidadeDisponivel(8);
-
         when(carrinhoRepository.findAllByStatusAndAtualizadoEmBefore(eq(StatusCarrinho.ATIVO), any(LocalDateTime.class)))
                 .thenReturn(Collections.singletonList(carrinho));
-        when(estoqueRepository.findByProdutoId(1L)).thenReturn(Optional.of(estoque));
         when(carrinhoRepository.save(any(Carrinho.class))).thenReturn(carrinho);
 
         carrinhoService.verificarCarrinhosExpirados();
 
         assertEquals(StatusCarrinho.FINALIZADO, carrinho.getStatus());
-        assertEquals(10, estoque.getQuantidadeDisponivel());
-        assertEquals(0, estoque.getQuantidadeReservada());
+        verify(estoqueService).liberarEstoqueDeCarrinho(1L, 2, 1L);
         verify(carrinhoRepository, atLeastOnce()).save(any(Carrinho.class));
     }
 }
