@@ -1,5 +1,8 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
+
 public class FornecedorResponseDTO {
 
 	private Long id;
@@ -17,6 +20,11 @@ public class FornecedorResponseDTO {
 		this.nome = nome;
 		this.imagem = imagem;
 		this.endereco = endereco;
+	}
+
+	public static FornecedorResponseDTO fromEntity(Fornecedor fornecedor) {
+		return new FornecedorResponseDTO(fornecedor.getId(), fornecedor.getNome(), fornecedor.getImagem(),
+				EnderecoMapper.toDTO(fornecedor.getEndereco()));
 	}
 
 	// Getters e Setters

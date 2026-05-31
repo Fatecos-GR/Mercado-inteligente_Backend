@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FornecedorDTO;
@@ -17,6 +18,9 @@ public class FornecedorService {
 	// Método para listar todos
 	@Autowired
 	private FornecedorRepository fornecedorRepository;
+
+	@Autowired
+	private ImagemService imagemService;
 
 	public List<Fornecedor> listarTodos() {
 		return fornecedorRepository.findAll();
@@ -38,7 +42,7 @@ public class FornecedorService {
 	}
 
 	// cadastrar
-	public Fornecedor cadastrar(FornecedorDTO dto) {
+	public Fornecedor cadastrar(FornecedorDTO dto, MultipartFile imagem) throws Exception {
 
 		Fornecedor fornecedor = new Fornecedor();
 
@@ -48,11 +52,18 @@ public class FornecedorService {
 
 		fornecedor.setEndereco(endereco);
 
+		String nomeImagem = imagemService.salvarImagem(imagem, "suppliers/");
+
+		if (nomeImagem != null) {
+			fornecedor.setImagem(nomeImagem);
+		}
+
 		return fornecedorRepository.save(fornecedor);
+
 	}
 
 	// atualizar
-	public Fornecedor atualizar(Long id, FornecedorDTO dto) {
+	public Fornecedor atualizar(Long id, FornecedorDTO dto, MultipartFile imagem) throws Exception {
 
 		Fornecedor fornecedor = fornecedorRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
@@ -63,12 +74,27 @@ public class FornecedorService {
 
 		fornecedor.setEndereco(endereco);
 
+		String imagemAtualizada = imagemService.substituirImagem(fornecedor.getImagem(), imagem, "suppliers/");
+
+		fornecedor.setImagem(imagemAtualizada);
+
 		return fornecedorRepository.save(fornecedor);
+
 	}
 
 	// deletar
 	public void deletar(Long id) {
-		fornecedorRepository.deleteById(id);
+
+		Fornecedor fornecedor = fornecedorRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+
+		if (fornecedor.getImagem() != null) {
+
+			imagemService.deletarImagem(fornecedor.getImagem(), "suppliers/");
+		}
+
+		fornecedorRepository.delete(fornecedor);
+
 	}
 
 	// método auxiliar

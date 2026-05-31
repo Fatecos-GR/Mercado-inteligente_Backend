@@ -79,24 +79,9 @@ public class FornecedorController {
 			FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
 
 			// cadastra fornecedor
-			Fornecedor fornecedor = fornecedorService.cadastrar(dto);
+			Fornecedor fornecedor = fornecedorService.cadastrar(dto, imagem);
 
-			// salva imagem
-			String nomeImagem = imagemService.salvarImagem(imagem, pastaFornecedores);
-
-			// adiciona imagem
-			if (nomeImagem != null) {
-
-				fornecedor.setImagem(nomeImagem);
-
-				fornecedorService.save(fornecedor);
-			}
-
-			// response
-			FornecedorResponseDTO response = new FornecedorResponseDTO(fornecedor.getId(), fornecedor.getNome(),
-					fornecedor.getImagem(), EnderecoMapper.toDTO(fornecedor.getEndereco()));
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			return ResponseEntity.status(HttpStatus.CREATED).body(FornecedorResponseDTO.fromEntity(fornecedor));
 
 		} catch (Exception e) {
 
@@ -118,7 +103,7 @@ public class FornecedorController {
 			FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
 
 			// atualiza fornecedor
-			Fornecedor fornecedor = fornecedorService.atualizar(id, dto);
+			Fornecedor fornecedor = fornecedorService.atualizar(id, dto, imagem);
 
 			// substitui imagem
 			String imagemAntiga = fornecedor.getImagem();
