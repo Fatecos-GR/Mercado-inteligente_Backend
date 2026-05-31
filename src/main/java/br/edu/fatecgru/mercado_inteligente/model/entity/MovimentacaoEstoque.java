@@ -12,9 +12,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.EntityListeners;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "movimentacoes_estoque")
+@EntityListeners(AuditingEntityListener.class)
 public class MovimentacaoEstoque {
 
 	// Atributos
@@ -49,7 +53,8 @@ public class MovimentacaoEstoque {
 	private Long referenciaId;
 
 	// Data da movimentação
-	@Column(name = "criado_em", nullable = false)
+	@CreatedDate
+	@Column(name = "criado_em", nullable = false, updatable = false)
 	private LocalDateTime criadoEm;
 
 	// Construtores

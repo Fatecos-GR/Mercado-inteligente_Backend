@@ -6,6 +6,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
+@org.springframework.data.jpa.repository.config.EnableJpaAuditing
 public class MercadoInteligenteApplication {
 
 	// Comentário Teste

@@ -63,8 +63,6 @@ public class CarrinhoService {
                     Carrinho novo = new Carrinho();
                     novo.setUsuario(usuario);
                     novo.setStatus(StatusCarrinho.ATIVO);
-                    novo.setCriadoEm(LocalDateTime.now());
-                    novo.setAtualizadoEm(LocalDateTime.now());
                     return carrinhoRepository.save(novo);
                 });
 
@@ -91,7 +89,6 @@ public class CarrinhoService {
         itemCarrinhoRepository.save(item);
 
         // 6. Atualizar Carrinho
-        carrinho.setAtualizadoEm(LocalDateTime.now());
         return carrinhoRepository.save(carrinho);
     }
 
@@ -118,7 +115,6 @@ public class CarrinhoService {
         item.setQuantidade(request.quantidade());
         itemCarrinhoRepository.save(item);
 
-        carrinho.setAtualizadoEm(LocalDateTime.now());
         return carrinhoRepository.save(carrinho);
     }
 
@@ -135,7 +131,6 @@ public class CarrinhoService {
 
         itemCarrinhoRepository.delete(item);
 
-        carrinho.setAtualizadoEm(LocalDateTime.now());
         return carrinhoRepository.save(carrinho);
     }
 
@@ -166,7 +161,6 @@ public class CarrinhoService {
         }
 
         carrinho.setStatus(novoStatus);
-        carrinho.setAtualizadoEm(LocalDateTime.now());
         return carrinhoRepository.save(carrinho);
     }
 }

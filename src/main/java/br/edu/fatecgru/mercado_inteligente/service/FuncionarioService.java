@@ -49,25 +49,25 @@ public class FuncionarioService {
 
 	public Funcionario cadastrar(FuncionarioDTO dto) {
 
-		if (funcionarioRepository.findByEmail(dto.getEmail()).isPresent()) {
+		if (funcionarioRepository.findByEmail(dto.email()).isPresent()) {
 			throw new RuntimeException("Email já cadastrado");
 		}
 
 		// validação do tipo do funcionário
-		if (dto.getTipoFuncionario() == null) {
+		if (dto.tipoFuncionario() == null) {
 			throw new RuntimeException("Tipo do funcionário é obrigatório");
 		}
 
 		Funcionario funcionario = new Funcionario();
 
-		funcionario.setNome(dto.getNome());
-		funcionario.setSobrenome(dto.getSobrenome());
-		funcionario.setTelefone(dto.getTelefone());
-		funcionario.setEmail(dto.getEmail());
-		funcionario.setTipoFuncionario(dto.getTipoFuncionario());
+		funcionario.setNome(dto.nome());
+		funcionario.setSobrenome(dto.sobrenome());
+		funcionario.setTelefone(dto.telefone());
+		funcionario.setEmail(dto.email());
+		funcionario.setTipoFuncionario(dto.tipoFuncionario());
 
 		// senha criptografada
-		funcionario.setSenha(passwordEncoder.encode(dto.getSenha()));
+		funcionario.setSenha(passwordEncoder.encode(dto.senha()));
 
 		return funcionarioRepository.save(funcionario);
 	}
@@ -78,18 +78,18 @@ public class FuncionarioService {
 		Funcionario funcionario = funcionarioRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
 
-		funcionario.setNome(dto.getNome());
-		funcionario.setSobrenome(dto.getSobrenome());
-		funcionario.setTelefone(dto.getTelefone());
-		funcionario.setEmail(dto.getEmail());
-		funcionario.setTipoFuncionario(dto.getTipoFuncionario());
+		funcionario.setNome(dto.nome());
+		funcionario.setSobrenome(dto.sobrenome());
+		funcionario.setTelefone(dto.telefone());
+		funcionario.setEmail(dto.email());
+		funcionario.setTipoFuncionario(dto.tipoFuncionario());
 
-		if (dto.getSenha() != null && !dto.getSenha().isBlank()) {
-			funcionario.setSenha(passwordEncoder.encode(dto.getSenha()));
+		if (dto.senha() != null && !dto.senha().isBlank()) {
+			funcionario.setSenha(passwordEncoder.encode(dto.senha()));
 		}
 
 		// validação do tipo do funcionário
-		if (dto.getTipoFuncionario() == null) {
+		if (dto.tipoFuncionario() == null) {
 			throw new RuntimeException("Tipo do funcionário é obrigatório");
 		}
 

@@ -34,7 +34,6 @@ public class EstoqueService {
 
         estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() - quantidade);
         estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() + quantidade);
-        estoque.setAtualizadoEm(LocalDateTime.now());
         
         estoqueRepository.save(estoque);
         
@@ -48,7 +47,6 @@ public class EstoqueService {
 
         estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() + quantidade);
         estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() - quantidade);
-        estoque.setAtualizadoEm(LocalDateTime.now());
         
         estoqueRepository.save(estoque);
 
@@ -59,7 +57,6 @@ public class EstoqueService {
         MovimentacaoEstoque movimentacao = new MovimentacaoEstoque();
         movimentacao.setEstoque(estoque);
         movimentacao.setQuantidade(quantidade);
-        movimentacao.setCriadoEm(LocalDateTime.now());
         movimentacao.setTipo(tipo);
         movimentacao.setOrigem(origem);
         movimentacao.setReferenciaId(referenciaId);

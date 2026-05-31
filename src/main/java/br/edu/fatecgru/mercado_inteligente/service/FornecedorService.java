@@ -38,9 +38,9 @@ public class FornecedorService {
   public Fornecedor cadastrar(FornecedorDTO dto) {
     Fornecedor fornecedor = new Fornecedor();
 
-    fornecedor.setNome(dto.getNome());
+    fornecedor.setNome(dto.nome());
 
-    Endereco endereco = criarEndereco(dto.getEndereco());
+    Endereco endereco = criarEndereco(dto.endereco());
 
     fornecedor.setEndereco(endereco);
 
@@ -53,9 +53,9 @@ public class FornecedorService {
       .findById(id)
       .orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
 
-    fornecedor.setNome(dto.getNome());
+    fornecedor.setNome(dto.nome());
 
-    Endereco endereco = criarEndereco(dto.getEndereco());
+    Endereco endereco = criarEndereco(dto.endereco());
 
     fornecedor.setEndereco(endereco);
 
@@ -71,13 +71,13 @@ public class FornecedorService {
   private Endereco criarEndereco(EnderecoDTO dto) {
     Endereco endereco = new Endereco();
 
-    endereco.setCep(dto.getCep());
-    endereco.setLogradouro(dto.getLogradouro());
-    endereco.setNumero(dto.getNumero());
-    endereco.setComplemento(dto.getComplemento());
-    endereco.setBairro(dto.getBairro());
-    endereco.setCidade(dto.getCidade());
-    endereco.setEstado(dto.getEstado());
+    endereco.setCep(dto.cep());
+    endereco.setLogradouro(dto.logradouro());
+    endereco.setNumero(dto.numero());
+    endereco.setComplemento(dto.complemento());
+    endereco.setBairro(dto.bairro());
+    endereco.setCidade(dto.cidade());
+    endereco.setEstado(dto.estado());
 
     return endereco;
   }
