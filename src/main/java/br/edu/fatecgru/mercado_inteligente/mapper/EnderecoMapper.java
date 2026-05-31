@@ -13,13 +13,13 @@ public class EnderecoMapper {
 
 		Endereco e = new Endereco();
 
-		e.setCep(dto.getCep());
-		e.setLogradouro(dto.getLogradouro());
-		e.setBairro(dto.getBairro());
-		e.setNumero(dto.getNumero());
-		e.setCidade(dto.getCidade());
-		e.setEstado(dto.getEstado());
-		e.setComplemento(dto.getComplemento());
+		e.setCep(dto.cep());
+		e.setLogradouro(dto.logradouro());
+		e.setBairro(dto.bairro());
+		e.setNumero(dto.numero());
+		e.setCidade(dto.cidade());
+		e.setEstado(dto.estado());
+		e.setComplemento(dto.complemento());
 
 		return e;
 	}
@@ -30,16 +30,14 @@ public class EnderecoMapper {
 		if (endereco == null)
 			return null;
 
-		EnderecoDTO dto = new EnderecoDTO();
-
-		dto.setCep(endereco.getCep());
-		dto.setLogradouro(endereco.getLogradouro());
-		dto.setBairro(endereco.getBairro());
-		dto.setNumero(endereco.getNumero());
-		dto.setCidade(endereco.getCidade());
-		dto.setEstado(endereco.getEstado());
-		dto.setComplemento(endereco.getComplemento());
-
-		return dto;
+		return new EnderecoDTO(
+				endereco.getCep(),
+				endereco.getLogradouro(),
+				endereco.getNumero(),
+				endereco.getComplemento(),
+				endereco.getBairro(),
+				endereco.getCidade(),
+				endereco.getEstado()
+		);
 	}
 }

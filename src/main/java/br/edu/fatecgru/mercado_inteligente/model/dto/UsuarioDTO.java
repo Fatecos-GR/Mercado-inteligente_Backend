@@ -4,64 +4,21 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class UsuarioDTO {
+public record UsuarioDTO(
+    @NotBlank(message = "Nome é obrigatório")
+    String nome,
 
-	@NotBlank(message = "Nome é obrigatório")
-	private String nome;
+    @NotBlank(message = "Sobrenome é obrigatório")
+    String sobrenome,
 
-	@NotBlank(message = "Sobrenome é obrigatório")
-	private String sobrenome;
+    @NotBlank(message = "Telefone é obrigatório")
+    String telefone,
 
-	@NotBlank(message = "Telefone é obrigatório")
-	private String telefone;
+    @NotBlank(message = "Email é obrigatório")
+    @Email(message = "Email inválido")
+    String email,
 
-	@NotBlank(message = "Email é obrigatório")
-	@Email(message = "Email inválido")
-	private String email;
-
-	@NotBlank(message = "Senha é obrigatória")
-	@Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
-	private String senha;
-
-	// Getters e Setters
-
-	public String getNome() {
-		return nome;
-	}
-
-	public void setNome(String nome) {
-		this.nome = nome;
-	}
-
-	public String getSobrenome() {
-		return sobrenome;
-	}
-
-	public void setSobrenome(String sobrenome) {
-		this.sobrenome = sobrenome;
-	}
-
-	public String getTelefone() {
-		return telefone;
-	}
-
-	public void setTelefone(String telefone) {
-		this.telefone = telefone;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getSenha() {
-		return senha;
-	}
-
-	public void setSenha(String senha) {
-		this.senha = senha;
-	}
-}
+    @NotBlank(message = "Senha é obrigatória")
+    @Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
+    String senha
+) {}

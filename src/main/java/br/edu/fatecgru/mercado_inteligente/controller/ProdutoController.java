@@ -105,18 +105,18 @@ public class ProdutoController {
 
 			Produto produto = new Produto();
 
-			produto.setNome(dto.getNome());
-			produto.setDescricao(dto.getDescricao());
-			produto.setPreco(dto.getPreco());
-			produto.setValidade(dto.getValidade());
+			produto.setNome(dto.nome());
+			produto.setDescricao(dto.descricao());
+			produto.setPreco(dto.preco());
+			produto.setValidade(dto.validade());
 
-			Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+			Categoria categoria = categoriaRepository.findById(dto.categoriaId())
 					.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
 
-			Marca marca = marcaRepository.findById(dto.getMarcaId())
+			Marca marca = marcaRepository.findById(dto.marcaId())
 					.orElseThrow(() -> new RuntimeException("Marca não encontrada"));
 
-			Fornecedor fornecedor = fornecedorRepository.findById(dto.getFornecedorId())
+			Fornecedor fornecedor = fornecedorRepository.findById(dto.fornecedorId())
 					.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
 
 			produto.setCategoria(categoria);
@@ -150,18 +150,18 @@ public class ProdutoController {
 				return ResponseEntity.notFound().build();
 			}
 
-			atual.setNome(dto.getNome());
-			atual.setDescricao(dto.getDescricao());
-			atual.setPreco(dto.getPreco());
-			atual.setValidade(dto.getValidade());
+			atual.setNome(dto.nome());
+			atual.setDescricao(dto.descricao());
+			atual.setPreco(dto.preco());
+			atual.setValidade(dto.validade());
 
-			Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+			Categoria categoria = categoriaRepository.findById(dto.categoriaId())
 					.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
 
-			Marca marca = marcaRepository.findById(dto.getMarcaId())
+			Marca marca = marcaRepository.findById(dto.marcaId())
 					.orElseThrow(() -> new RuntimeException("Marca não encontrada"));
 
-			Fornecedor fornecedor = fornecedorRepository.findById(dto.getFornecedorId())
+			Fornecedor fornecedor = fornecedorRepository.findById(dto.fornecedorId())
 					.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
 
 			atual.setCategoria(categoria);

@@ -48,19 +48,19 @@ public class UsuarioService {
 
 	public Usuario cadastrar(UsuarioDTO dto) {
 
-		if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
+		if (usuarioRepository.findByEmail(dto.email()).isPresent()) {
 			throw new RuntimeException("Email já cadastrado");
 		}
 
 		Usuario usuario = new Usuario();
 
-		usuario.setNome(dto.getNome());
-		usuario.setSobrenome(dto.getSobrenome());
-		usuario.setTelefone(dto.getTelefone());
-		usuario.setEmail(dto.getEmail());
+		usuario.setNome(dto.nome());
+		usuario.setSobrenome(dto.sobrenome());
+		usuario.setTelefone(dto.telefone());
+		usuario.setEmail(dto.email());
 
 		// senha criptografada
-		usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
+		usuario.setSenha(passwordEncoder.encode(dto.senha()));
 
 		return usuarioRepository.save(usuario);
 	}
@@ -71,13 +71,13 @@ public class UsuarioService {
 		Usuario usuario = usuarioRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-		usuario.setNome(dto.getNome());
-		usuario.setSobrenome(dto.getSobrenome());
-		usuario.setTelefone(dto.getTelefone());
-		usuario.setEmail(dto.getEmail());
+		usuario.setNome(dto.nome());
+		usuario.setSobrenome(dto.sobrenome());
+		usuario.setTelefone(dto.telefone());
+		usuario.setEmail(dto.email());
 
-		if (dto.getSenha() != null && !dto.getSenha().isBlank()) {
-			usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
+		if (dto.senha() != null && !dto.senha().isBlank()) {
+			usuario.setSenha(passwordEncoder.encode(dto.senha()));
 		}
 
 		return usuarioRepository.save(usuario);
