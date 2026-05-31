@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
 import br.edu.fatecgru.mercado_inteligente.service.FuncionarioService;
@@ -85,28 +85,12 @@ public class FuncionarioController {
 		try {
 
 			ObjectMapper mapper = new ObjectMapper();
-			FuncionarioDTO dto = mapper.readValue(funcionarioJson, FuncionarioDTO.class);
 
-			// cadastra usuário
-			Funcionario funcionario = funcionarioService.cadastrar(dto);
+			FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
 
-			// salva imagem
-			String nomeImagem = imagemService.salvarImagem(imagem, pastaFuncionarios);
+			Funcionario funcionario = funcionarioService.cadastrar(dto, imagem);
 
-			// adiciona imagem no usuário
-			if (nomeImagem != null) {
-
-				funcionario.setImagem(nomeImagem);
-
-				funcionarioService.save(funcionario);
-			}
-
-			// response
-			FuncionarioResponseDTO response = new FuncionarioResponseDTO(funcionario.getId(), funcionario.getNome(),
-					funcionario.getSobrenome(), funcionario.getTelefone(), funcionario.getEmail(),
-					funcionario.getTipoFuncionario());
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			return ResponseEntity.status(HttpStatus.CREATED).body(FuncionarioResponseDTO.fromEntity(funcionario));
 
 		} catch (Exception e) {
 
@@ -125,26 +109,13 @@ public class FuncionarioController {
 
 			ObjectMapper mapper = new ObjectMapper();
 
-			FuncionarioDTO dto = mapper.readValue(funcionarioJson, FuncionarioDTO.class);
+			FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
 
 			// atualiza funcionário
-			Funcionario funcionario = funcionarioService.atualizar(id, dto);
-
-			// substitui imagem
-			String imagemAntiga = funcionario.getImagem();
-
-			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaFuncionarios);
-
-			funcionario.setImagem(imagemAtualizada);
-
-			funcionarioService.save(funcionario);
+			Funcionario funcionario = funcionarioService.atualizar(id, dto, imagem);
 
 			// response
-			FuncionarioResponseDTO response = new FuncionarioResponseDTO(funcionario.getId(), funcionario.getNome(),
-					funcionario.getSobrenome(), funcionario.getTelefone(), funcionario.getEmail(),
-					funcionario.getTipoFuncionario());
-
-			return ResponseEntity.ok(response);
+			return ResponseEntity.ok(FuncionarioResponseDTO.fromEntity(funcionario));
 
 		} catch (Exception e) {
 
@@ -158,23 +129,20 @@ public class FuncionarioController {
 	@Operation(summary = "Excluir funcionário (Apenas ADMIN)")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		try {
-			Funcionario funcionario = funcionarioService.getById(id);
 
-			if (funcionario == null) {
-				return ResponseEntity.notFound().build();
-			}
+			funcionarioService.deletar(id);
 
-			if (funcionario.getImagem() != null) {
-				imagemService.deletarImagem(funcionario.getImagem(), pastaFuncionarios);
-			}
+			return ResponseEntity.noContent().build();
 
-			funcionarioService.deleteFuncionario(id);
+		} catch (RuntimeException e) {
 
-			return ResponseEntity.noContent().build(); // 204
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
 
 		} catch (Exception e) {
-			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
+
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao deletar: " + e.getMessage());
 		}
+
 	}
 
 }

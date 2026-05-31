@@ -1,5 +1,6 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.TipoFuncionario;
 
 public class FuncionarioResponseDTO {
@@ -9,6 +10,7 @@ public class FuncionarioResponseDTO {
 	private String sobrenome;
 	private String telefone;
 	private String email;
+	private String imagem;
 	private TipoFuncionario tipoFuncionario;
 
 	// Construtores
@@ -16,14 +18,21 @@ public class FuncionarioResponseDTO {
 
 	}
 
-	public FuncionarioResponseDTO(Long id, String nome, String sobrenome, String telefone, String email,
+	public FuncionarioResponseDTO(Long id, String nome, String sobrenome, String telefone, String email, String imagem,
 			TipoFuncionario tipoFuncionario) {
 		this.id = id;
 		this.nome = nome;
 		this.sobrenome = sobrenome;
 		this.telefone = telefone;
 		this.email = email;
+		this.imagem = imagem;
 		this.tipoFuncionario = tipoFuncionario;
+	}
+
+	public static FuncionarioResponseDTO fromEntity(Funcionario funcionario) {
+		return new FuncionarioResponseDTO(funcionario.getId(), funcionario.getNome(), funcionario.getSobrenome(),
+				funcionario.getTelefone(), funcionario.getEmail(), funcionario.getImagem(),
+				funcionario.getTipoFuncionario());
 	}
 
 	// Getters e Setters
@@ -65,6 +74,14 @@ public class FuncionarioResponseDTO {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getImagem() {
+		return imagem;
+	}
+
+	public void setImagem(String imagem) {
+		this.imagem = imagem;
 	}
 
 	public TipoFuncionario getTipoFuncionario() {
