@@ -97,7 +97,7 @@ public class FornecedorService {
 
 	}
 
-	// método auxiliar
+	// método auxiliar para criar endereço
 	private Endereco criarEndereco(EnderecoDTO dto) {
 
 		Endereco endereco = new Endereco();

@@ -17,7 +17,7 @@ public class EnderecoService {
 
 	private final RestTemplate restTemplate = new RestTemplate();
 
-	// Buscar por CEP
+	// Buscar dados por CEP
 	public EnderecoDTO buscarPorCep(String cep) {
 
 		String url = "https://viacep.com.br/ws/" + cep + "/json/";
