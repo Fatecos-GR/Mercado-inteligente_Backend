@@ -1,27 +1,25 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
-public class UsuarioResponseDTO {
+public class UsuarioAtualizacaoDTO {
 
-	private Long id;
+	@NotBlank(message = "Nome é obrigatório")
 	private String nome;
+
+	@NotBlank(message = "Sobrenome é obrigatório")
 	private String sobrenome;
+
+	@NotBlank(message = "Telefone é obrigatório")
 	private String telefone;
+
+	@NotBlank(message = "Email é obrigatório")
+	@Email(message = "Email inválido")
 	private String email;
 
-	// Construtores
-	public UsuarioResponseDTO() {
-
-	}
-
-	public UsuarioResponseDTO(Long id, String nome, String sobrenome, String telefone, String email) {
-		this.id = id;
-		this.nome = nome;
-		this.sobrenome = sobrenome;
-		this.telefone = telefone;
-		this.email = email;
-	}
+	private String imagem;
 
 	public static UsuarioResponseDTO fromEntity(Usuario usuario) {
 		return new UsuarioResponseDTO(usuario.getId(), usuario.getNome(), usuario.getSobrenome(), usuario.getTelefone(),
@@ -29,14 +27,6 @@ public class UsuarioResponseDTO {
 	}
 
 	// Getters e Setters
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
 	public String getNome() {
 		return nome;
 	}
@@ -67,6 +57,14 @@ public class UsuarioResponseDTO {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getImagem() {
+		return imagem;
+	}
+
+	public void setImagem(String imagem) {
+		this.imagem = imagem;
 	}
 
 }

@@ -1,84 +1,116 @@
 package br.edu.fatecgru.mercado_inteligente.service;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FornecedorDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Endereco;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
 import br.edu.fatecgru.mercado_inteligente.repository.FornecedorRepository;
-import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class FornecedorService {
-  // Método para listar todos
-  @Autowired
-  private FornecedorRepository fornecedorRepository;
 
-  public List<Fornecedor> listarTodos() {
-    return fornecedorRepository.findAll();
-  }
+	// Método para listar todos
+	@Autowired
+	private FornecedorRepository fornecedorRepository;
 
-  // Listar pelo ID do fornecedor
-  public Fornecedor getById(Long id) {
-    return fornecedorRepository.findById(id).orElse(null);
-  }
+	@Autowired
+	private ImagemService imagemService;
 
-  // Listar produto pelo o nome "contido"
-  public List<Fornecedor> getByContainsName(String nome) {
-    return fornecedorRepository.findByNomeContains(nome);
-  }
+	public List<Fornecedor> listarTodos() {
+		return fornecedorRepository.findAll();
+	}
 
-  // salvar
-  public Fornecedor save(Fornecedor fornecedor) {
-    return fornecedorRepository.save(fornecedor);
-  }
+	// Listar pelo ID do fornecedor
+	public Fornecedor getById(Long id) {
+		return fornecedorRepository.findById(id).orElse(null);
+	}
 
-  // cadastrar
-  public Fornecedor cadastrar(FornecedorDTO dto) {
-    Fornecedor fornecedor = new Fornecedor();
+	// Listar produto pelo o nome "contido"
+	public List<Fornecedor> getByContainsName(String nome) {
+		return fornecedorRepository.findByNomeContains(nome);
+	}
 
-    fornecedor.setNome(dto.nome());
+	// salvar
+	public Fornecedor save(Fornecedor fornecedor) {
+		return fornecedorRepository.save(fornecedor);
+	}
 
-    Endereco endereco = criarEndereco(dto.endereco());
+	// cadastrar
+	public Fornecedor cadastrar(FornecedorDTO dto, MultipartFile imagem) throws Exception {
 
-    fornecedor.setEndereco(endereco);
+		Fornecedor fornecedor = new Fornecedor();
 
-    return fornecedorRepository.save(fornecedor);
-  }
+		fornecedor.setNome(dto.nome());
 
-  // atualizar
-  public Fornecedor atualizar(Long id, FornecedorDTO dto) {
-    Fornecedor fornecedor = fornecedorRepository
-      .findById(id)
-      .orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+		Endereco endereco = criarEndereco(dto.endereco());
 
-    fornecedor.setNome(dto.nome());
+		fornecedor.setEndereco(endereco);
 
-    Endereco endereco = criarEndereco(dto.endereco());
+		String nomeImagem = imagemService.salvarImagem(imagem, "suppliers/");
 
-    fornecedor.setEndereco(endereco);
+		if (nomeImagem != null) {
+			fornecedor.setImagem(nomeImagem);
+		}
 
-    return fornecedorRepository.save(fornecedor);
-  }
+		return fornecedorRepository.save(fornecedor);
 
-  // deletar
-  public void deletar(Long id) {
-    fornecedorRepository.deleteById(id);
-  }
+	}
 
-  // método auxiliar
-  private Endereco criarEndereco(EnderecoDTO dto) {
-    Endereco endereco = new Endereco();
+	// atualizar
+	public Fornecedor atualizar(Long id, FornecedorDTO dto, MultipartFile imagem) throws Exception {
 
-    endereco.setCep(dto.cep());
-    endereco.setLogradouro(dto.logradouro());
-    endereco.setNumero(dto.numero());
-    endereco.setComplemento(dto.complemento());
-    endereco.setBairro(dto.bairro());
-    endereco.setCidade(dto.cidade());
-    endereco.setEstado(dto.estado());
+		Fornecedor fornecedor = fornecedorRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
 
-    return endereco;
-  }
+		fornecedor.setNome(dto.nome());
+
+		Endereco endereco = criarEndereco(dto.endereco());
+
+		fornecedor.setEndereco(endereco);
+
+		String imagemAtualizada = imagemService.substituirImagem(fornecedor.getImagem(), imagem, "suppliers/");
+
+		fornecedor.setImagem(imagemAtualizada);
+
+		return fornecedorRepository.save(fornecedor);
+
+	}
+
+	// deletar
+	public void deletar(Long id) {
+
+		Fornecedor fornecedor = fornecedorRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+
+		if (fornecedor.getImagem() != null) {
+
+			imagemService.deletarImagem(fornecedor.getImagem(), "suppliers/");
+		}
+
+		fornecedorRepository.delete(fornecedor);
+
+	}
+
+	// método auxiliar
+	private Endereco criarEndereco(EnderecoDTO dto) {
+
+		Endereco endereco = new Endereco();
+
+		endereco.setCep(dto.cep());
+		endereco.setLogradouro(dto.logradouro());
+		endereco.setNumero(dto.numero());
+		endereco.setComplemento(dto.complemento());
+		endereco.setBairro(dto.bairro());
+		endereco.setCidade(dto.cidade());
+		endereco.setEstado(dto.estado());
+
+		return endereco;
+	}
+
 }

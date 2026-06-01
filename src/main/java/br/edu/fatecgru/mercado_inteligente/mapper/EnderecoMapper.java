@@ -30,14 +30,7 @@ public class EnderecoMapper {
 		if (endereco == null)
 			return null;
 
-		return new EnderecoDTO(
-				endereco.getCep(),
-				endereco.getLogradouro(),
-				endereco.getNumero(),
-				endereco.getComplemento(),
-				endereco.getBairro(),
-				endereco.getCidade(),
-				endereco.getEstado()
-		);
+		return new EnderecoDTO(endereco.getCep(), endereco.getLogradouro(), endereco.getNumero(),
+				endereco.getComplemento(), endereco.getBairro(), endereco.getCidade(), endereco.getEstado());
 	}
 }
