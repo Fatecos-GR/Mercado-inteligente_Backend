@@ -6,14 +6,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
+import br.edu.fatecgru.mercado_inteligente.model.entity.StatusCarrinho;
+import br.edu.fatecgru.mercado_inteligente.repository.ItemCarrinhoRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
 
 @Service
 public class ProdutoService {
 
-	// Método de listar todos
 	@Autowired
 	private ProdutoRepository produtoRepository;
+
+	@Autowired
+	private ItemCarrinhoRepository itemCarrinhoRepository;
 
 	public List<Produto> listarTodos() {
 		return produtoRepository.findAll();
@@ -46,6 +50,9 @@ public class ProdutoService {
 
 	// Método para excluir produto
 	public void deleteProduto(Long id) {
+		if (itemCarrinhoRepository.existsByProdutoIdAndCarrinhoStatus(id, StatusCarrinho.ATIVO)) {
+			throw new IllegalStateException("O produto não pode ser excluído pois está presente em carrinhos ativos.");
+		}
 		produtoRepository.deleteById(id);
 	}
 

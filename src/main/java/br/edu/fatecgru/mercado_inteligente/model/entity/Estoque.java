@@ -10,9 +10,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.EntityListeners;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "estoques")
+@EntityListeners(AuditingEntityListener.class)
 public class Estoque {
 
 	// Atributos
@@ -35,6 +39,7 @@ public class Estoque {
 	private Integer quantidadeReservada;
 
 	// Data da última atualização
+	@LastModifiedDate
 	@Column(name = "atualizado_em", nullable = false)
 	private LocalDateTime atualizadoEm;
 

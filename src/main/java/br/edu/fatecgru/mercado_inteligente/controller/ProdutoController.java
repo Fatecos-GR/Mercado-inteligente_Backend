@@ -57,36 +57,48 @@ public class ProdutoController {
 	// Lista todos
 	@GetMapping
 	@Operation(summary = "Listar todos os produtos")
-	public List<Produto> listarTodos() {
-		return produtoService.listarTodos();
+	public List<ProdutoResponseDTO> listarTodos() {
+		return produtoService.listarTodos().stream()
+				.map(ProdutoMapper::toDTO)
+				.toList();
 	}
 
 	// Busca produto por ID
 	@GetMapping("/{id}")
 	@Operation(summary = "Listar produto por ID")
-	public Produto buscarPorId(@PathVariable Long id) {
-		return produtoService.getById(id);
+	public ResponseEntity<ProdutoResponseDTO> buscarPorId(@PathVariable Long id) {
+		Produto produto = produtoService.getById(id);
+		if (produto == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(ProdutoMapper.toDTO(produto));
 	}
 
 	// Busca produto por nome
 	@GetMapping("/contem-nome/{nome}")
 	@Operation(summary = "Listar produto por Nome")
-	public List<Produto> buscarPorContemNome(@PathVariable String nome) {
-		return produtoService.getByContainsName(nome);
+	public List<ProdutoResponseDTO> buscarPorContemNome(@PathVariable String nome) {
+		return produtoService.getByContainsName(nome).stream()
+				.map(ProdutoMapper::toDTO)
+				.toList();
 	}
 
 	// Busca por ID da categoria
 	@GetMapping("/categoria/{id}")
 	@Operation(summary = "Listar produto por ID da categoria")
-	public List<Produto> buscarPorIdCategoria(@PathVariable Long id) {
-		return produtoService.getByCategoryId(id);
+	public List<ProdutoResponseDTO> buscarPorIdCategoria(@PathVariable Long id) {
+		return produtoService.getByCategoryId(id).stream()
+				.map(ProdutoMapper::toDTO)
+				.toList();
 	}
 
 	// Busca por ID da marca
 	@GetMapping("/marca/{id}")
 	@Operation(summary = "Listar produto por ID da Marca")
-	public List<Produto> buscarPorIdMarca(@PathVariable Long id) {
-		return produtoService.getByBrandId(id);
+	public List<ProdutoResponseDTO> buscarPorIdMarca(@PathVariable Long id) {
+		return produtoService.getByBrandId(id).stream()
+				.map(ProdutoMapper::toDTO)
+				.toList();
 	}
 
 	// Pasta dos produtos para salvar as imagens
@@ -175,7 +187,8 @@ public class ProdutoController {
 
 			atual.setImagem(imagemAtualizada);
 
-			return ResponseEntity.ok(produtoService.saveProduto(atual));
+			Produto atualizado = produtoService.saveProduto(atual);
+			return ResponseEntity.ok(ProdutoMapper.toDTO(atualizado));
 
 		} catch (Exception e) {
 			return ResponseEntity.status(500).body(e.getMessage());
