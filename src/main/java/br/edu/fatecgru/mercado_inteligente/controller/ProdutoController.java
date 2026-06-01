@@ -19,7 +19,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.mapper.ProdutoMapper;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
@@ -57,36 +59,48 @@ public class ProdutoController {
 	// Lista todos
 	@GetMapping
 	@Operation(summary = "Listar todos os produtos")
-	public List<Produto> listarTodos() {
-		return produtoService.listarTodos();
+	public List<ProdutoResponseDTO> listarTodos() {
+		return produtoService.listarTodos().stream()
+				.map(ProdutoMapper::toDTO)
+				.toList();
 	}
 
 	// Busca produto por ID
 	@GetMapping("/{id}")
 	@Operation(summary = "Listar produto por ID")
-	public Produto buscarPorId(@PathVariable Long id) {
-		return produtoService.getById(id);
+	public ResponseEntity<ProdutoResponseDTO> buscarPorId(@PathVariable Long id) {
+		Produto produto = produtoService.getById(id);
+		if (produto == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(ProdutoMapper.toDTO(produto));
 	}
 
 	// Busca produto por nome
 	@GetMapping("/contem-nome/{nome}")
 	@Operation(summary = "Listar produto por Nome")
-	public List<Produto> buscarPorContemNome(@PathVariable String nome) {
-		return produtoService.getByContainsName(nome);
+	public List<ProdutoResponseDTO> buscarPorContemNome(@PathVariable String nome) {
+		return produtoService.getByContainsName(nome).stream()
+				.map(ProdutoMapper::toDTO)
+				.toList();
 	}
 
 	// Busca por ID da categoria
 	@GetMapping("/categoria/{id}")
 	@Operation(summary = "Listar produto por ID da categoria")
-	public List<Produto> buscarPorIdCategoria(@PathVariable Long id) {
-		return produtoService.getByCategoryId(id);
+	public List<ProdutoResponseDTO> buscarPorIdCategoria(@PathVariable Long id) {
+		return produtoService.getByCategoryId(id).stream()
+				.map(ProdutoMapper::toDTO)
+				.toList();
 	}
 
 	// Busca por ID da marca
 	@GetMapping("/marca/{id}")
 	@Operation(summary = "Listar produto por ID da Marca")
-	public List<Produto> buscarPorIdMarca(@PathVariable Long id) {
-		return produtoService.getByBrandId(id);
+	public List<ProdutoResponseDTO> buscarPorIdMarca(@PathVariable Long id) {
+		return produtoService.getByBrandId(id).stream()
+				.map(ProdutoMapper::toDTO)
+				.toList();
 	}
 
 	// Pasta dos produtos para salvar as imagens
@@ -105,18 +119,18 @@ public class ProdutoController {
 
 			Produto produto = new Produto();
 
-			produto.setNome(dto.getNome());
-			produto.setDescricao(dto.getDescricao());
-			produto.setPreco(dto.getPreco());
-			produto.setValidade(dto.getValidade());
+			produto.setNome(dto.nome());
+			produto.setDescricao(dto.descricao());
+			produto.setPreco(dto.preco());
+			produto.setValidade(dto.validade());
 
-			Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+			Categoria categoria = categoriaRepository.findById(dto.categoriaId())
 					.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
 
-			Marca marca = marcaRepository.findById(dto.getMarcaId())
+			Marca marca = marcaRepository.findById(dto.marcaId())
 					.orElseThrow(() -> new RuntimeException("Marca não encontrada"));
 
-			Fornecedor fornecedor = fornecedorRepository.findById(dto.getFornecedorId())
+			Fornecedor fornecedor = fornecedorRepository.findById(dto.fornecedorId())
 					.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
 
 			produto.setCategoria(categoria);
@@ -126,7 +140,8 @@ public class ProdutoController {
 			String nomeImagem = imagemService.salvarImagem(imagem, pastaProdutos);
 
 			produto.setImagem(nomeImagem);
-			return ResponseEntity.status(HttpStatus.CREATED).body(produtoService.saveProduto(produto));
+			Produto salvo = produtoService.saveProduto(produto);
+			return ResponseEntity.status(HttpStatus.CREATED).body(ProdutoMapper.toDTO(salvo));
 
 		} catch (Exception e) {
 			return ResponseEntity.status(500).body(e.getMessage());
@@ -150,18 +165,18 @@ public class ProdutoController {
 				return ResponseEntity.notFound().build();
 			}
 
-			atual.setNome(dto.getNome());
-			atual.setDescricao(dto.getDescricao());
-			atual.setPreco(dto.getPreco());
-			atual.setValidade(dto.getValidade());
+			atual.setNome(dto.nome());
+			atual.setDescricao(dto.descricao());
+			atual.setPreco(dto.preco());
+			atual.setValidade(dto.validade());
 
-			Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+			Categoria categoria = categoriaRepository.findById(dto.categoriaId())
 					.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
 
-			Marca marca = marcaRepository.findById(dto.getMarcaId())
+			Marca marca = marcaRepository.findById(dto.marcaId())
 					.orElseThrow(() -> new RuntimeException("Marca não encontrada"));
 
-			Fornecedor fornecedor = fornecedorRepository.findById(dto.getFornecedorId())
+			Fornecedor fornecedor = fornecedorRepository.findById(dto.fornecedorId())
 					.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
 
 			atual.setCategoria(categoria);
@@ -175,7 +190,8 @@ public class ProdutoController {
 
 			atual.setImagem(imagemAtualizada);
 
-			return ResponseEntity.ok(produtoService.saveProduto(atual));
+			Produto atualizado = produtoService.saveProduto(atual);
+			return ResponseEntity.ok(ProdutoMapper.toDTO(atualizado));
 
 		} catch (Exception e) {
 			return ResponseEntity.status(500).body(e.getMessage());
