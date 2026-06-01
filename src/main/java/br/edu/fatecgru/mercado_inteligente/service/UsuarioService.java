@@ -8,10 +8,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.AlterarSenhaDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioAtualizacaoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioCadastroDTO;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Endereco;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
+import br.edu.fatecgru.mercado_inteligente.repository.EnderecoRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 
 @Service
@@ -20,6 +23,9 @@ public class UsuarioService {
 	// Método para listar todos
 	@Autowired
 	private UsuarioRepository usuarioRepository;
+
+	@Autowired
+	private EnderecoRepository enderecoRepository;
 
 	@Autowired
 	private ImagemService imagemService;
@@ -116,6 +122,38 @@ public class UsuarioService {
 		usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
 
 		usuarioRepository.save(usuario);
+	}
+
+	// Listar endereços por usuário
+	public List<Endereco> listarEnderecosUsuario(Long usuarioId) {
+
+		Usuario usuario = usuarioRepository.findById(usuarioId)
+				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+		return usuario.getEnderecos();
+	}
+
+	// Adicionar endereço a um usuário
+	public Endereco adicionarEndereco(Long usuarioId, EnderecoDTO dto) {
+
+		Usuario usuario = usuarioRepository.findById(usuarioId)
+				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+		Endereco endereco = new Endereco();
+
+		endereco.setCep(dto.getCep());
+		endereco.setLogradouro(dto.getLogradouro());
+		endereco.setNumero(dto.getNumero());
+		endereco.setComplemento(dto.getComplemento());
+		endereco.setBairro(dto.getBairro());
+		endereco.setCidade(dto.getCidade());
+		endereco.setEstado(dto.getEstado());
+
+		endereco.setUsuario(usuario);
+
+		enderecoRepository.save(endereco);
+
+		return endereco;
 	}
 
 }

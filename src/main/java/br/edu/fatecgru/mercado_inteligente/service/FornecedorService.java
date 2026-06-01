@@ -103,7 +103,7 @@ public class FornecedorService {
 		Endereco endereco = new Endereco();
 
 		endereco.setCep(dto.getCep());
-		endereco.setRua(dto.getRua());
+		endereco.setLogradouro(dto.getLogradouro());
 		endereco.setNumero(dto.getNumero());
 		endereco.setComplemento(dto.getComplemento());
 		endereco.setBairro(dto.getBairro());

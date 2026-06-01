@@ -14,7 +14,7 @@ public class EnderecoMapper {
 		Endereco e = new Endereco();
 
 		e.setCep(dto.getCep());
-		e.setRua(dto.getRua());
+		e.setLogradouro(dto.getLogradouro());
 		e.setBairro(dto.getBairro());
 		e.setNumero(dto.getNumero());
 		e.setCidade(dto.getCidade());
@@ -33,7 +33,7 @@ public class EnderecoMapper {
 		EnderecoDTO dto = new EnderecoDTO();
 
 		dto.setCep(endereco.getCep());
-		dto.setRua(endereco.getRua());
+		dto.setLogradouro(endereco.getLogradouro());
 		dto.setBairro(endereco.getBairro());
 		dto.setNumero(endereco.getNumero());
 		dto.setCidade(endereco.getCidade());
