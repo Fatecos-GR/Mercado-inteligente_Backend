@@ -19,7 +19,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioAtualizacaoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
@@ -82,27 +83,13 @@ public class UsuarioController {
 		try {
 
 			ObjectMapper mapper = new ObjectMapper();
-			UsuarioDTO dto = mapper.readValue(usuarioJson, UsuarioDTO.class);
+			UsuarioCadastroDTO dto = mapper.readValue(usuarioJson, UsuarioCadastroDTO.class);
 
 			// cadastra usuário
-			Usuario usuario = usuarioService.cadastrar(dto);
-
-			// salva imagem
-			String nomeImagem = imagemService.salvarImagem(imagem, pastaUsuarios);
-
-			// adiciona imagem no usuário
-			if (nomeImagem != null) {
-
-				usuario.setImagem(nomeImagem);
-
-				usuarioService.save(usuario);
-			}
+			Usuario usuario = usuarioService.cadastrar(dto, imagem);
 
 			// response
-			UsuarioResponseDTO response = new UsuarioResponseDTO(usuario.getId(), usuario.getNome(),
-					usuario.getSobrenome(), usuario.getTelefone(), usuario.getEmail());
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
+			return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponseDTO.fromEntity(usuario));
 
 		} catch (Exception e) {
 
@@ -121,7 +108,7 @@ public class UsuarioController {
 
 			ObjectMapper mapper = new ObjectMapper();
 
-			UsuarioDTO dto = mapper.readValue(usuarioJson, UsuarioDTO.class);
+			UsuarioAtualizacaoDTO dto = mapper.readValue(usuarioJson, UsuarioAtualizacaoDTO.class);
 
 			// atualiza usuário
 			Usuario usuario = usuarioService.atualizar(id, dto);
@@ -136,10 +123,7 @@ public class UsuarioController {
 			usuarioService.save(usuario);
 
 			// response
-			UsuarioResponseDTO response = new UsuarioResponseDTO(usuario.getId(), usuario.getNome(),
-					usuario.getSobrenome(), usuario.getTelefone(), usuario.getEmail());
-
-			return ResponseEntity.ok(response);
+			return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
 
 		} catch (Exception e) {
 
@@ -153,19 +137,9 @@ public class UsuarioController {
 	@Operation(summary = "Excluir usuário (Apenas ADMIN)")
 	public ResponseEntity<?> delete(@PathVariable Long id) {
 		try {
-			Usuario usuario = usuarioService.getById(id);
+			usuarioService.deletar(id);
 
-			if (usuario == null) {
-				return ResponseEntity.notFound().build();
-			}
-
-			if (usuario.getImagem() != null) {
-				imagemService.deletarImagem(usuario.getImagem(), pastaUsuarios);
-			}
-
-			usuarioService.deleteUsuario(id);
-
-			return ResponseEntity.noContent().build(); // 204
+			return ResponseEntity.noContent().build();
 
 		} catch (Exception e) {
 			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
