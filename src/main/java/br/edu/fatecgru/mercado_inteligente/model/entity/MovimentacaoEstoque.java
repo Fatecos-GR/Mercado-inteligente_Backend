@@ -12,9 +12,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.EntityListeners;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
 @Table(name = "movimentacoes_estoque")
+@EntityListeners(AuditingEntityListener.class)
 public class MovimentacaoEstoque {
 
 	// Atributos
@@ -22,10 +26,10 @@ public class MovimentacaoEstoque {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	// Toda movimentação deve possuir um produto
+	// Toda movimentação deve possuir um estoque vinculado
 	@ManyToOne
-	@JoinColumn(name = "produto_id", nullable = false)
-	private Produto produto;
+	@JoinColumn(name = "estoque_id", nullable = false)
+	private Estoque estoque;
 
 	// Para salvar o tipo de movimentação
 	@Enumerated(EnumType.STRING)
@@ -49,7 +53,8 @@ public class MovimentacaoEstoque {
 	private Long referenciaId;
 
 	// Data da movimentação
-	@Column(name = "criado_em", nullable = false)
+	@CreatedDate
+	@Column(name = "criado_em", nullable = false, updatable = false)
 	private LocalDateTime criadoEm;
 
 	// Construtores
@@ -57,10 +62,10 @@ public class MovimentacaoEstoque {
 
 	}
 
-	public MovimentacaoEstoque(Long id, Produto produto, TipoMovimentacao tipo, Integer quantidade,
+	public MovimentacaoEstoque(Long id, Estoque estoque, TipoMovimentacao tipo, Integer quantidade,
 			OrigemMovimentacao origem, Long referenciaId, LocalDateTime criadoEm) {
 		this.id = id;
-		this.produto = produto;
+		this.estoque = estoque;
 		this.tipo = tipo;
 		this.quantidade = quantidade;
 		this.origem = origem;
@@ -77,12 +82,12 @@ public class MovimentacaoEstoque {
 		this.id = id;
 	}
 
-	public Produto getProduto() {
-		return produto;
+	public Estoque getEstoque() {
+		return estoque;
 	}
 
-	public void setProduto(Produto produto) {
-		this.produto = produto;
+	public void setEstoque(Estoque estoque) {
+		this.estoque = estoque;
 	}
 
 	public TipoMovimentacao getTipo() {

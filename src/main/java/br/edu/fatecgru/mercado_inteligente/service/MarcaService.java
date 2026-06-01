@@ -4,28 +4,34 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.MarcaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
 import br.edu.fatecgru.mercado_inteligente.repository.MarcaRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
 
 @Service
 public class MarcaService {
 
-	// Método de listar todos
 	@Autowired
 	private MarcaRepository marcaRepository;
+
+	@Autowired
+	private ProdutoRepository produtoRepository;
+
+	@Autowired
+	private ProdutoService produtoService;
 
 	public List<Marca> listarTodos() {
 		return marcaRepository.findAll();
 	}
 
-	// Listar por marca que contém no nome
 	public List<Marca> getByContainsName(String nome) {
 		return marcaRepository.findByNomeContains(nome);
 	}
 
-	// Consulta por ID da marca
 	public Marca getById(Long id) {
 		return marcaRepository.findById(id).orElse(null);
 	}

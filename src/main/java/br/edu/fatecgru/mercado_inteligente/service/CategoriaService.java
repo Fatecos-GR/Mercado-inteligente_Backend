@@ -4,28 +4,34 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.CategoriaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
 import br.edu.fatecgru.mercado_inteligente.repository.CategoriaRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
 
 @Service
 public class CategoriaService {
 
-	// Método de listar todos
 	@Autowired
 	private CategoriaRepository categoriaRepository;
+
+	@Autowired
+	private ProdutoRepository produtoRepository;
+
+	@Autowired
+	private ProdutoService produtoService;
 
 	public List<Categoria> listarTodos() {
 		return categoriaRepository.findAll();
 	}
 
-	// Consulta por categoria que contém no nome
 	public List<Categoria> getByContainsName(String nome) {
 		return categoriaRepository.findByNomeContains(nome);
 	}
 
-	// Consulta por id categoria
 	public Categoria getById(Long id) {
 		return categoriaRepository.findById(id).orElse(null);
 	}
