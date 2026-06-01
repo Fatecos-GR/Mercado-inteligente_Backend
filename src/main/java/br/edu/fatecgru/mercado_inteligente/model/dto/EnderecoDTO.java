@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Pattern;
 
 public class EnderecoDTO {
 
-	// Atributos para endereço
+	// Atributos
 
 	// Para fazer as validações do endereço
 	@NotBlank(message = "CEP é obrigatório")
