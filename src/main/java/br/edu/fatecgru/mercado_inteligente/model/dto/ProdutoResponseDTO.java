@@ -12,5 +12,7 @@ public record ProdutoResponseDTO(
     String imagem,
     String marcaNome,
     String categoriaNome,
-    String fornecedorNome
+    String fornecedorNome,
+    @io.swagger.v3.oas.annotations.media.Schema(description = "Quantidade total disponível para venda", example = "100")
+    Integer estoqueDisponivel
 ) {}
