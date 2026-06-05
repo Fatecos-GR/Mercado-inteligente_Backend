@@ -17,7 +17,8 @@ public class ProdutoMapper {
             produto.getImagem(),
             produto.getMarca() != null ? produto.getMarca().getNome() : null,
             produto.getCategoria() != null ? produto.getCategoria().getNome() : null,
-            produto.getFornecedor() != null ? produto.getFornecedor().getNome() : null
+            produto.getFornecedor() != null ? produto.getFornecedor().getNome() : null,
+            produto.getEstoque() != null ? produto.getEstoque().getQuantidadeDisponivel() : 0
         );
     }
 }

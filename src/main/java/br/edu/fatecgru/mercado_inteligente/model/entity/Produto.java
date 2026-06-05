@@ -51,6 +51,9 @@ public class Produto {
 	@JoinColumn(name = "fornecedor_id", nullable = false)
 	private Fornecedor fornecedor;
 
+	@jakarta.persistence.OneToOne(mappedBy = "produto")
+	private Estoque estoque;
+
 	// Construtores
 	public Produto() {
 
@@ -70,6 +73,14 @@ public class Produto {
 	}
 
 	// Getters e Setters
+    public Estoque getEstoque() {
+        return estoque;
+    }
+
+    public void setEstoque(Estoque estoque) {
+        this.estoque = estoque;
+    }
+
 	public Long getId() {
 		return id;
 	}
