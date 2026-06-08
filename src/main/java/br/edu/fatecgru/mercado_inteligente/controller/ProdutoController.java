@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -60,9 +61,7 @@ public class ProdutoController {
 	@GetMapping
 	@Operation(summary = "Listar todos os produtos")
 	public List<ProdutoResponseDTO> listarTodos() {
-		return produtoService.listarTodos().stream()
-				.map(ProdutoMapper::toDTO)
-				.toList();
+		return produtoService.listarTodos().stream().map(ProdutoMapper::toDTO).toList();
 	}
 
 	// Busca produto por ID
@@ -80,34 +79,28 @@ public class ProdutoController {
 	@GetMapping("/contem-nome/{nome}")
 	@Operation(summary = "Listar produto por Nome")
 	public List<ProdutoResponseDTO> buscarPorContemNome(@PathVariable String nome) {
-		return produtoService.getByContainsName(nome).stream()
-				.map(ProdutoMapper::toDTO)
-				.toList();
+		return produtoService.getByContainsName(nome).stream().map(ProdutoMapper::toDTO).toList();
 	}
 
 	// Busca por ID da categoria
 	@GetMapping("/categoria/{id}")
 	@Operation(summary = "Listar produto por ID da categoria")
 	public List<ProdutoResponseDTO> buscarPorIdCategoria(@PathVariable Long id) {
-		return produtoService.getByCategoryId(id).stream()
-				.map(ProdutoMapper::toDTO)
-				.toList();
+		return produtoService.getByCategoryId(id).stream().map(ProdutoMapper::toDTO).toList();
 	}
 
 	// Busca por ID da marca
 	@GetMapping("/marca/{id}")
 	@Operation(summary = "Listar produto por ID da Marca")
 	public List<ProdutoResponseDTO> buscarPorIdMarca(@PathVariable Long id) {
-		return produtoService.getByBrandId(id).stream()
-				.map(ProdutoMapper::toDTO)
-				.toList();
+		return produtoService.getByBrandId(id).stream().map(ProdutoMapper::toDTO).toList();
 	}
 
 	// Pasta dos produtos para salvar as imagens
 	String pastaProdutos = "products/";
 
 	// Salvar produto
-	@PostMapping
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Produto")
 	public ResponseEntity<?> insert(@RequestPart("produto") String produtoJson,
@@ -149,7 +142,7 @@ public class ProdutoController {
 	}
 
 	// Alterar produto
-	@PutMapping("/{id}")
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Produto")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("produto") String produtoJson,

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -74,7 +75,7 @@ public class UsuarioController {
 	String pastaUsuarios = "users/";
 
 	// Método para cadastrar usuário
-	@PostMapping
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar usuário (Apenas ADMIN)")
 	public ResponseEntity<?> insert(@RequestPart("usuario") String usuarioJson,
@@ -98,7 +99,7 @@ public class UsuarioController {
 	}
 
 	// Método para alterar usuário
-	@PutMapping("/{id}")
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Alterar usuário")
 	public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestPart("usuario") String usuarioJson,

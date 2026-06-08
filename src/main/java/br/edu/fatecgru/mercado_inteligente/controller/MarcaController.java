@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -66,7 +67,7 @@ public class MarcaController {
 	String pastaMarcas = "brands/";
 
 	// Salvar Marca
-	@PostMapping
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Marca")
 	public ResponseEntity<?> insert(@RequestPart("marca") String marcaJson,
@@ -101,7 +102,7 @@ public class MarcaController {
 	}
 
 	// Alterar Marca
-	@PutMapping("/{id}")
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Marca")
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("marca") String marcaJson,
