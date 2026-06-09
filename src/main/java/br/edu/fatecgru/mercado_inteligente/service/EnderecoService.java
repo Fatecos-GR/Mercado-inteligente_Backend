@@ -64,7 +64,8 @@ public class EnderecoService {
 
 	private void validarPropriedade(Endereco endereco, Usuario usuarioLogado) {
 		boolean isOwner = endereco.getUsuario() != null && endereco.getUsuario().getId().equals(usuarioLogado.getId());
-		boolean isAdmin = usuarioLogado.getTipo() == TipoFuncionario.ADMIN;
+		boolean isAdmin = usuarioLogado.getAuthorities().stream()
+				.anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
 		if (!isOwner && !isAdmin) {
 			throw new RuntimeException("Acesso negado: você não tem permissão para alterar este endereço.");

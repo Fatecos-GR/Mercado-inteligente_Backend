@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Endereco;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.service.EnderecoService;
 import br.edu.fatecgru.mercado_inteligente.service.UsuarioService;
 import br.edu.fatecgru.mercado_inteligente.service.ViaCepService;
@@ -61,27 +63,25 @@ public class EnderecoController {
 		Endereco endereco = usuarioService.adicionarEndereco(id, dto);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(endereco);
-	import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
-	import org.springframework.security.core.annotation.AuthenticationPrincipal;
-	// ... (outros imports)
+	}
 
-		// Alterar endereço
-		@PutMapping("/{id}")
-		@Operation(summary = "Atualizar endereço")
-		public ResponseEntity<Endereco> atualizar(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto, @AuthenticationPrincipal Usuario usuarioLogado) {
+	// Alterar endereço
+	@PutMapping("/{id}")
+	@Operation(summary = "Atualizar endereço")
+	public ResponseEntity<Endereco> atualizar(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto,
+			@AuthenticationPrincipal Usuario usuarioLogado) {
 
-			return ResponseEntity.ok(enderecoService.atualizar(id, dto, usuarioLogado));
-		}
+		return ResponseEntity.ok(enderecoService.atualizar(id, dto, usuarioLogado));
+	}
 
-		// Deletar endereço
-		@DeleteMapping("/{id}")
-		@Operation(summary = "Excluir endereço")
-		public ResponseEntity<Void> deletar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
+	// Deletar endereço
+	@DeleteMapping("/{id}")
+	@Operation(summary = "Excluir endereço")
+	public ResponseEntity<Void> deletar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
 
-			enderecoService.deletar(id, usuarioLogado);
+		enderecoService.deletar(id, usuarioLogado);
 
-			return ResponseEntity.noContent().build();
-		}
-
+		return ResponseEntity.noContent().build();
+	}
 
 }
