@@ -38,13 +38,16 @@ public class UsuarioController {
 	@Autowired
 	private ImagemService imagemService;
 
+	private final String pastaUsuarios = "users/";
+
 	@GetMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar todos os usuários(Apenas ADMIN)")
-	public List<UsuarioResponseDTO> listarTodos() {
-		return usuarioService.listarTodos().stream()
+	public ResponseEntity<List<UsuarioResponseDTO>> listarTodos() {
+		List<UsuarioResponseDTO> usuarios = usuarioService.listarTodos().stream()
 				.map(UsuarioResponseDTO::fromEntity)
 				.toList();
+		return ResponseEntity.ok(usuarios);
 	}
 
 	@GetMapping("/{id}")
@@ -53,21 +56,21 @@ public class UsuarioController {
 	public ResponseEntity<UsuarioResponseDTO> buscarPorId(@PathVariable Long id) {
 		Usuario usuario = usuarioService.getById(id);
 		if (usuario == null) {
-			return ResponseEntity.notFound().build();
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Usuário não encontrado com ID: " + id);
 		}
 		return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
 	}
 
-	@GetMapping("/contem-nome/{nome}")
+	@GetMapping("/search")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Listar usuário por Nome (Apenas ADMIN)")
-	public List<UsuarioResponseDTO> buscarPorContemNome(@PathVariable String nome) {
-		return usuarioService.getByContainsName(nome).stream()
+	@Operation(summary = "Buscar usuários por nome (Apenas ADMIN)")
+	public ResponseEntity<List<UsuarioResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
+		List<UsuarioResponseDTO> usuarios = usuarioService.getByContainsName(nome).stream()
 				.map(UsuarioResponseDTO::fromEntity)
 				.toList();
+		return ResponseEntity.ok(usuarios);
 	}
 
-	// Método para listar clientes
 	@GetMapping("/clientes")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar clientes (Apenas ADMIN)")
@@ -78,80 +81,45 @@ public class UsuarioController {
 		return ResponseEntity.ok(dtos);
 	}
 
-	// Pasta dos usuários para salvar as imagens
-	String pastaUsuarios = "users/";
-
-	// Método para cadastrar usuário
 	@PostMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar usuário (Apenas ADMIN)")
-	public ResponseEntity<?> insert(@RequestPart("usuario") String usuarioJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	public ResponseEntity<UsuarioResponseDTO> insert(@RequestPart("usuario") String usuarioJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
-		try {
+		ObjectMapper mapper = new ObjectMapper();
+		UsuarioCadastroDTO dto = mapper.readValue(usuarioJson, UsuarioCadastroDTO.class);
 
-			ObjectMapper mapper = new ObjectMapper();
-			UsuarioCadastroDTO dto = mapper.readValue(usuarioJson, UsuarioCadastroDTO.class);
+		Usuario usuario = usuarioService.cadastrar(dto, imagem);
 
-			// cadastra usuário
-			Usuario usuario = usuarioService.cadastrar(dto, imagem);
-
-			// response
-			return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponseDTO.fromEntity(usuario));
-
-		} catch (Exception e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponseDTO.fromEntity(usuario));
 	}
 
-	// Método para alterar usuário
 	@PutMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Alterar usuário")
-	public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestPart("usuario") String usuarioJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	public ResponseEntity<UsuarioResponseDTO> atualizar(@PathVariable Long id, @RequestPart("usuario") String usuarioJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
-		try {
+		ObjectMapper mapper = new ObjectMapper();
+		UsuarioAtualizacaoDTO dto = mapper.readValue(usuarioJson, UsuarioAtualizacaoDTO.class);
 
-			ObjectMapper mapper = new ObjectMapper();
+		Usuario usuario = usuarioService.atualizar(id, dto);
 
-			UsuarioAtualizacaoDTO dto = mapper.readValue(usuarioJson, UsuarioAtualizacaoDTO.class);
+		String imagemAntiga = usuario.getImagem();
+		String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaUsuarios);
+		usuario.setImagem(imagemAtualizada);
 
-			// atualiza usuário
-			Usuario usuario = usuarioService.atualizar(id, dto);
+		usuarioService.save(usuario);
 
-			// substitui imagem
-			String imagemAntiga = usuario.getImagem();
-
-			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaUsuarios);
-
-			usuario.setImagem(imagemAtualizada);
-
-			usuarioService.save(usuario);
-
-			// response
-			return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
-
-		} catch (Exception e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
 	}
 
-	// Método para excluir usuário
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Excluir usuário (Apenas ADMIN)")
-	public ResponseEntity<?> delete(@PathVariable Long id) {
-		try {
-			usuarioService.deletar(id);
-
-			return ResponseEntity.noContent().build();
-
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
-		}
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		usuarioService.deletar(id);
+		return ResponseEntity.noContent().build();
 	}
-
 }

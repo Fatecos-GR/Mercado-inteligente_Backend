@@ -26,7 +26,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/estoque")
+@RequestMapping("/api/estoques")
 @Tag(name = "Estoque", description = "Endpoints para gestão de estoque e inventário")
 @PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
 public class EstoqueController {
@@ -40,10 +40,11 @@ public class EstoqueController {
         @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-    public List<EstoqueResponseDTO> listarTodos() {
-        return estoqueService.listarTodos().stream()
+    public ResponseEntity<List<EstoqueResponseDTO>> listarTodos() {
+        List<EstoqueResponseDTO> estoque = estoqueService.listarTodos().stream()
                 .map(EstoqueMapper::toDTO)
                 .toList();
+        return ResponseEntity.ok(estoque);
     }
 
     @GetMapping("/produto/{id}")
@@ -64,10 +65,11 @@ public class EstoqueController {
         @ApiResponse(responseCode = "404", description = "Produto ou estoque não encontrado"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-    public List<MovimentacaoResponseDTO> buscarMovimentacoes(@PathVariable Long produtoId) {
-        return estoqueService.buscarMovimentacoes(produtoId).stream()
+    public ResponseEntity<List<MovimentacaoResponseDTO>> buscarMovimentacoes(@PathVariable Long produtoId) {
+        List<MovimentacaoResponseDTO> movimentacoes = estoqueService.buscarMovimentacoes(produtoId).stream()
                 .map(EstoqueMapper::toDTO)
                 .toList();
+        return ResponseEntity.ok(movimentacoes);
     }
 
     @PostMapping("/ajuste")

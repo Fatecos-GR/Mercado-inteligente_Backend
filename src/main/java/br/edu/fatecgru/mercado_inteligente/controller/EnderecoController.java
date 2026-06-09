@@ -27,6 +27,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/enderecos")
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Endereços", description = "Endpoints relacionados aos Endereços")
 public class EnderecoController {
 
 	@Autowired
@@ -40,8 +41,8 @@ public class EnderecoController {
 
 	// Busca por CEP
 	@GetMapping("/cep/{cep}")
-	public ResponseEntity<?> buscarPorCep(@PathVariable String cep) {
-
+	@Operation(summary = "Buscar endereço por CEP via ViaCEP")
+	public ResponseEntity<br.edu.fatecgru.mercado_inteligente.model.dto.ViaCepDTO> buscarPorCep(@PathVariable String cep) {
 		return ResponseEntity.ok(enderecoService.buscarPorCep(cep));
 	}
 
@@ -49,38 +50,36 @@ public class EnderecoController {
 	@GetMapping("/{id}/enderecos")
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Listar endereços do usuário")
-	public ResponseEntity<List<Endereco>> listarEnderecos(@PathVariable Long id) {
-
-		return ResponseEntity.ok(usuarioService.listarEnderecosUsuario(id));
+	public ResponseEntity<List<EnderecoDTO>> listarEnderecos(@PathVariable Long id) {
+		List<EnderecoDTO> enderecos = usuarioService.listarEnderecosUsuario(id).stream()
+				.map(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper::toDTO)
+				.toList();
+		return ResponseEntity.ok(enderecos);
 	}
 
 	// Adicionar endereço a um usuário
 	@PostMapping("/{id}/enderecos")
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Adicionar endereço ao usuário")
-	public ResponseEntity<Endereco> adicionarEndereco(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto) {
-
+	public ResponseEntity<EnderecoDTO> adicionarEndereco(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto) {
 		Endereco endereco = usuarioService.adicionarEndereco(id, dto);
-
-		return ResponseEntity.status(HttpStatus.CREATED).body(endereco);
+		return ResponseEntity.status(HttpStatus.CREATED).body(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper.toDTO(endereco));
 	}
 
 	// Alterar endereço
 	@PutMapping("/{id}")
 	@Operation(summary = "Atualizar endereço")
-	public ResponseEntity<Endereco> atualizar(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto,
+	public ResponseEntity<EnderecoDTO> atualizar(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto,
 			@AuthenticationPrincipal Usuario usuarioLogado) {
-
-		return ResponseEntity.ok(enderecoService.atualizar(id, dto, usuarioLogado));
+		Endereco endereco = enderecoService.atualizar(id, dto, usuarioLogado);
+		return ResponseEntity.ok(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper.toDTO(endereco));
 	}
 
 	// Deletar endereço
 	@DeleteMapping("/{id}")
 	@Operation(summary = "Excluir endereço")
 	public ResponseEntity<Void> deletar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
-
 		enderecoService.deletar(id, usuarioLogado);
-
 		return ResponseEntity.noContent().build();
 	}
 

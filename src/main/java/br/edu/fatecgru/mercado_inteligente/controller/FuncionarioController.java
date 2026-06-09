@@ -38,27 +38,27 @@ public class FuncionarioController {
 	@Autowired
 	private ImagemService imagemService;
 
-	// Lista todas os funcionários
+	private final String pastaFuncionarios = "employees/";
+
 	@GetMapping
 	@Operation(summary = "Listar todos os funcionários")
-	public List<FuncionarioResponseDTO> listarTodos() {
-		return funcionarioService.listarTodos().stream()
+	public ResponseEntity<List<FuncionarioResponseDTO>> listarTodos() {
+		List<FuncionarioResponseDTO> funcionarios = funcionarioService.listarTodos().stream()
 				.map(FuncionarioResponseDTO::fromEntity)
 				.toList();
+		return ResponseEntity.ok(funcionarios);
 	}
 
-	// Busca por ID
 	@GetMapping("/{id}")
 	@Operation(summary = "Listar funcionário por ID")
 	public ResponseEntity<FuncionarioResponseDTO> buscarPorId(@PathVariable Long id) {
 		Funcionario funcionario = funcionarioService.getById(id);
 		if (funcionario == null) {
-			return ResponseEntity.notFound().build();
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Funcionário não encontrado com ID: " + id);
 		}
 		return ResponseEntity.ok(FuncionarioResponseDTO.fromEntity(funcionario));
 	}
 
-	// Método para listar administradores
 	@GetMapping("/admins")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar admins (Apenas ADMIN)")
@@ -69,7 +69,6 @@ public class FuncionarioController {
 		return ResponseEntity.ok(dtos);
 	}
 
-	// Método para listar estoquistas
 	@GetMapping("/estoquistas")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar estoquistas (Apenas ADMIN)")
@@ -80,77 +79,39 @@ public class FuncionarioController {
 		return ResponseEntity.ok(dtos);
 	}
 
-	// Pasta dos funcionários para salvar as imagens
-	String pastaFuncionarios = "employees/";
-
-	// Método para cadastrar funcionário
 	@PostMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar funcionário (Apenas ADMIN)")
-	public ResponseEntity<?> insert(@RequestPart("funcionario") String funcionarioJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	public ResponseEntity<FuncionarioResponseDTO> insert(@RequestPart("funcionario") String funcionarioJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
-		try {
+		ObjectMapper mapper = new ObjectMapper();
+		FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
 
-			ObjectMapper mapper = new ObjectMapper();
+		Funcionario funcionario = funcionarioService.cadastrar(dto, imagem);
 
-			FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
-
-			Funcionario funcionario = funcionarioService.cadastrar(dto, imagem);
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(FuncionarioResponseDTO.fromEntity(funcionario));
-
-		} catch (Exception e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		return ResponseEntity.status(HttpStatus.CREATED).body(FuncionarioResponseDTO.fromEntity(funcionario));
 	}
 
-	// Método para alterar funcionário
 	@PutMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Alterar funcionário")
-	public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestPart("funcionario") String funcionarioJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	public ResponseEntity<FuncionarioResponseDTO> atualizar(@PathVariable Long id, @RequestPart("funcionario") String funcionarioJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
-		try {
+		ObjectMapper mapper = new ObjectMapper();
+		FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
 
-			ObjectMapper mapper = new ObjectMapper();
+		Funcionario funcionario = funcionarioService.atualizar(id, dto, imagem);
 
-			FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
-
-			// atualiza funcionário
-			Funcionario funcionario = funcionarioService.atualizar(id, dto, imagem);
-
-			// response
-			return ResponseEntity.ok(FuncionarioResponseDTO.fromEntity(funcionario));
-
-		} catch (Exception e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		return ResponseEntity.ok(FuncionarioResponseDTO.fromEntity(funcionario));
 	}
 
-	// Método para excluir funcionário
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Excluir funcionário (Apenas ADMIN)")
-	public ResponseEntity<?> delete(@PathVariable Long id) {
-		try {
-
-			funcionarioService.deletar(id);
-
-			return ResponseEntity.noContent().build();
-
-		} catch (RuntimeException e) {
-
-			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-
-		} catch (Exception e) {
-
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao deletar: " + e.getMessage());
-		}
-
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		funcionarioService.deletar(id);
+		return ResponseEntity.noContent().build();
 	}
-
 }

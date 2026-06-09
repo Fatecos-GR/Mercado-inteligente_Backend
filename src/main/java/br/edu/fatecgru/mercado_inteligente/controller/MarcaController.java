@@ -27,10 +27,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-//Cria o geral, todos precisam desse
-@Tag(name = "Marcas", description = "Endpoints relacionados as Marcas")
 @RequestMapping("/api/marcas")
-
+@Tag(name = "Marcas", description = "Endpoints relacionados as Marcas")
 public class MarcaController {
 
 	@Autowired
@@ -39,122 +37,98 @@ public class MarcaController {
 	@Autowired
 	private ImagemService imagemService;
 
-	// Lista todas as categorias
+	private final String pastaMarcas = "brands/";
+
 	@GetMapping
 	@Operation(summary = "Listar todas as Marcas")
-	public List<Marca> listarTodos() {
-		return marcaService.listarTodos();
+	public ResponseEntity<List<MarcaResponseDTO>> listarTodos() {
+		List<MarcaResponseDTO> marcas = marcaService.listarTodos().stream()
+				.map(MarcaResponseDTO::fromEntity)
+				.toList();
+		return ResponseEntity.ok(marcas);
 	}
 
-	// Busca por ID
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar marca por ID")
-	public Marca buscarPorId(@PathVariable Long id) {
-		return marcaService.getById(id);
+	public ResponseEntity<MarcaResponseDTO> buscarPorId(@PathVariable Long id) {
+		Marca marca = marcaService.getById(id);
+		if (marca == null) {
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Marca não encontrada com ID: " + id);
+		}
+		return ResponseEntity.ok(MarcaResponseDTO.fromEntity(marca));
 	}
 
-	// Busca de marca por nome
-	@GetMapping("/contem-nome/{nome}")
-	@Operation(summary = "Buscar marca por ID")
-	public List<Marca> buscarPorContemNome(@PathVariable String nome) {
-		return marcaService.getByContainsName(nome);
+	@GetMapping("/search")
+	@Operation(summary = "Buscar marcas por nome")
+	public ResponseEntity<List<MarcaResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
+		List<MarcaResponseDTO> marcas = marcaService.getByContainsName(nome).stream()
+				.map(MarcaResponseDTO::fromEntity)
+				.toList();
+		return ResponseEntity.ok(marcas);
 	}
 
-	// Pasta das marcas para salvar as imagens
-	String pastaMarcas = "brands/";
-
-	// Salvar Marca
 	@PostMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Marca")
-	public ResponseEntity<?> insert(@RequestPart("marca") String marcaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	public ResponseEntity<MarcaResponseDTO> insert(@RequestPart("marca") String marcaJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws com.fasterxml.jackson.core.JsonProcessingException {
 
-		try {
+		ObjectMapper mapper = new ObjectMapper();
+		MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
 
-			ObjectMapper mapper = new ObjectMapper();
+		Marca marca = marcaService.cadastrar(dto);
 
-			MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
+		String nomeImagem = imagemService.salvarImagem(imagem, pastaMarcas);
 
-			Marca marca = marcaService.cadastrar(dto);
-
-			String nomeImagem = imagemService.salvarImagem(imagem, pastaMarcas);
-
-			if (nomeImagem != null) {
-
-				marca.setImagem(nomeImagem);
-
-				marcaService.save(marca);
-			}
-
-			MarcaResponseDTO response = new MarcaResponseDTO(marca.getId(), marca.getNome(), marca.getDescricao(),
-					marca.getImagem());
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
-		} catch (Exception e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
+		if (nomeImagem != null) {
+			marca.setImagem(nomeImagem);
+			marcaService.save(marca);
 		}
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(MarcaResponseDTO.fromEntity(marca));
 	}
 
-	// Alterar Marca
 	@PutMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Marca")
-	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("marca") String marcaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	public ResponseEntity<MarcaResponseDTO> update(@PathVariable Long id, @RequestPart("marca") String marcaJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws com.fasterxml.jackson.core.JsonProcessingException {
 
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
+		ObjectMapper mapper = new ObjectMapper();
+		MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
 
-			Marca atual = marcaService.getById(id);
+		Marca atual = marcaService.getById(id);
 
-			if (atual == null) {
-				return ResponseEntity.notFound().build();
-			}
-
-			atual.setNome(dto.getNome());
-			atual.setDescricao(dto.getDescricao());
-
-			// substitui imagem
-			String imagemAntiga = atual.getImagem();
-
-			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaMarcas);
-
-			atual.setImagem(imagemAtualizada);
-
-			return ResponseEntity.ok(marcaService.save(atual));
-
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body(e.getMessage());
+		if (atual == null) {
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Marca não encontrada com ID: " + id);
 		}
+
+		atual.setNome(dto.getNome());
+		atual.setDescricao(dto.getDescricao());
+
+		String imagemAntiga = atual.getImagem();
+		String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaMarcas);
+		atual.setImagem(imagemAtualizada);
+
+		Marca salvo = marcaService.save(atual);
+		return ResponseEntity.ok(MarcaResponseDTO.fromEntity(salvo));
 	}
 
-	// Deletar Marca
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Deletar Marca")
-	public ResponseEntity<?> delete(@PathVariable Long id) {
-		try {
-			Marca marca = marcaService.getById(id);
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		Marca marca = marcaService.getById(id);
 
-			if (marca == null) {
-				return ResponseEntity.notFound().build();
-			}
-
-			if (marca.getImagem() != null) {
-				imagemService.deletarImagem(marca.getImagem(), pastaMarcas);
-			}
-
-			marcaService.delete(id);
-
-			return ResponseEntity.noContent().build(); // 204
-
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
+		if (marca == null) {
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Marca não encontrada com ID: " + id);
 		}
-	}
 
+		if (marca.getImagem() != null) {
+			imagemService.deletarImagem(marca.getImagem(), pastaMarcas);
+		}
+
+		marcaService.delete(id);
+		return ResponseEntity.noContent().build();
+	}
 }
