@@ -71,7 +71,7 @@ public class CategoriaController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Categoria")
 	public ResponseEntity<CategoriaResponseDTO> insert(@RequestPart("categoria") String categoriaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws com.fasterxml.jackson.core.JsonProcessingException {
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
@@ -92,7 +92,7 @@ public class CategoriaController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Categoria")
 	public ResponseEntity<CategoriaResponseDTO> update(@PathVariable Long id, @RequestPart("categoria") String categoriaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws com.fasterxml.jackson.core.JsonProcessingException {
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);

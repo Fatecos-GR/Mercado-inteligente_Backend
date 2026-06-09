@@ -105,7 +105,7 @@ public class ProdutoController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Produto")
 	public ResponseEntity<ProdutoResponseDTO> insert(@RequestPart("produto") String produtoJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws com.fasterxml.jackson.core.JsonProcessingException {
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
@@ -140,7 +140,7 @@ public class ProdutoController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Produto")
 	public ResponseEntity<ProdutoResponseDTO> update(@PathVariable Long id, @RequestPart("produto") String produtoJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws com.fasterxml.jackson.core.JsonProcessingException {
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);

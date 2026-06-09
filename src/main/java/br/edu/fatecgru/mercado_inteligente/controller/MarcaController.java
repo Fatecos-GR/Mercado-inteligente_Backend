@@ -71,7 +71,7 @@ public class MarcaController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Marca")
 	public ResponseEntity<MarcaResponseDTO> insert(@RequestPart("marca") String marcaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws com.fasterxml.jackson.core.JsonProcessingException {
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
@@ -92,7 +92,7 @@ public class MarcaController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Marca")
 	public ResponseEntity<MarcaResponseDTO> update(@PathVariable Long id, @RequestPart("marca") String marcaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws com.fasterxml.jackson.core.JsonProcessingException {
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);

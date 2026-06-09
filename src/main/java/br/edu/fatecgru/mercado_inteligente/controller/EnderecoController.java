@@ -42,7 +42,7 @@ public class EnderecoController {
 	// Busca por CEP
 	@GetMapping("/cep/{cep}")
 	@Operation(summary = "Buscar endereço por CEP via ViaCEP")
-	public ResponseEntity<br.edu.fatecgru.mercado_inteligente.model.dto.ViaCepDTO> buscarPorCep(@PathVariable String cep) {
+	public ResponseEntity<EnderecoDTO> buscarPorCep(@PathVariable String cep) {
 		return ResponseEntity.ok(enderecoService.buscarPorCep(cep));
 	}
 
