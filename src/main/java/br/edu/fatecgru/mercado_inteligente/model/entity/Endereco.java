@@ -40,10 +40,10 @@ public class Endereco {
 	// Campo opcional
 	private String complemento;
 
-	// Um usuário pode ter vários endereço, e todo endereço deve ter um ID de
-	// usuário
+	// Um usuário pode ter vários endereço, e o usuário_id agora é opcional
+	// para permitir endereços de fornecedores que não pertencem a um usuário.
 	@ManyToOne
-	@JoinColumn(name = "usuario_id", nullable = false)
+	@JoinColumn(name = "usuario_id", nullable = true)
 	private Usuario usuario;
 
 	// Construtores
