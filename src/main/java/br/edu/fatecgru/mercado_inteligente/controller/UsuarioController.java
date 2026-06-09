@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,7 +27,6 @@ import br.edu.fatecgru.mercado_inteligente.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/usuarios")
 @Tag(name = "Usuários", description = "Endpoints relacionados aos Usuários")
@@ -43,31 +41,41 @@ public class UsuarioController {
 	@GetMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar todos os usuários(Apenas ADMIN)")
-	public List<Usuario> listarTodos() {
-		return usuarioService.listarTodos();
+	public List<UsuarioResponseDTO> listarTodos() {
+		return usuarioService.listarTodos().stream()
+				.map(UsuarioResponseDTO::fromEntity)
+				.toList();
 	}
 
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar usuário por ID (Apenas ADMIN)")
-	public Usuario buscarPorId(@PathVariable Long id) {
-		return usuarioService.getById(id);
+	public ResponseEntity<UsuarioResponseDTO> buscarPorId(@PathVariable Long id) {
+		Usuario usuario = usuarioService.getById(id);
+		if (usuario == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
 	}
 
 	@GetMapping("/contem-nome/{nome}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar usuário por Nome (Apenas ADMIN)")
-	public List<Usuario> buscarPorContemNome(@PathVariable String nome) {
-		return usuarioService.getByContainsName(nome);
+	public List<UsuarioResponseDTO> buscarPorContemNome(@PathVariable String nome) {
+		return usuarioService.getByContainsName(nome).stream()
+				.map(UsuarioResponseDTO::fromEntity)
+				.toList();
 	}
 
 	// Método para listar clientes
 	@GetMapping("/clientes")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar clientes (Apenas ADMIN)")
-	public ResponseEntity<List<Usuario>> listarClientes() {
-
-		return ResponseEntity.ok(usuarioService.listarClientes());
+	public ResponseEntity<List<UsuarioResponseDTO>> listarClientes() {
+		List<UsuarioResponseDTO> dtos = usuarioService.listarClientes().stream()
+				.map(UsuarioResponseDTO::fromEntity)
+				.toList();
+		return ResponseEntity.ok(dtos);
 	}
 
 	// Pasta dos usuários para salvar as imagens

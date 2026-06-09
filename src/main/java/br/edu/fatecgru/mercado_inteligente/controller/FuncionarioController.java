@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,11 +26,10 @@ import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@CrossOrigin(origins = "*")
 @RestController
-//Cria o geral, todos precisam desse
 @RequestMapping("/api/funcionarios")
 @Tag(name = "Funcionários", description = "Endpoints relacionados aos Funcionários")
+@PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
 public class FuncionarioController {
 
 	@Autowired
@@ -43,33 +41,43 @@ public class FuncionarioController {
 	// Lista todas os funcionários
 	@GetMapping
 	@Operation(summary = "Listar todos os funcionários")
-	public List<Funcionario> listarTodos() {
-		return funcionarioService.listarTodos();
+	public List<FuncionarioResponseDTO> listarTodos() {
+		return funcionarioService.listarTodos().stream()
+				.map(FuncionarioResponseDTO::fromEntity)
+				.toList();
 	}
 
 	// Busca por ID
 	@GetMapping("/{id}")
 	@Operation(summary = "Listar funcionário por ID")
-	public Funcionario buscarPorId(@PathVariable Long id) {
-		return funcionarioService.getById(id);
+	public ResponseEntity<FuncionarioResponseDTO> buscarPorId(@PathVariable Long id) {
+		Funcionario funcionario = funcionarioService.getById(id);
+		if (funcionario == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(FuncionarioResponseDTO.fromEntity(funcionario));
 	}
 
 	// Método para listar administradores
 	@GetMapping("/admins")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar admins (Apenas ADMIN)")
-	public ResponseEntity<List<Funcionario>> listarAdmins() {
-
-		return ResponseEntity.ok(funcionarioService.listarAdministradores());
+	public ResponseEntity<List<FuncionarioResponseDTO>> listarAdmins() {
+		List<FuncionarioResponseDTO> dtos = funcionarioService.listarAdministradores().stream()
+				.map(FuncionarioResponseDTO::fromEntity)
+				.toList();
+		return ResponseEntity.ok(dtos);
 	}
 
 	// Método para listar estoquistas
 	@GetMapping("/estoquistas")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar estoquistas (Apenas ADMIN)")
-	public ResponseEntity<List<Funcionario>> listarEstoquistas() {
-
-		return ResponseEntity.ok(funcionarioService.listarEstoquistas());
+	public ResponseEntity<List<FuncionarioResponseDTO>> listarEstoquistas() {
+		List<FuncionarioResponseDTO> dtos = funcionarioService.listarEstoquistas().stream()
+				.map(FuncionarioResponseDTO::fromEntity)
+				.toList();
+		return ResponseEntity.ok(dtos);
 	}
 
 	// Pasta dos funcionários para salvar as imagens

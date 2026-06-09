@@ -7,6 +7,8 @@ import org.springframework.web.client.RestTemplate;
 import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ViaCepDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Endereco;
+import br.edu.fatecgru.mercado_inteligente.model.entity.TipoFuncionario;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.repository.EnderecoRepository;
 
 @Service
@@ -29,10 +31,13 @@ public class EnderecoService {
 	}
 
 	// Atualizar endereço
-	public Endereco atualizar(Long id, EnderecoDTO dto) {
+	public Endereco atualizar(Long id, EnderecoDTO dto, Usuario usuarioLogado) {
 
 		Endereco endereco = enderecoRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Endereço não encontrado"));
+
+		// Validação de Propriedade
+		validarPropriedade(endereco, usuarioLogado);
 
 		endereco.setCep(dto.cep());
 		endereco.setLogradouro(dto.logradouro());
@@ -46,12 +51,25 @@ public class EnderecoService {
 	}
 
 	// Deletar endereço
-	public void deletar(Long id) {
+	public void deletar(Long id, Usuario usuarioLogado) {
 
 		Endereco endereco = enderecoRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Endereço não encontrado"));
 
+		// Validação de Propriedade
+		validarPropriedade(endereco, usuarioLogado);
+
 		enderecoRepository.delete(endereco);
+	}
+
+	private void validarPropriedade(Endereco endereco, Usuario usuarioLogado) {
+		boolean isOwner = endereco.getUsuario() != null && endereco.getUsuario().getId().equals(usuarioLogado.getId());
+		boolean isAdmin = usuarioLogado.getAuthorities().stream()
+				.anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+		if (!isOwner && !isAdmin) {
+			throw new RuntimeException("Acesso negado: você não tem permissão para alterar este endereço.");
+		}
 	}
 
 }
