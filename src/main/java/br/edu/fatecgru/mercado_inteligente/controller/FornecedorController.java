@@ -30,9 +30,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @CrossOrigin(origins = "*")
 @RestController
-//Cria o geral, todos precisam desse
 @RequestMapping("/api/fornecedores")
 @Tag(name = "Fornecedores", description = "Endpoints relacionados aos Fornecedores")
+@PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
 public class FornecedorController {
 
 	@Autowired

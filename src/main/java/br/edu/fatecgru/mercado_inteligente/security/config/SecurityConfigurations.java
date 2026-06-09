@@ -3,6 +3,7 @@ package br.edu.fatecgru.mercado_inteligente.security.config;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -33,6 +34,15 @@ public class SecurityConfigurations {
 					req.requestMatchers("/api/auth/**").permitAll();
 					req.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll();
 					req.requestMatchers("/error").permitAll();
+					
+					// Recursos Estáticos (Imagens)
+					req.requestMatchers(HttpMethod.GET, "/uploads/**").permitAll();
+					
+					// Vitrine Pública (Apenas Leitura)
+					req.requestMatchers(HttpMethod.GET, "/api/produtos/**").permitAll();
+					req.requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll();
+					req.requestMatchers(HttpMethod.GET, "/api/marcas/**").permitAll();
+					
 					req.anyRequest().authenticated();
 				}).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
 				.exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
