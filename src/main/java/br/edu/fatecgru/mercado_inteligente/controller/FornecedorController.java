@@ -39,120 +39,84 @@ public class FornecedorController {
 	@Autowired
 	private ImagemService imagemService;
 
-	// Lista todas os fornecedores
+	private final String pastaFornecedores = "suppliers/";
+
 	@GetMapping
 	@Operation(summary = "Listar todos os fornecedores")
-	public List<Fornecedor> listarTodos() {
-		return fornecedorService.listarTodos();
+	public ResponseEntity<List<FornecedorResponseDTO>> listarTodos() {
+		List<FornecedorResponseDTO> fornecedores = fornecedorService.listarTodos().stream()
+				.map(FornecedorResponseDTO::fromEntity)
+				.toList();
+		return ResponseEntity.ok(fornecedores);
 	}
 
-	// Busca por ID
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar fornecedor por ID")
-	public Fornecedor buscarPorId(@PathVariable Long id) {
-		return fornecedorService.getById(id);
+	public ResponseEntity<FornecedorResponseDTO> buscarPorId(@PathVariable Long id) {
+		Fornecedor fornecedor = fornecedorService.getById(id);
+		if (fornecedor == null) {
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Fornecedor não encontrado com ID: " + id);
+		}
+		return ResponseEntity.ok(FornecedorResponseDTO.fromEntity(fornecedor));
 	}
 
-	// Busca de fornecedor pelo nome
-	@GetMapping("/contem-nome/{nome}")
+	@GetMapping("/search")
 	@Operation(summary = "Buscar fornecedor por nome")
-	public List<Fornecedor> buscarPorContemNome(@PathVariable String nome) {
-		return fornecedorService.getByContainsName(nome);
+	public ResponseEntity<List<FornecedorResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
+		List<FornecedorResponseDTO> fornecedores = fornecedorService.getByContainsName(nome).stream()
+				.map(FornecedorResponseDTO::fromEntity)
+				.toList();
+		return ResponseEntity.ok(fornecedores);
 	}
 
-	// Pasta dos fornecedores para salvar as imagens
-	String pastaFornecedores = "suppliers/";
-
-	// Criar fornecedor
 	@PostMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar fornecedor (Apenas ADMIN)")
-	public ResponseEntity<?> insert(@RequestPart("fornecedor") String fornecedorJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") String fornecedorJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
-		try {
+		ObjectMapper mapper = new ObjectMapper();
+		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
 
-			ObjectMapper mapper = new ObjectMapper();
+		Fornecedor fornecedor = fornecedorService.cadastrar(dto, imagem);
 
-			FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
-
-			// cadastra fornecedor
-			Fornecedor fornecedor = fornecedorService.cadastrar(dto, imagem);
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(FornecedorResponseDTO.fromEntity(fornecedor));
-
-		} catch (Exception e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		return ResponseEntity.status(HttpStatus.CREATED).body(FornecedorResponseDTO.fromEntity(fornecedor));
 	}
 
-	// Atualizar fornecedor
 	@PutMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar fornecedor (Apenas ADMIN)")
-	public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestPart("fornecedor") String fornecedorJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	public ResponseEntity<FornecedorResponseDTO> atualizar(@PathVariable Long id, @RequestPart("fornecedor") String fornecedorJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
-		try {
+		ObjectMapper mapper = new ObjectMapper();
+		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
 
-			ObjectMapper mapper = new ObjectMapper();
+		Fornecedor fornecedor = fornecedorService.atualizar(id, dto, imagem);
 
-			FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
+		String imagemAntiga = fornecedor.getImagem();
+		String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaFornecedores);
+		fornecedor.setImagem(imagemAtualizada);
 
-			// atualiza fornecedor
-			Fornecedor fornecedor = fornecedorService.atualizar(id, dto, imagem);
+		fornecedorService.save(fornecedor);
 
-			// substitui imagem
-			String imagemAntiga = fornecedor.getImagem();
-
-			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaFornecedores);
-
-			fornecedor.setImagem(imagemAtualizada);
-
-			fornecedorService.save(fornecedor);
-
-			// response
-			FornecedorResponseDTO response = new FornecedorResponseDTO(fornecedor.getId(), fornecedor.getNome(),
-					fornecedor.getImagem(), EnderecoMapper.toDTO(fornecedor.getEndereco()));
-
-			return ResponseEntity.ok(response);
-
-		} catch (Exception e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
-		}
+		return ResponseEntity.ok(FornecedorResponseDTO.fromEntity(fornecedor));
 	}
 
-	// Excluir fornecedor
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Excluir fornecedor (Apenas ADMIN)")
-	public ResponseEntity<?> delete(@PathVariable Long id) {
-
-		try {
-
-			Fornecedor fornecedor = fornecedorService.getById(id);
-
-			if (fornecedor == null) {
-				return ResponseEntity.notFound().build();
-			}
-
-			// deleta imagem
-			if (fornecedor.getImagem() != null) {
-
-				imagemService.deletarImagem(fornecedor.getImagem(), pastaFornecedores);
-			}
-
-			// deleta fornecedor
-			fornecedorService.deletar(id);
-
-			return ResponseEntity.noContent().build();
-
-		} catch (Exception e) {
-
-			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		Fornecedor fornecedor = fornecedorService.getById(id);
+		if (fornecedor == null) {
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Fornecedor não encontrado com ID: " + id);
 		}
-	}
 
+		if (fornecedor.getImagem() != null) {
+			imagemService.deletarImagem(fornecedor.getImagem(), pastaFornecedores);
+		}
+
+		fornecedorService.deletar(id);
+		return ResponseEntity.noContent().build();
+	}
 }

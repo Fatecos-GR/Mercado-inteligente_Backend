@@ -1,5 +1,7 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
+
 public class CategoriaResponseDTO {
 
 	private Long id;
@@ -16,6 +18,13 @@ public class CategoriaResponseDTO {
 		this.nome = nome;
 		this.descricao = descricao;
 		this.imagem = imagem;
+	}
+
+	public static CategoriaResponseDTO fromEntity(Categoria categoria) {
+		if (categoria == null)
+			return null;
+		return new CategoriaResponseDTO(categoria.getId(), categoria.getNome(), categoria.getDescricao(),
+				categoria.getImagem());
 	}
 
 	// Getters e Setters

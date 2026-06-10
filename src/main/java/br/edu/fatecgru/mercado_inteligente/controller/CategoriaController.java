@@ -27,7 +27,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-//Cria o geral, todos precisam desse
 @RequestMapping("/api/categorias")
 @Tag(name = "Categorias", description = "Endpoints relacionados a categorias")
 public class CategoriaController {
@@ -38,122 +37,98 @@ public class CategoriaController {
 	@Autowired
 	private ImagemService imagemService;
 
-	// Lista todas as categorias
+	private final String pastaCategorias = "categories/";
+
 	@GetMapping
 	@Operation(summary = "Listar todas as categorias")
-	public List<Categoria> listarTodos() {
-		return categoriaService.listarTodos();
+	public ResponseEntity<List<CategoriaResponseDTO>> listarTodos() {
+		List<CategoriaResponseDTO> categorias = categoriaService.listarTodos().stream()
+				.map(CategoriaResponseDTO::fromEntity)
+				.toList();
+		return ResponseEntity.ok(categorias);
 	}
 
-	// Busca por ID
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar categoria por ID")
-	public Categoria buscarPorId(@PathVariable Long id) {
-		return categoriaService.getById(id);
+	public ResponseEntity<CategoriaResponseDTO> buscarPorId(@PathVariable Long id) {
+		Categoria categoria = categoriaService.getById(id);
+		if (categoria == null) {
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Categoria não encontrada com ID: " + id);
+		}
+		return ResponseEntity.ok(CategoriaResponseDTO.fromEntity(categoria));
 	}
 
-	// Busca de categoria pelo nome
-	@GetMapping("/contem-nome/{nome}")
-	@Operation(summary = "Buscar por nome")
-	public List<Categoria> buscarPorContemNome(@PathVariable String nome) {
-		return categoriaService.getByContainsName(nome);
+	@GetMapping("/search")
+	@Operation(summary = "Buscar categorias por nome")
+	public ResponseEntity<List<CategoriaResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
+		List<CategoriaResponseDTO> categorias = categoriaService.getByContainsName(nome).stream()
+				.map(CategoriaResponseDTO::fromEntity)
+				.toList();
+		return ResponseEntity.ok(categorias);
 	}
 
-	// Pasta das categorias para salvar as imagens
-	String pastaCategorias = "categories/";
-
-	// Salvar Categoria
 	@PostMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Categoria")
-	public ResponseEntity<?> insert(@RequestPart("categoria") String categoriaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	public ResponseEntity<CategoriaResponseDTO> insert(@RequestPart("categoria") String categoriaJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
-		try {
+		ObjectMapper mapper = new ObjectMapper();
+		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
 
-			ObjectMapper mapper = new ObjectMapper();
+		Categoria categoria = categoriaService.cadastrar(dto);
 
-			CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
+		String nomeImagem = imagemService.salvarImagem(imagem, pastaCategorias);
 
-			Categoria categoria = categoriaService.cadastrar(dto);
-
-			String nomeImagem = imagemService.salvarImagem(imagem, pastaCategorias);
-
-			if (nomeImagem != null) {
-
-				categoria.setImagem(nomeImagem);
-
-				categoriaService.save(categoria);
-			}
-
-			CategoriaResponseDTO response = new CategoriaResponseDTO(categoria.getId(), categoria.getNome(),
-					categoria.getDescricao(), categoria.getImagem());
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
-		} catch (Exception e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
+		if (nomeImagem != null) {
+			categoria.setImagem(nomeImagem);
+			categoriaService.save(categoria);
 		}
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(CategoriaResponseDTO.fromEntity(categoria));
 	}
 
-	// Alterar Categoria
 	@PutMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Categoria")
-	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("categoria") String categoriaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	public ResponseEntity<CategoriaResponseDTO> update(@PathVariable Long id, @RequestPart("categoria") String categoriaJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
+		ObjectMapper mapper = new ObjectMapper();
+		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
 
-			Categoria atual = categoriaService.getById(id);
+		Categoria atual = categoriaService.getById(id);
 
-			if (atual == null) {
-				return ResponseEntity.notFound().build();
-			}
-
-			atual.setNome(dto.getNome());
-			atual.setDescricao(dto.getDescricao());
-
-			// substitui imagem
-			String imagemAntiga = atual.getImagem();
-
-			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaCategorias);
-
-			atual.setImagem(imagemAtualizada);
-
-			return ResponseEntity.ok(categoriaService.save(atual));
-
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body(e.getMessage());
+		if (atual == null) {
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Categoria não encontrada com ID: " + id);
 		}
+
+		atual.setNome(dto.getNome());
+		atual.setDescricao(dto.getDescricao());
+
+		String imagemAntiga = atual.getImagem();
+		String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaCategorias);
+		atual.setImagem(imagemAtualizada);
+
+		Categoria salvo = categoriaService.save(atual);
+		return ResponseEntity.ok(CategoriaResponseDTO.fromEntity(salvo));
 	}
 
-	// Deletar Categoria
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Deletar Categoria")
-	public ResponseEntity<?> delete(@PathVariable Long id) {
-		try {
-			Categoria categoria = categoriaService.getById(id);
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		Categoria categoria = categoriaService.getById(id);
 
-			if (categoria == null) {
-				return ResponseEntity.notFound().build();
-			}
-
-			if (categoria.getImagem() != null) {
-				imagemService.deletarImagem(categoria.getImagem(), pastaCategorias);
-			}
-
-			categoriaService.delete(id);
-
-			return ResponseEntity.noContent().build(); // 204
-
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
+		if (categoria == null) {
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Categoria não encontrada com ID: " + id);
 		}
-	}
 
+		if (categoria.getImagem() != null) {
+			imagemService.deletarImagem(categoria.getImagem(), pastaCategorias);
+		}
+
+		categoriaService.delete(id);
+		return ResponseEntity.noContent().build();
+	}
 }
