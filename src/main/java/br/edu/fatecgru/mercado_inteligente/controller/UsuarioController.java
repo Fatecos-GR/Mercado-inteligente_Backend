@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioAtualizacaoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioResponseDTO;
@@ -107,9 +108,12 @@ public class UsuarioController {
 
 		Usuario usuario = usuarioService.atualizar(id, dto);
 
-		String imagemAntiga = usuario.getImagem();
-		String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaUsuarios);
-		usuario.setImagem(imagemAtualizada);
+		ImagemDTO novaImagem = imagemService.substituirImagem(usuario.getPublicIdImagem(), imagem, pastaUsuarios);
+
+		if (novaImagem != null) {
+			usuario.setImagem(novaImagem.getUrl());
+			usuario.setPublicIdImagem(novaImagem.getPublicId());
+		}
 
 		usuarioService.save(usuario);
 
