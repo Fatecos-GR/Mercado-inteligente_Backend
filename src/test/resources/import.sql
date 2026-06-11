@@ -1,0 +1,3 @@
+-- Arquivo de importação para testes (vazio para evitar conflitos de integridade no H2)
+-- Os dados de teste devem ser criados via código nos testes ou via @Sql se necessário.
+-- O arquivo principal em src/main/resources continua sendo usado para desenvolvimento.
