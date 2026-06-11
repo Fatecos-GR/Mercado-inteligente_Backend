@@ -50,7 +50,12 @@ public class Usuario implements UserDetails {
 	@Column(nullable = false, unique = true)
 	private String email;
 
+	// Pode ser opcional
+	@Column(length = 500)
 	private String imagem;
+
+	@Column(length = 255)
+	private String publicIdImagem;
 
 	// Cascade --> Ações feitas no usuário também afetam o endereço
 	@JsonManagedReference
@@ -63,7 +68,7 @@ public class Usuario implements UserDetails {
 	}
 
 	public Usuario(Long id, String nome, String sobrenome, String telefone, String senha, String email, String imagem,
-			List<Endereco> enderecos) {
+			String publicIdImagem, List<Endereco> enderecos) {
 		this.id = id;
 		this.nome = nome;
 		this.sobrenome = sobrenome;
@@ -71,6 +76,7 @@ public class Usuario implements UserDetails {
 		this.senha = senha;
 		this.email = email;
 		this.imagem = imagem;
+		this.publicIdImagem = publicIdImagem;
 		this.enderecos = enderecos;
 	}
 
@@ -129,6 +135,14 @@ public class Usuario implements UserDetails {
 
 	public void setImagem(String imagem) {
 		this.imagem = imagem;
+	}
+
+	public String getPublicIdImagem() {
+		return publicIdImagem;
+	}
+
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
 	}
 
 	public List<Endereco> getEnderecos() {

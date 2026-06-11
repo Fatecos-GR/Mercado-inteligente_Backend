@@ -43,7 +43,7 @@ public class Endereco {
 	// Um usuário pode ter vários endereço, e o usuário_id agora é opcional
 	// para permitir endereços de fornecedores que não pertencem a um usuário.
 	@ManyToOne
-	@JoinColumn(name = "usuario_id", nullable = true)
+	@JoinColumn(name = "usuario_id")
 	private Usuario usuario;
 
 	// Construtores

@@ -95,12 +95,6 @@ public class FornecedorController {
 
 		Fornecedor fornecedor = fornecedorService.atualizar(id, dto, imagem);
 
-		String imagemAntiga = fornecedor.getImagem();
-		String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaFornecedores);
-		fornecedor.setImagem(imagemAtualizada);
-
-		fornecedorService.save(fornecedor);
-
 		return ResponseEntity.ok(FornecedorResponseDTO.fromEntity(fornecedor));
 	}
 
@@ -109,14 +103,6 @@ public class FornecedorController {
 	@Operation(summary = "Excluir fornecedor (Apenas ADMIN)")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		Fornecedor fornecedor = fornecedorService.getById(id);
-		if (fornecedor == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
-					"Fornecedor não encontrado com ID: " + id);
-		}
-
-		if (fornecedor.getImagem() != null) {
-			imagemService.deletarImagem(fornecedor.getImagem(), pastaFornecedores);
-		}
 
 		fornecedorService.deletar(id);
 		return ResponseEntity.noContent().build();

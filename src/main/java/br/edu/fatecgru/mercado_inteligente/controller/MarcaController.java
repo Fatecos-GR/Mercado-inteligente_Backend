@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.MarcaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.MarcaResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
@@ -78,13 +79,12 @@ public class MarcaController {
 
 		Marca marca = marcaService.cadastrar(dto);
 
-		String nomeImagem = imagemService.salvarImagem(imagem, pastaMarcas);
+		ImagemDTO imagemDTO = imagemService.salvarImagem(imagem, pastaMarcas);
 
-		if (nomeImagem != null) {
-			marca.setImagem(nomeImagem);
-			marcaService.save(marca);
+		if (imagemDTO != null) {
+			marca.setImagem(imagemDTO.getUrl());
+			marca.setPublicIdImagem(imagemDTO.getPublicId());
 		}
-
 		return ResponseEntity.status(HttpStatus.CREATED).body(MarcaResponseDTO.fromEntity(marca));
 	}
 
@@ -107,9 +107,12 @@ public class MarcaController {
 		atual.setNome(dto.getNome());
 		atual.setDescricao(dto.getDescricao());
 
-		String imagemAntiga = atual.getImagem();
-		String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaMarcas);
-		atual.setImagem(imagemAtualizada);
+		ImagemDTO novaImagem = imagemService.substituirImagem(atual.getPublicIdImagem(), imagem, pastaMarcas);
+
+		if (novaImagem != null) {
+			atual.setImagem(novaImagem.getUrl());
+			atual.setPublicIdImagem(novaImagem.getPublicId());
+		}
 
 		Marca salvo = marcaService.save(atual);
 		return ResponseEntity.ok(MarcaResponseDTO.fromEntity(salvo));
@@ -126,8 +129,8 @@ public class MarcaController {
 					"Marca não encontrada com ID: " + id);
 		}
 
-		if (marca.getImagem() != null) {
-			imagemService.deletarImagem(marca.getImagem(), pastaMarcas);
+		if (marca.getPublicIdImagem() != null) {
+			imagemService.deletarImagem(marca.getPublicIdImagem());
 		}
 
 		marcaService.delete(id);

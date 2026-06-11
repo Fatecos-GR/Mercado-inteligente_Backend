@@ -34,7 +34,11 @@ public class Produto {
 	private LocalDate validade;
 
 	// Pode ser opcional
+	@Column(length = 500)
 	private String imagem;
+
+	@Column(length = 255)
+	private String publicIdImagem;
 
 	// Muitos produtos podem pertencer à mesma marca
 	@ManyToOne
@@ -60,26 +64,27 @@ public class Produto {
 	}
 
 	public Produto(Long id, String nome, String descricao, BigDecimal preco, LocalDate validade, String imagem,
-			Marca marca, Categoria categoria, Fornecedor fornecedor) {
+			String publicIdImagem, Marca marca, Categoria categoria, Fornecedor fornecedor) {
 		this.id = id;
 		this.nome = nome;
 		this.descricao = descricao;
 		this.preco = preco;
 		this.validade = validade;
 		this.imagem = imagem;
+		this.publicIdImagem = publicIdImagem;
 		this.marca = marca;
 		this.categoria = categoria;
 		this.fornecedor = fornecedor;
 	}
 
 	// Getters e Setters
-    public Estoque getEstoque() {
-        return estoque;
-    }
+	public Estoque getEstoque() {
+		return estoque;
+	}
 
-    public void setEstoque(Estoque estoque) {
-        this.estoque = estoque;
-    }
+	public void setEstoque(Estoque estoque) {
+		this.estoque = estoque;
+	}
 
 	public Long getId() {
 		return id;
@@ -127,6 +132,14 @@ public class Produto {
 
 	public void setImagem(String imagem) {
 		this.imagem = imagem;
+	}
+
+	public String getPublicIdImagem() {
+		return publicIdImagem;
+	}
+
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
 	}
 
 	public Marca getMarca() {

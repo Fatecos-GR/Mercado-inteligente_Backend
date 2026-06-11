@@ -8,6 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FornecedorDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Endereco;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
 import br.edu.fatecgru.mercado_inteligente.repository.FornecedorRepository;
@@ -15,13 +16,15 @@ import br.edu.fatecgru.mercado_inteligente.repository.FornecedorRepository;
 @Service
 public class FornecedorService {
 
-	// Método para listar todos
 	@Autowired
 	private FornecedorRepository fornecedorRepository;
 
 	@Autowired
 	private ImagemService imagemService;
 
+	private final String pastaFornecedores = "suppliers/";
+
+	// Método para listar todos
 	public List<Fornecedor> listarTodos() {
 		return fornecedorRepository.findAll();
 	}
@@ -52,10 +55,11 @@ public class FornecedorService {
 
 		fornecedor.setEndereco(endereco);
 
-		String nomeImagem = imagemService.salvarImagem(imagem, "suppliers/");
+		ImagemDTO imagemDTO = imagemService.salvarImagem(imagem, pastaFornecedores);
 
-		if (nomeImagem != null) {
-			fornecedor.setImagem(nomeImagem);
+		if (imagemDTO != null) {
+			fornecedor.setImagem(imagemDTO.getUrl());
+			fornecedor.setPublicIdImagem(imagemDTO.getPublicId());
 		}
 
 		return fornecedorRepository.save(fornecedor);
@@ -74,9 +78,13 @@ public class FornecedorService {
 
 		fornecedor.setEndereco(endereco);
 
-		String imagemAtualizada = imagemService.substituirImagem(fornecedor.getImagem(), imagem, "suppliers/");
+		ImagemDTO novaImagem = imagemService.substituirImagem(fornecedor.getPublicIdImagem(), imagem,
+				pastaFornecedores);
 
-		fornecedor.setImagem(imagemAtualizada);
+		if (novaImagem != null) {
+			fornecedor.setImagem(novaImagem.getUrl());
+			fornecedor.setPublicIdImagem(novaImagem.getPublicId());
+		}
 
 		return fornecedorRepository.save(fornecedor);
 
@@ -88,9 +96,8 @@ public class FornecedorService {
 		Fornecedor fornecedor = fornecedorRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
 
-		if (fornecedor.getImagem() != null) {
-
-			imagemService.deletarImagem(fornecedor.getImagem(), "suppliers/");
+		if (fornecedor.getPublicIdImagem() != null) {
+			imagemService.deletarImagem(fornecedor.getPublicIdImagem());
 		}
 
 		fornecedorRepository.delete(fornecedor);
