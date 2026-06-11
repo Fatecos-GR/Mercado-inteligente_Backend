@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FornecedorDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FornecedorResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
@@ -45,8 +45,7 @@ public class FornecedorController {
 	@Operation(summary = "Listar todos os fornecedores")
 	public ResponseEntity<List<FornecedorResponseDTO>> listarTodos() {
 		List<FornecedorResponseDTO> fornecedores = fornecedorService.listarTodos().stream()
-				.map(FornecedorResponseDTO::fromEntity)
-				.toList();
+				.map(FornecedorResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(fornecedores);
 	}
 
@@ -55,21 +54,22 @@ public class FornecedorController {
 	public ResponseEntity<FornecedorResponseDTO> buscarPorId(@PathVariable Long id) {
 		Fornecedor fornecedor = fornecedorService.getById(id);
 		if (fornecedor == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Fornecedor não encontrado com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Fornecedor não encontrado com ID: " + id);
 		}
 		return ResponseEntity.ok(FornecedorResponseDTO.fromEntity(fornecedor));
 	}
 
 	@GetMapping("/search")
 	@Operation(summary = "Buscar fornecedor por nome")
-	public ResponseEntity<List<FornecedorResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
+	public ResponseEntity<List<FornecedorResponseDTO>> buscarPorNome(
+			@org.springframework.web.bind.annotation.RequestParam String nome) {
 		List<FornecedorResponseDTO> fornecedores = fornecedorService.getByContainsName(nome).stream()
-				.map(FornecedorResponseDTO::fromEntity)
-				.toList();
+				.map(FornecedorResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(fornecedores);
 	}
 
-	@PostMapping
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar fornecedor (Apenas ADMIN)")
 	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") String fornecedorJson,
@@ -83,10 +83,11 @@ public class FornecedorController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(FornecedorResponseDTO.fromEntity(fornecedor));
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar fornecedor (Apenas ADMIN)")
-	public ResponseEntity<FornecedorResponseDTO> atualizar(@PathVariable Long id, @RequestPart("fornecedor") String fornecedorJson,
+	public ResponseEntity<FornecedorResponseDTO> atualizar(@PathVariable Long id,
+			@RequestPart("fornecedor") String fornecedorJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -109,7 +110,8 @@ public class FornecedorController {
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		Fornecedor fornecedor = fornecedorService.getById(id);
 		if (fornecedor == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Fornecedor não encontrado com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Fornecedor não encontrado com ID: " + id);
 		}
 
 		if (fornecedor.getImagem() != null) {

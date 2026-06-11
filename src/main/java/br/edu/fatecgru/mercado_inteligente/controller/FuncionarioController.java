@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,8 +45,7 @@ public class FuncionarioController {
 	@Operation(summary = "Listar todos os funcionários")
 	public ResponseEntity<List<FuncionarioResponseDTO>> listarTodos() {
 		List<FuncionarioResponseDTO> funcionarios = funcionarioService.listarTodos().stream()
-				.map(FuncionarioResponseDTO::fromEntity)
-				.toList();
+				.map(FuncionarioResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(funcionarios);
 	}
 
@@ -54,7 +54,8 @@ public class FuncionarioController {
 	public ResponseEntity<FuncionarioResponseDTO> buscarPorId(@PathVariable Long id) {
 		Funcionario funcionario = funcionarioService.getById(id);
 		if (funcionario == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Funcionário não encontrado com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Funcionário não encontrado com ID: " + id);
 		}
 		return ResponseEntity.ok(FuncionarioResponseDTO.fromEntity(funcionario));
 	}
@@ -64,8 +65,7 @@ public class FuncionarioController {
 	@Operation(summary = "Listar admins (Apenas ADMIN)")
 	public ResponseEntity<List<FuncionarioResponseDTO>> listarAdmins() {
 		List<FuncionarioResponseDTO> dtos = funcionarioService.listarAdministradores().stream()
-				.map(FuncionarioResponseDTO::fromEntity)
-				.toList();
+				.map(FuncionarioResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(dtos);
 	}
 
@@ -74,12 +74,11 @@ public class FuncionarioController {
 	@Operation(summary = "Listar estoquistas (Apenas ADMIN)")
 	public ResponseEntity<List<FuncionarioResponseDTO>> listarEstoquistas() {
 		List<FuncionarioResponseDTO> dtos = funcionarioService.listarEstoquistas().stream()
-				.map(FuncionarioResponseDTO::fromEntity)
-				.toList();
+				.map(FuncionarioResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(dtos);
 	}
 
-	@PostMapping
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar funcionário (Apenas ADMIN)")
 	public ResponseEntity<FuncionarioResponseDTO> insert(@RequestPart("funcionario") String funcionarioJson,
@@ -93,10 +92,11 @@ public class FuncionarioController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(FuncionarioResponseDTO.fromEntity(funcionario));
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Alterar funcionário")
-	public ResponseEntity<FuncionarioResponseDTO> atualizar(@PathVariable Long id, @RequestPart("funcionario") String funcionarioJson,
+	public ResponseEntity<FuncionarioResponseDTO> atualizar(@PathVariable Long id,
+			@RequestPart("funcionario") String funcionarioJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
