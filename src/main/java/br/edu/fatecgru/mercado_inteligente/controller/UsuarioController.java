@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -44,8 +45,7 @@ public class UsuarioController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar todos os usuários(Apenas ADMIN)")
 	public ResponseEntity<List<UsuarioResponseDTO>> listarTodos() {
-		List<UsuarioResponseDTO> usuarios = usuarioService.listarTodos().stream()
-				.map(UsuarioResponseDTO::fromEntity)
+		List<UsuarioResponseDTO> usuarios = usuarioService.listarTodos().stream().map(UsuarioResponseDTO::fromEntity)
 				.toList();
 		return ResponseEntity.ok(usuarios);
 	}
@@ -56,7 +56,8 @@ public class UsuarioController {
 	public ResponseEntity<UsuarioResponseDTO> buscarPorId(@PathVariable Long id) {
 		Usuario usuario = usuarioService.getById(id);
 		if (usuario == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Usuário não encontrado com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Usuário não encontrado com ID: " + id);
 		}
 		return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
 	}
@@ -64,10 +65,10 @@ public class UsuarioController {
 	@GetMapping("/search")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Buscar usuários por nome (Apenas ADMIN)")
-	public ResponseEntity<List<UsuarioResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
+	public ResponseEntity<List<UsuarioResponseDTO>> buscarPorNome(
+			@org.springframework.web.bind.annotation.RequestParam String nome) {
 		List<UsuarioResponseDTO> usuarios = usuarioService.getByContainsName(nome).stream()
-				.map(UsuarioResponseDTO::fromEntity)
-				.toList();
+				.map(UsuarioResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(usuarios);
 	}
 
@@ -75,13 +76,12 @@ public class UsuarioController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar clientes (Apenas ADMIN)")
 	public ResponseEntity<List<UsuarioResponseDTO>> listarClientes() {
-		List<UsuarioResponseDTO> dtos = usuarioService.listarClientes().stream()
-				.map(UsuarioResponseDTO::fromEntity)
+		List<UsuarioResponseDTO> dtos = usuarioService.listarClientes().stream().map(UsuarioResponseDTO::fromEntity)
 				.toList();
 		return ResponseEntity.ok(dtos);
 	}
 
-	@PostMapping
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar usuário (Apenas ADMIN)")
 	public ResponseEntity<UsuarioResponseDTO> insert(@RequestPart("usuario") String usuarioJson,
@@ -95,10 +95,11 @@ public class UsuarioController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponseDTO.fromEntity(usuario));
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Alterar usuário")
-	public ResponseEntity<UsuarioResponseDTO> atualizar(@PathVariable Long id, @RequestPart("usuario") String usuarioJson,
+	public ResponseEntity<UsuarioResponseDTO> atualizar(@PathVariable Long id,
+			@RequestPart("usuario") String usuarioJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();

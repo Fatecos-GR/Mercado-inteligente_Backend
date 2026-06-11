@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -42,9 +43,7 @@ public class MarcaController {
 	@GetMapping
 	@Operation(summary = "Listar todas as Marcas")
 	public ResponseEntity<List<MarcaResponseDTO>> listarTodos() {
-		List<MarcaResponseDTO> marcas = marcaService.listarTodos().stream()
-				.map(MarcaResponseDTO::fromEntity)
-				.toList();
+		List<MarcaResponseDTO> marcas = marcaService.listarTodos().stream().map(MarcaResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(marcas);
 	}
 
@@ -53,21 +52,22 @@ public class MarcaController {
 	public ResponseEntity<MarcaResponseDTO> buscarPorId(@PathVariable Long id) {
 		Marca marca = marcaService.getById(id);
 		if (marca == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Marca não encontrada com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Marca não encontrada com ID: " + id);
 		}
 		return ResponseEntity.ok(MarcaResponseDTO.fromEntity(marca));
 	}
 
 	@GetMapping("/search")
 	@Operation(summary = "Buscar marcas por nome")
-	public ResponseEntity<List<MarcaResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
-		List<MarcaResponseDTO> marcas = marcaService.getByContainsName(nome).stream()
-				.map(MarcaResponseDTO::fromEntity)
+	public ResponseEntity<List<MarcaResponseDTO>> buscarPorNome(
+			@org.springframework.web.bind.annotation.RequestParam String nome) {
+		List<MarcaResponseDTO> marcas = marcaService.getByContainsName(nome).stream().map(MarcaResponseDTO::fromEntity)
 				.toList();
 		return ResponseEntity.ok(marcas);
 	}
 
-	@PostMapping
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Marca")
 	public ResponseEntity<MarcaResponseDTO> insert(@RequestPart("marca") String marcaJson,
@@ -88,7 +88,7 @@ public class MarcaController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(MarcaResponseDTO.fromEntity(marca));
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Marca")
 	public ResponseEntity<MarcaResponseDTO> update(@PathVariable Long id, @RequestPart("marca") String marcaJson,
@@ -100,7 +100,8 @@ public class MarcaController {
 		Marca atual = marcaService.getById(id);
 
 		if (atual == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Marca não encontrada com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Marca não encontrada com ID: " + id);
 		}
 
 		atual.setNome(dto.getNome());
@@ -121,7 +122,8 @@ public class MarcaController {
 		Marca marca = marcaService.getById(id);
 
 		if (marca == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Marca não encontrada com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Marca não encontrada com ID: " + id);
 		}
 
 		if (marca.getImagem() != null) {

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -58,9 +59,7 @@ public class ProdutoController {
 	@GetMapping
 	@Operation(summary = "Listar todos os produtos")
 	public ResponseEntity<List<ProdutoResponseDTO>> listarTodos() {
-		List<ProdutoResponseDTO> produtos = produtoService.listarTodos().stream()
-				.map(ProdutoMapper::toDTO)
-				.toList();
+		List<ProdutoResponseDTO> produtos = produtoService.listarTodos().stream().map(ProdutoMapper::toDTO).toList();
 		return ResponseEntity.ok(produtos);
 	}
 
@@ -69,16 +68,17 @@ public class ProdutoController {
 	public ResponseEntity<ProdutoResponseDTO> buscarPorId(@PathVariable Long id) {
 		Produto produto = produtoService.getById(id);
 		if (produto == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Produto não encontrado com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Produto não encontrado com ID: " + id);
 		}
 		return ResponseEntity.ok(ProdutoMapper.toDTO(produto));
 	}
 
 	@GetMapping("/search")
 	@Operation(summary = "Buscar produtos por Nome")
-	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
-		List<ProdutoResponseDTO> produtos = produtoService.getByContainsName(nome).stream()
-				.map(ProdutoMapper::toDTO)
+	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorNome(
+			@org.springframework.web.bind.annotation.RequestParam String nome) {
+		List<ProdutoResponseDTO> produtos = produtoService.getByContainsName(nome).stream().map(ProdutoMapper::toDTO)
 				.toList();
 		return ResponseEntity.ok(produtos);
 	}
@@ -86,8 +86,7 @@ public class ProdutoController {
 	@GetMapping("/categoria/{id}")
 	@Operation(summary = "Listar produtos por ID da categoria")
 	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorIdCategoria(@PathVariable Long id) {
-		List<ProdutoResponseDTO> produtos = produtoService.getByCategoryId(id).stream()
-				.map(ProdutoMapper::toDTO)
+		List<ProdutoResponseDTO> produtos = produtoService.getByCategoryId(id).stream().map(ProdutoMapper::toDTO)
 				.toList();
 		return ResponseEntity.ok(produtos);
 	}
@@ -95,13 +94,11 @@ public class ProdutoController {
 	@GetMapping("/marca/{id}")
 	@Operation(summary = "Listar produtos por ID da Marca")
 	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorIdMarca(@PathVariable Long id) {
-		List<ProdutoResponseDTO> produtos = produtoService.getByBrandId(id).stream()
-				.map(ProdutoMapper::toDTO)
-				.toList();
+		List<ProdutoResponseDTO> produtos = produtoService.getByBrandId(id).stream().map(ProdutoMapper::toDTO).toList();
 		return ResponseEntity.ok(produtos);
 	}
 
-	@PostMapping
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Produto")
 	public ResponseEntity<ProdutoResponseDTO> insert(@RequestPart("produto") String produtoJson,
@@ -117,13 +114,16 @@ public class ProdutoController {
 		produto.setValidade(dto.validade());
 
 		Categoria categoria = categoriaRepository.findById(dto.categoriaId())
-				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Categoria não encontrada"));
+				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+						"Categoria não encontrada"));
 
 		Marca marca = marcaRepository.findById(dto.marcaId())
-				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Marca não encontrada"));
+				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+						"Marca não encontrada"));
 
 		Fornecedor fornecedor = fornecedorRepository.findById(dto.fornecedorId())
-				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Fornecedor não encontrado"));
+				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+						"Fornecedor não encontrado"));
 
 		produto.setCategoria(categoria);
 		produto.setMarca(marca);
@@ -136,7 +136,7 @@ public class ProdutoController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(ProdutoMapper.toDTO(salvo));
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Produto")
 	public ResponseEntity<ProdutoResponseDTO> update(@PathVariable Long id, @RequestPart("produto") String produtoJson,
@@ -147,7 +147,8 @@ public class ProdutoController {
 
 		Produto atual = produtoService.getById(id);
 		if (atual == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Produto não encontrado com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Produto não encontrado com ID: " + id);
 		}
 
 		atual.setNome(dto.nome());
@@ -156,13 +157,16 @@ public class ProdutoController {
 		atual.setValidade(dto.validade());
 
 		Categoria categoria = categoriaRepository.findById(dto.categoriaId())
-				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Categoria não encontrada"));
+				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+						"Categoria não encontrada"));
 
 		Marca marca = marcaRepository.findById(dto.marcaId())
-				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Marca não encontrada"));
+				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+						"Marca não encontrada"));
 
 		Fornecedor fornecedor = fornecedorRepository.findById(dto.fornecedorId())
-				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Fornecedor não encontrado"));
+				.orElseThrow(() -> new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+						"Fornecedor não encontrado"));
 
 		atual.setCategoria(categoria);
 		atual.setMarca(marca);
@@ -182,7 +186,8 @@ public class ProdutoController {
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		Produto produto = produtoService.getById(id);
 		if (produto == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Produto não encontrado com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Produto não encontrado com ID: " + id);
 		}
 
 		if (produto.getImagem() != null) {
