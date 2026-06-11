@@ -2,12 +2,21 @@ package br.edu.fatecgru.mercado_inteligente.model.dto;
 
 import br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "DTO de resposta com os dados do fornecedor")
 public class FornecedorResponseDTO {
 
+	@Schema(description = "ID do fornecedor", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Long id;
+
+	@Schema(description = "Nome do fornecedor", example = "Fornecedor ABC", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String nome;
+
+	@Schema(description = "URL ou Base64 da imagem do fornecedor", example = "fornecedor.jpg")
 	private String imagem;
+
+	@Schema(description = "Endereço do fornecedor", requiredMode = Schema.RequiredMode.REQUIRED)
 	private EnderecoDTO endereco;
 
 	// Construtores

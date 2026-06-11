@@ -1,13 +1,24 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "DTO de resposta com os dados do usuário")
 public class UsuarioResponseDTO {
 
+	@Schema(description = "ID do usuário", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Long id;
+
+	@Schema(description = "Nome do usuário", example = "João", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String nome;
+
+	@Schema(description = "Sobrenome do usuário", example = "Silva", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String sobrenome;
+
+	@Schema(description = "Telefone de contato", example = "11988887777")
 	private String telefone;
+
+	@Schema(description = "E-mail do usuário", example = "joao@email.com", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String email;
 
 	// Construtores

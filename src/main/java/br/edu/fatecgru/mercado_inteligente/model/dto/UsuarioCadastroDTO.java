@@ -1,26 +1,33 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+@Schema(description = "DTO de entrada para cadastro de usuário")
 public class UsuarioCadastroDTO {
 
+	@Schema(description = "Nome do usuário", example = "João", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Nome é obrigatório")
 	private String nome;
 
+	@Schema(description = "Sobrenome do usuário", example = "Silva", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Sobrenome é obrigatório")
 	private String sobrenome;
 
+	@Schema(description = "Telefone de contato (apenas números)", example = "11988887777", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Telefone é obrigatório")
 	@Pattern(regexp = "\\d{10,11}", message = "Telefone inválido")
 	private String telefone;
 
+	@Schema(description = "E-mail para login", example = "joao@email.com", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Email é obrigatório")
 	@Email(message = "Email inválido")
 	private String email;
 
+	@Schema(description = "Senha de acesso", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Senha é obrigatória")
 	@Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
 	private String senha;

@@ -1,13 +1,29 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Resposta da integração externa com ViaCEP")
 public class ViaCepDTO {
 
+	@Schema(description = "CEP formatado", example = "01001-000")
 	private String cep;
+
+	@Schema(description = "Logradouro do CEP", example = "Praça da Sé")
 	private String logradouro;
+
+	@Schema(description = "Complemento do logradouro", example = "lado ímpar")
 	private String complemento;
+
+	@Schema(description = "Bairro", example = "Sé")
 	private String bairro;
+
+	@Schema(description = "Cidade/Localidade", example = "São Paulo")
 	private String localidade;
+
+	@Schema(description = "Unidade Federativa (Estado)", example = "SP")
 	private String uf;
+
+	@Schema(description = "Indica se ocorreu erro na busca do CEP")
 	private boolean erro;
 
 	// Getters e Setters

@@ -2,15 +2,30 @@ package br.edu.fatecgru.mercado_inteligente.model.dto;
 
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.TipoFuncionario;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "DTO de resposta com os dados do funcionário")
 public class FuncionarioResponseDTO {
 
+	@Schema(description = "ID do funcionário", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
 	private Long id;
+
+	@Schema(description = "Nome do funcionário", example = "Carlos", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String nome;
+
+	@Schema(description = "Sobrenome do funcionário", example = "Oliveira", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String sobrenome;
+
+	@Schema(description = "Telefone de contato", example = "11977776666")
 	private String telefone;
+
+	@Schema(description = "E-mail do funcionário", example = "carlos@mercado.com", requiredMode = Schema.RequiredMode.REQUIRED)
 	private String email;
+
+	@Schema(description = "URL ou Base64 da imagem de perfil", example = "perfil.jpg")
 	private String imagem;
+
+	@Schema(description = "Tipo/Cargo do funcionário", example = "ADMIN", requiredMode = Schema.RequiredMode.REQUIRED)
 	private TipoFuncionario tipoFuncionario;
 
 	// Construtores

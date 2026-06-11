@@ -1,12 +1,16 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 
+@Schema(description = "DTO de entrada para cadastro/atualização de categoria")
 public class CategoriaDTO {
 
+	@Schema(description = "Nome da categoria", example = "Alimentos", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Nome é obrigatório")
 	private String nome;
 
+	@Schema(description = "Descrição da categoria", example = "Produtos alimentícios em geral", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Descrição é obrigatória")
 	private String descricao;
 
