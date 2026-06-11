@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.CategoriaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.CategoriaResponseDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
 import br.edu.fatecgru.mercado_inteligente.service.CategoriaService;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
@@ -80,14 +81,14 @@ public class CategoriaController {
 
 			Categoria categoria = categoriaService.cadastrar(dto);
 
-			String nomeImagem = imagemService.salvarImagem(imagem, pastaCategorias);
+			ImagemDTO imagemDTO = imagemService.salvarImagem(imagem, pastaCategorias);
 
-			if (nomeImagem != null) {
-
-				categoria.setImagem(nomeImagem);
-
-				categoriaService.save(categoria);
+			if (imagemDTO != null) {
+				categoria.setImagem(imagemDTO.getUrl());
+				categoria.setPublicIdImagem(imagemDTO.getPublicId());
 			}
+
+			categoriaService.save(categoria);
 
 			CategoriaResponseDTO response = new CategoriaResponseDTO(categoria.getId(), categoria.getNome(),
 					categoria.getDescricao(), categoria.getImagem());
@@ -120,12 +121,12 @@ public class CategoriaController {
 			atual.setNome(dto.getNome());
 			atual.setDescricao(dto.getDescricao());
 
-			// substitui imagem
-			String imagemAntiga = atual.getImagem();
+			ImagemDTO novaImagem = imagemService.substituirImagem(atual.getPublicIdImagem(), imagem, pastaCategorias);
 
-			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaCategorias);
-
-			atual.setImagem(imagemAtualizada);
+			if (novaImagem != null) {
+				atual.setImagem(novaImagem.getUrl());
+				atual.setPublicIdImagem(novaImagem.getPublicId());
+			}
 
 			return ResponseEntity.ok(categoriaService.save(atual));
 
@@ -146,8 +147,8 @@ public class CategoriaController {
 				return ResponseEntity.notFound().build();
 			}
 
-			if (categoria.getImagem() != null) {
-				imagemService.deletarImagem(categoria.getImagem(), pastaCategorias);
+			if (categoria.getPublicIdImagem() != null) {
+				imagemService.deletarImagem(categoria.getPublicIdImagem());
 			}
 
 			categoriaService.delete(id);

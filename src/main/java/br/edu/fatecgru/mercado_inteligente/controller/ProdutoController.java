@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import br.edu.fatecgru.mercado_inteligente.mapper.ProdutoMapper;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
@@ -105,6 +107,8 @@ public class ProdutoController {
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new JavaTimeModule());
+
 		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
 
 		Produto produto = new Produto();
@@ -129,8 +133,12 @@ public class ProdutoController {
 		produto.setMarca(marca);
 		produto.setFornecedor(fornecedor);
 
-		String nomeImagem = imagemService.salvarImagem(imagem, pastaProdutos);
-		produto.setImagem(nomeImagem);
+		ImagemDTO imagemDTO = imagemService.salvarImagem(imagem, pastaProdutos);
+
+		if (imagemDTO != null) {
+			produto.setImagem(imagemDTO.getUrl());
+			produto.setPublicIdImagem(imagemDTO.getPublicId());
+		}
 
 		Produto salvo = produtoService.saveProduto(produto);
 		return ResponseEntity.status(HttpStatus.CREATED).body(ProdutoMapper.toDTO(salvo));
@@ -143,6 +151,8 @@ public class ProdutoController {
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new JavaTimeModule());
+
 		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
 
 		Produto atual = produtoService.getById(id);
@@ -172,9 +182,12 @@ public class ProdutoController {
 		atual.setMarca(marca);
 		atual.setFornecedor(fornecedor);
 
-		String imagemAntiga = atual.getImagem();
-		String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaProdutos);
-		atual.setImagem(imagemAtualizada);
+		ImagemDTO novaImagem = imagemService.substituirImagem(atual.getPublicIdImagem(), imagem, pastaProdutos);
+
+		if (novaImagem != null) {
+			atual.setImagem(novaImagem.getUrl());
+			atual.setPublicIdImagem(novaImagem.getPublicId());
+		}
 
 		Produto atualizado = produtoService.saveProduto(atual);
 		return ResponseEntity.ok(ProdutoMapper.toDTO(atualizado));
@@ -190,8 +203,8 @@ public class ProdutoController {
 					"Produto não encontrado com ID: " + id);
 		}
 
-		if (produto.getImagem() != null) {
-			imagemService.deletarImagem(produto.getImagem(), pastaProdutos);
+		if (produto.getPublicIdImagem() != null) {
+			imagemService.deletarImagem(produto.getPublicIdImagem());
 		}
 
 		produtoService.deleteProduto(id);

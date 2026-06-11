@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioCadastroDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.TipoFuncionario;
 import br.edu.fatecgru.mercado_inteligente.repository.FuncionarioRepository;
@@ -15,7 +16,6 @@ import br.edu.fatecgru.mercado_inteligente.repository.FuncionarioRepository;
 @Service
 public class FuncionarioService {
 
-	// Método para listar todos
 	@Autowired
 	private FuncionarioRepository funcionarioRepository;
 
@@ -25,6 +25,9 @@ public class FuncionarioService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	private final String pastaFuncionarios = "employees/";
+
+	// Método para listar todos
 	public List<Funcionario> listarTodos() {
 		return funcionarioRepository.findAll();
 	}
@@ -64,10 +67,11 @@ public class FuncionarioService {
 		// senha criptografada
 		funcionario.setSenha(passwordEncoder.encode(dto.getSenha()));
 
-		String nomeImagem = imagemService.salvarImagem(imagem, "employees/");
+		ImagemDTO imagemDTO = imagemService.salvarImagem(imagem, pastaFuncionarios);
 
-		if (nomeImagem != null) {
-			funcionario.setImagem(nomeImagem);
+		if (imagemDTO != null) {
+			funcionario.setImagem(imagemDTO.getUrl());
+			funcionario.setPublicIdImagem(imagemDTO.getPublicId());
 		}
 
 		return funcionarioRepository.save(funcionario);
@@ -98,9 +102,13 @@ public class FuncionarioService {
 			funcionario.setSenha(passwordEncoder.encode(dto.getSenha()));
 		}
 
-		String imagemAtualizada = imagemService.substituirImagem(funcionario.getImagem(), imagem, "employees/");
+		ImagemDTO novaImagem = imagemService.substituirImagem(funcionario.getPublicIdImagem(), imagem,
+				pastaFuncionarios);
 
-		funcionario.setImagem(imagemAtualizada);
+		if (novaImagem != null) {
+			funcionario.setImagem(novaImagem.getUrl());
+			funcionario.setPublicIdImagem(novaImagem.getPublicId());
+		}
 
 		return funcionarioRepository.save(funcionario);
 	}
@@ -110,8 +118,8 @@ public class FuncionarioService {
 		Funcionario funcionario = funcionarioRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
 
-		if (funcionario.getImagem() != null) {
-			imagemService.deletarImagem(funcionario.getImagem(), "employees/");
+		if (funcionario.getPublicIdImagem() != null) {
+			imagemService.deletarImagem(funcionario.getPublicIdImagem());
 		}
 
 		funcionarioRepository.delete(funcionario);
