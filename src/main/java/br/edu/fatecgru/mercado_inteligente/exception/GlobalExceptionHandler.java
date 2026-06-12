@@ -64,10 +64,11 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(AccessDeniedException.class)
 	public ResponseEntity<ErrorResponse> handleAccessDeniedError(AccessDeniedException ex) {
-		// Se o usuário não estiver autenticado, não tratamos aqui para deixar o Spring Security retornar 401
-		if (org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() == null ||
-			org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() instanceof org.springframework.security.authentication.AnonymousAuthenticationToken) {
-			throw ex; 
+		org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+		if (auth == null || auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken) {
+			ErrorResponse response = new ErrorResponse(HttpStatus.UNAUTHORIZED.value(),
+					"Não autorizado: você precisa de um token válido.", LocalDateTime.now(), null);
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
 		}
 
 		ErrorResponse response = new ErrorResponse(HttpStatus.FORBIDDEN.value(),
