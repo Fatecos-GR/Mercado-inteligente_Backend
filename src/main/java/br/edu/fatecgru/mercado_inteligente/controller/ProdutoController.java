@@ -34,6 +34,8 @@ import br.edu.fatecgru.mercado_inteligente.repository.MarcaRepository;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
@@ -56,10 +58,16 @@ public class ProdutoController {
 	@Autowired
 	private ImagemService imagemService;
 
+	@Autowired
+	private jakarta.validation.Validator validator;
+
 	private final String pastaProdutos = "products/";
 
 	@GetMapping
 	@Operation(summary = "Listar todos os produtos")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Produtos listados com sucesso")
+    })
 	public ResponseEntity<List<ProdutoResponseDTO>> listarTodos() {
 		List<ProdutoResponseDTO> produtos = produtoService.listarTodos().stream().map(ProdutoMapper::toDTO).toList();
 		return ResponseEntity.ok(produtos);
@@ -67,6 +75,10 @@ public class ProdutoController {
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Listar produto por ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Produto encontrado"),
+        @ApiResponse(responseCode = "404", description = "Produto não encontrado")
+    })
 	public ResponseEntity<ProdutoResponseDTO> buscarPorId(@PathVariable Long id) {
 		Produto produto = produtoService.getById(id);
 		if (produto == null) {
@@ -78,6 +90,9 @@ public class ProdutoController {
 
 	@GetMapping("/search")
 	@Operation(summary = "Buscar produtos por Nome")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Produtos encontrados")
+    })
 	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorNome(
 			@org.springframework.web.bind.annotation.RequestParam String nome) {
 		List<ProdutoResponseDTO> produtos = produtoService.getByContainsName(nome).stream().map(ProdutoMapper::toDTO)
@@ -87,6 +102,10 @@ public class ProdutoController {
 
 	@GetMapping("/categoria/{id}")
 	@Operation(summary = "Listar produtos por ID da categoria")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Produtos encontrados"),
+        @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
+    })
 	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorIdCategoria(@PathVariable Long id) {
 		List<ProdutoResponseDTO> produtos = produtoService.getByCategoryId(id).stream().map(ProdutoMapper::toDTO)
 				.toList();
@@ -95,6 +114,10 @@ public class ProdutoController {
 
 	@GetMapping("/marca/{id}")
 	@Operation(summary = "Listar produtos por ID da Marca")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Produtos encontrados"),
+        @ApiResponse(responseCode = "404", description = "Marca não encontrada")
+    })
 	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorIdMarca(@PathVariable Long id) {
 		List<ProdutoResponseDTO> produtos = produtoService.getByBrandId(id).stream().map(ProdutoMapper::toDTO).toList();
 		return ResponseEntity.ok(produtos);
@@ -103,6 +126,11 @@ public class ProdutoController {
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Produto")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Produto criado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado")
+    })
 	public ResponseEntity<ProdutoResponseDTO> insert(@RequestPart("produto") String produtoJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
@@ -110,6 +138,12 @@ public class ProdutoController {
 		mapper.registerModule(new JavaTimeModule());
 
 		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
+
+		// Validação Manual
+		java.util.Set<jakarta.validation.ConstraintViolation<ProdutoDTO>> violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null, createBindingResult(dto, violations));
+		}
 
 		Produto produto = new Produto();
 		produto.setNome(dto.nome());
@@ -147,6 +181,12 @@ public class ProdutoController {
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Produto")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Produto alterado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado"),
+        @ApiResponse(responseCode = "404", description = "Produto não encontrado")
+    })
 	public ResponseEntity<ProdutoResponseDTO> update(@PathVariable Long id, @RequestPart("produto") String produtoJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
@@ -154,6 +194,12 @@ public class ProdutoController {
 		mapper.registerModule(new JavaTimeModule());
 
 		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
+
+		// Validação Manual
+		java.util.Set<jakarta.validation.ConstraintViolation<ProdutoDTO>> violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null, createBindingResult(dto, violations));
+		}
 
 		Produto atual = produtoService.getById(id);
 		if (atual == null) {
@@ -196,6 +242,11 @@ public class ProdutoController {
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Deletar Produto")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Produto excluído com sucesso"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado"),
+        @ApiResponse(responseCode = "404", description = "Produto não encontrado")
+    })
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		Produto produto = produtoService.getById(id);
 		if (produto == null) {
@@ -209,5 +260,13 @@ public class ProdutoController {
 
 		produtoService.deleteProduto(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	private org.springframework.validation.BindingResult createBindingResult(Object target, java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
+		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(target, "dto");
+		for (jakarta.validation.ConstraintViolation<?> violation : violations) {
+			bindingResult.addError(new org.springframework.validation.FieldError("dto", violation.getPropertyPath().toString(), violation.getMessage()));
+		}
+		return bindingResult;
 	}
 }

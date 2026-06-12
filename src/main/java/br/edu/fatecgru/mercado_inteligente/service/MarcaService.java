@@ -29,7 +29,7 @@ public class MarcaService {
 	}
 
 	public List<Marca> getByContainsName(String nome) {
-		return marcaRepository.findByNomeContains(nome);
+		return marcaRepository.findByNomeContainingIgnoreCase(nome);
 	}
 
 	public Marca getById(Long id) {

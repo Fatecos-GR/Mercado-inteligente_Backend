@@ -8,7 +8,7 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
 
 public interface MarcaRepository extends JpaRepository<Marca, Long> {
 
-	// Método para fazer buscar por categoria
-	public List<Marca> findByNomeContains(String nome);
+	// Método para buscar marca insensível a maiúsculas/minúsculas
+	public List<Marca> findByNomeContainingIgnoreCase(String nome);
 
 }

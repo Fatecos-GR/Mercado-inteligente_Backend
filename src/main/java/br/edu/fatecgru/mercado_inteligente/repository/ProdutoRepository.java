@@ -8,8 +8,8 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
 
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
-	// Método para buscar produto
-	public List<Produto> findByNomeContains(String nome);
+	// Método para buscar produto insensível a maiúsculas/minúsculas
+	public List<Produto> findByNomeContainingIgnoreCase(String nome);
 
 	// Buscar todos os produtos de uma determinada categoria
 	public List<Produto> findByCategoriaId(Long categoriaId);

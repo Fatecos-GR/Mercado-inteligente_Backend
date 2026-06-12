@@ -81,6 +81,11 @@ public class EstoqueService {
         Estoque estoque = estoqueRepository.findByProdutoId(produtoId)
                 .orElseThrow(() -> new EstoqueInsuficienteException("Produto não possui registro de estoque: " + produtoId));
 
+        if (estoque.getQuantidadeReservada() < quantidade) {
+            throw new IllegalStateException("Tentativa de liberar mais estoque do que o reservado. Reservado: " 
+                + estoque.getQuantidadeReservada() + ", Solicitado: " + quantidade);
+        }
+
         estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() + quantidade);
         estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() - quantidade);
         
