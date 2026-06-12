@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,12 +13,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioAtualizacaoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioResponseDTO;
@@ -25,11 +28,14 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/api/usuarios")
-@Tag(name = "Usuários", description = "Endpoints relacionados aos Usuários")
+@Tag(name = "Usuários", description = "Endpoints para gestão de usuários e clientes")
 public class UsuarioController {
 
 	@Autowired
@@ -38,77 +44,121 @@ public class UsuarioController {
 	@Autowired
 	private ImagemService imagemService;
 
+	@Autowired
+	private jakarta.validation.Validator validator;
+
 	private final String pastaUsuarios = "users/";
 
 	@GetMapping
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Listar todos os usuários(Apenas ADMIN)")
+	@Operation(summary = "Listar todos os usuários", description = "Retorna uma lista de todos os usuários cadastrados (Apenas ADMIN).")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+		@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
 	public ResponseEntity<List<UsuarioResponseDTO>> listarTodos() {
-		List<UsuarioResponseDTO> usuarios = usuarioService.listarTodos().stream()
-				.map(UsuarioResponseDTO::fromEntity)
+		List<UsuarioResponseDTO> usuarios = usuarioService.listarTodos().stream().map(UsuarioResponseDTO::fromEntity)
 				.toList();
 		return ResponseEntity.ok(usuarios);
 	}
 
 	@GetMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Listar usuário por ID (Apenas ADMIN)")
-	public ResponseEntity<UsuarioResponseDTO> buscarPorId(@PathVariable Long id) {
+	@Operation(summary = "Listar usuário por ID", description = "Busca detalhes de um usuário específico (Apenas ADMIN).")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+		@ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+		@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<UsuarioResponseDTO> buscarPorId(@PathVariable @Parameter(description = "ID do usuário") Long id) {
 		Usuario usuario = usuarioService.getById(id);
 		if (usuario == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException("Usuário não encontrado com ID: " + id);
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Usuário não encontrado com ID: " + id);
 		}
 		return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
 	}
 
 	@GetMapping("/search")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Buscar usuários por nome (Apenas ADMIN)")
-	public ResponseEntity<List<UsuarioResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
+	@Operation(summary = "Buscar usuários por nome", description = "Filtra usuários pelo nome (case-insensitive) (Apenas ADMIN).")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Busca realizada com sucesso"),
+		@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<List<UsuarioResponseDTO>> buscarPorNome(@RequestParam @Parameter(description = "Nome ou parte do nome para busca") String nome) {
 		List<UsuarioResponseDTO> usuarios = usuarioService.getByContainingName(nome).stream()
-				.map(UsuarioResponseDTO::fromEntity)
-				.toList();
+				.map(UsuarioResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(usuarios);
 	}
 
 	@GetMapping("/clientes")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Listar clientes (Apenas ADMIN)")
+	@Operation(summary = "Listar clientes", description = "Retorna apenas os usuários que são clientes (Apenas ADMIN).")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
+		@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
 	public ResponseEntity<List<UsuarioResponseDTO>> listarClientes() {
-		List<UsuarioResponseDTO> dtos = usuarioService.listarClientes().stream()
-				.map(UsuarioResponseDTO::fromEntity)
+		List<UsuarioResponseDTO> dtos = usuarioService.listarClientes().stream().map(UsuarioResponseDTO::fromEntity)
 				.toList();
 		return ResponseEntity.ok(dtos);
 	}
 
-	@PostMapping
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Criar usuário (Apenas ADMIN)")
-	public ResponseEntity<UsuarioResponseDTO> insert(@RequestPart("usuario") String usuarioJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	@Operation(summary = "Criar usuário", description = "Cria um novo usuário manualmente (Apenas ADMIN).")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
+		@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+		@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<UsuarioResponseDTO> insert(@RequestPart("usuario") @Parameter(description = "Dados do usuário em formato JSON") String usuarioJson,
+			@RequestPart(value = "imagem", required = false) @Parameter(description = "Arquivo de imagem") MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		UsuarioCadastroDTO dto = mapper.readValue(usuarioJson, UsuarioCadastroDTO.class);
+
+		// Validação Manual do DTO
+		var violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new jakarta.validation.ConstraintViolationException(violations);
+		}
 
 		Usuario usuario = usuarioService.cadastrar(dto, imagem);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponseDTO.fromEntity(usuario));
 	}
 
-	@PutMapping("/{id}")
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-	@Operation(summary = "Alterar usuário")
-	public ResponseEntity<UsuarioResponseDTO> atualizar(@PathVariable Long id, @RequestPart("usuario") String usuarioJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	@Operation(summary = "Alterar usuário", description = "Atualiza os dados do próprio perfil ou de qualquer usuário se for ADMIN.")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
+		@ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+		@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<UsuarioResponseDTO> atualizar(@PathVariable @Parameter(description = "ID do usuário") Long id,
+			@RequestPart("usuario") @Parameter(description = "Dados do usuário em formato JSON") String usuarioJson,
+			@RequestPart(value = "imagem", required = false) @Parameter(description = "Nova imagem (opcional)") MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		UsuarioAtualizacaoDTO dto = mapper.readValue(usuarioJson, UsuarioAtualizacaoDTO.class);
 
+		// Validação Manual do DTO
+		var violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new jakarta.validation.ConstraintViolationException(violations);
+		}
+
 		Usuario usuario = usuarioService.atualizar(id, dto);
 
-		String imagemAntiga = usuario.getImagem();
-		String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaUsuarios);
-		usuario.setImagem(imagemAtualizada);
+		ImagemDTO novaImagem = imagemService.substituirImagem(usuario.getPublicIdImagem(), imagem, pastaUsuarios);
+
+		if (novaImagem != null) {
+			usuario.setImagem(novaImagem.getUrl());
+			usuario.setPublicIdImagem(novaImagem.getPublicId());
+		}
 
 		usuarioService.save(usuario);
 
@@ -117,8 +167,13 @@ public class UsuarioController {
 
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Excluir usuário (Apenas ADMIN)")
-	public ResponseEntity<Void> delete(@PathVariable Long id) {
+	@Operation(summary = "Excluir usuário", description = "Remove um usuário do sistema (Apenas ADMIN).")
+	@ApiResponses(value = {
+		@ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso"),
+		@ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
+		@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<Void> delete(@PathVariable @Parameter(description = "ID do usuário") Long id) {
 		usuarioService.deletar(id);
 		return ResponseEntity.noContent().build();
 	}

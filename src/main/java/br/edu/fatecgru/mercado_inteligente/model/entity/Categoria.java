@@ -24,18 +24,23 @@ public class Categoria {
 	private String descricao;
 
 	// Pode ser opcional
+	@Column(length = 500)
 	private String imagem;
+
+	@Column(length = 255)
+	private String publicIdImagem;
 
 	// Construtores
 	public Categoria() {
 
 	}
 
-	public Categoria(Long id, String nome, String descricao, String imagem) {
+	public Categoria(Long id, String nome, String descricao, String imagem, String publicIdImagem) {
 		this.id = id;
 		this.nome = nome;
 		this.descricao = descricao;
 		this.imagem = imagem;
+		this.publicIdImagem = publicIdImagem;
 	}
 
 	// Getters e Setters
@@ -69,6 +74,14 @@ public class Categoria {
 
 	public void setImagem(String imagem) {
 		this.imagem = imagem;
+	}
+
+	public String getPublicIdImagem() {
+		return publicIdImagem;
+	}
+
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
 	}
 
 }

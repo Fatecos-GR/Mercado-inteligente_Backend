@@ -26,7 +26,7 @@ public class CategoriaServiceSearchTest {
     @Test
     void buscarPorNome_DeveRetornarLista_QuandoEncontrado() {
         String nome = "Alimentos";
-        Categoria c1 = new Categoria(1L, "Alimentos", "Desc", null);
+        Categoria c1 = new Categoria(1L, "Alimentos", "Desc", null, null);
         
         when(categoriaRepository.findByNomeContainingIgnoreCase(nome)).thenReturn(List.of(c1));
 

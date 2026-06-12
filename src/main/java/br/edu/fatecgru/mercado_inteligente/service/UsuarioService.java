@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.AlterarSenhaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioAtualizacaoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Endereco;
@@ -32,6 +33,8 @@ public class UsuarioService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
+
+	private final String pastaUsuarios = "users/";
 
 	public List<Usuario> listarTodos() {
 		return usuarioRepository.findAll();
@@ -74,10 +77,11 @@ public class UsuarioService {
 		// senha criptografada
 		usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
 
-		String nomeImagem = imagemService.salvarImagem(imagem, "users/");
+		ImagemDTO imagemDTO = imagemService.salvarImagem(imagem, pastaUsuarios);
 
-		if (nomeImagem != null) {
-			usuario.setImagem(nomeImagem);
+		if (imagemDTO != null) {
+			usuario.setImagem(imagemDTO.getUrl());
+			usuario.setPublicIdImagem(imagemDTO.getPublicId());
 		}
 
 		return usuarioRepository.save(usuario);
@@ -102,8 +106,8 @@ public class UsuarioService {
 		Usuario usuario = usuarioRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-		if (usuario.getImagem() != null) {
-			imagemService.deletarImagem(usuario.getImagem(), "users/");
+		if (usuario.getPublicIdImagem() != null) {
+			imagemService.deletarImagem(usuario.getPublicIdImagem());
 		}
 
 		usuarioRepository.delete(usuario);
