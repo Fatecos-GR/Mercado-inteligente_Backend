@@ -7,6 +7,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import br.edu.fatecgru.mercado_inteligente.exception.EmailJaCadastradoException;
 import br.edu.fatecgru.mercado_inteligente.model.dto.AlterarSenhaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
@@ -63,8 +64,9 @@ public class UsuarioService {
 
 	public Usuario cadastrar(UsuarioCadastroDTO dto, MultipartFile imagem) throws Exception {
 
-		if (usuarioRepository.findByEmail(dto.getEmail()).isPresent()) {
-			throw new RuntimeException("Email já cadastrado");
+		// Verificar se email já existe
+		if (usuarioRepository.existsByEmail(dto.getEmail())) {
+			throw new EmailJaCadastradoException(dto.getEmail());
 		}
 
 		Usuario usuario = new Usuario();
