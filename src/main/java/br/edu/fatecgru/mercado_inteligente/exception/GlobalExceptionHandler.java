@@ -64,6 +64,12 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(AccessDeniedException.class)
 	public ResponseEntity<ErrorResponse> handleAccessDeniedError(AccessDeniedException ex) {
+		// Se o usuário não estiver autenticado, não tratamos aqui para deixar o Spring Security retornar 401
+		if (org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() == null ||
+			org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() instanceof org.springframework.security.authentication.AnonymousAuthenticationToken) {
+			throw ex; 
+		}
+
 		ErrorResponse response = new ErrorResponse(HttpStatus.FORBIDDEN.value(),
 				"Acesso negado: você não tem permissão para acessar este recurso.", LocalDateTime.now(), null);
 		return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
