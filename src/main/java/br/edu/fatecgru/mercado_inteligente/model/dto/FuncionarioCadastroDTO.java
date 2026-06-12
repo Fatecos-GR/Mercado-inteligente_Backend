@@ -1,5 +1,6 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import br.edu.fatecgru.mercado_inteligente.model.entity.TipoFuncionario;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -9,24 +10,30 @@ import jakarta.validation.constraints.Size;
 
 public class FuncionarioCadastroDTO {
 
+	@Schema(description = "Nome do funcionário", example = "Carlos", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Nome é obrigatório")
 	private String nome;
 
+	@Schema(description = "Sobrenome do funcionário", example = "Mendes", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Sobrenome é obrigatório")
 	private String sobrenome;
 
+	@Schema(description = "Telefone (10 ou 11 dígitos)", example = "11977776666", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Telefone é obrigatório")
 	@Pattern(regexp = "^\\d{10,11}$", message = "Telefone inválido")
 	private String telefone;
 
+	@Schema(description = "Email corporativo", example = "carlos@mercado.com", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Email é obrigatório")
 	@Email(message = "Email inválido")
 	private String email;
 
+	@Schema(description = "Senha (mínimo 6 caracteres)", example = "senha123", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Senha é obrigatória")
 	@Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
 	private String senha;
 
+	@Schema(description = "Tipo de cargo do funcionário", example = "ESTOQUISTA", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotNull(message = "Tipo do funcionário é obrigatório")
 	private TipoFuncionario tipoFuncionario;
 

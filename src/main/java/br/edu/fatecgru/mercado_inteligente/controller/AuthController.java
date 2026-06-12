@@ -15,6 +15,8 @@ import br.edu.fatecgru.mercado_inteligente.model.dto.LoginResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroRequest;
 import br.edu.fatecgru.mercado_inteligente.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -31,7 +33,11 @@ public class AuthController {
 
 	@PostMapping("/login")
 	@Operation(summary = "Realiza o login de um usuário e retorna o token JWT")
-	public ResponseEntity<?> login(@RequestBody @Valid LoginRequest request, HttpServletRequest servletRequest) {
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
+        @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
+    })
+	public ResponseEntity<LoginResponse> login(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Credenciais de login", required = true) @RequestBody @Valid LoginRequest request, HttpServletRequest servletRequest) {
 
 		String token = authService.login(request, servletRequest.getRemoteAddr());
 
@@ -40,7 +46,11 @@ public class AuthController {
 
 	@PostMapping("/register")
 	@Operation(summary = "Registra um novo usuário no sistema")
-	public ResponseEntity<?> register(@RequestBody @Valid RegistroRequest request) {
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Usuário registrado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados de registro inválidos")
+    })
+	public ResponseEntity<String> register(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados para registro de novo usuário", required = true) @RequestBody @Valid RegistroRequest request) {
 
 		authService.registrar(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso!");

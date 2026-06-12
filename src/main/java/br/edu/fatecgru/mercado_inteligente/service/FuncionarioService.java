@@ -27,6 +27,20 @@ public class FuncionarioService {
 
 	private final String pastaFuncionarios = "employees/";
 
+	/**
+	 * Valida se o usuário atual tem permissão para atribuir o cargo de ADMIN.
+	 * Apenas ADMINs podem criar ou promover outros para ADMIN.
+	 */
+	private void validarEscalacaoDePrivilegio(TipoFuncionario tipoPretendido) {
+		if (tipoPretendido == TipoFuncionario.ADMIN) {
+			org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+			if (auth == null || !auth.getAuthorities().stream()
+					.anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+				throw new org.springframework.security.access.AccessDeniedException("Apenas administradores podem atribuir o cargo de ADMIN.");
+			}
+		}
+	}
+
 	// Método para listar todos
 	public List<Funcionario> listarTodos() {
 		return funcionarioRepository.findAll();
@@ -51,6 +65,7 @@ public class FuncionarioService {
 
 	// Métodos para cadastrar funcionário
 	public Funcionario cadastrar(FuncionarioCadastroDTO dto, MultipartFile imagem) throws Exception {
+		validarEscalacaoDePrivilegio(dto.getTipoFuncionario());
 
 		if (funcionarioRepository.findByEmail(dto.getEmail()).isPresent()) {
 			throw new RuntimeException("Email já cadastrado");
@@ -79,6 +94,7 @@ public class FuncionarioService {
 
 	// Método para atualizar funcionário
 	public Funcionario atualizar(Long id, FuncionarioCadastroDTO dto, MultipartFile imagem) throws Exception {
+		validarEscalacaoDePrivilegio(dto.getTipoFuncionario());
 
 		Funcionario funcionario = funcionarioRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));

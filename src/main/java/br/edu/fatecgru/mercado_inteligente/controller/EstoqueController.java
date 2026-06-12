@@ -20,6 +20,7 @@ import br.edu.fatecgru.mercado_inteligente.model.dto.MovimentacaoResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.service.EstoqueService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -54,7 +55,7 @@ public class EstoqueController {
         @ApiResponse(responseCode = "404", description = "Estoque não encontrado para o produto"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-    public ResponseEntity<EstoqueResponseDTO> buscarPorProdutoId(@PathVariable Long id) {
+    public ResponseEntity<EstoqueResponseDTO> buscarPorProdutoId(@Parameter(description = "ID do produto", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(EstoqueMapper.toDTO(estoqueService.buscarPorProdutoId(id)));
     }
 
@@ -65,7 +66,7 @@ public class EstoqueController {
         @ApiResponse(responseCode = "404", description = "Produto ou estoque não encontrado"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-    public ResponseEntity<List<MovimentacaoResponseDTO>> buscarMovimentacoes(@PathVariable Long produtoId) {
+    public ResponseEntity<List<MovimentacaoResponseDTO>> buscarMovimentacoes(@Parameter(description = "ID do produto", required = true) @PathVariable Long produtoId) {
         List<MovimentacaoResponseDTO> movimentacoes = estoqueService.buscarMovimentacoes(produtoId).stream()
                 .map(EstoqueMapper::toDTO)
                 .toList();

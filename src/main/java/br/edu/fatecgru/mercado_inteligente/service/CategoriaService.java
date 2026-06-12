@@ -29,7 +29,7 @@ public class CategoriaService {
 	}
 
 	public List<Categoria> getByContainsName(String nome) {
-		return categoriaRepository.findByNomeContains(nome);
+		return categoriaRepository.findByNomeContainingIgnoreCase(nome);
 	}
 
 	public Categoria getById(Long id) {
