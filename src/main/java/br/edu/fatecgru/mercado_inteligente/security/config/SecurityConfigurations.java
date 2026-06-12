@@ -51,22 +51,36 @@ public class SecurityConfigurations {
 					req.requestMatchers(HttpMethod.GET, "/api/enderecos/cep/**").permitAll();
 					
 					req.anyRequest().authenticated();
-				}).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-				.exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
-					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					response.setContentType("application/json");
-					response.setCharacterEncoding("UTF-8");
-					response.getWriter().write(
-							"{\"status\": 401, \"erro\": \"Não autorizado: você precisa de um token válido.\", \"timestamp\": \""
-									+ java.time.LocalDateTime.now() + "\"}");
-				}).accessDeniedHandler((request, response, accessDeniedException) -> {
-					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-					response.setContentType("application/json");
-					response.setCharacterEncoding("UTF-8");
-					response.getWriter().write(
-							"{\"status\": 403, \"erro\": \"Acesso negado: você não tem permissão para este recurso.\", \"timestamp\": \""
-									+ java.time.LocalDateTime.now() + "\"}");
-				})).build();
+				})
+				.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+				.exceptionHandling(ex -> ex
+					.authenticationEntryPoint((request, response, authException) -> {
+						response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+						response.setContentType("application/json");
+						response.setCharacterEncoding("UTF-8");
+						response.getWriter().write(
+								"{\"status\": 401, \"erro\": \"Não autorizado: você precisa de um token válido.\", \"timestamp\": \""
+										+ java.time.LocalDateTime.now() + "\"}");
+					})
+					.accessDeniedHandler((request, response, accessDeniedException) -> {
+						// Se o usuário não está autenticado, manda 401 em vez de 403
+						if (org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() == null) {
+							response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+							response.setContentType("application/json");
+							response.setCharacterEncoding("UTF-8");
+							response.getWriter().write(
+									"{\"status\": 401, \"erro\": \"Não autorizado: você precisa de um token válido.\", \"timestamp\": \""
+											+ java.time.LocalDateTime.now() + "\"}");
+						} else {
+							response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+							response.setContentType("application/json");
+							response.setCharacterEncoding("UTF-8");
+							response.getWriter().write(
+									"{\"status\": 403, \"erro\": \"Acesso negado: você não tem permissão para este recurso.\", \"timestamp\": \""
+											+ java.time.LocalDateTime.now() + "\"}");
+						}
+					})
+				).build();
 	}
 
 	@Bean
