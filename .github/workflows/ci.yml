@@ -20,14 +20,16 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Compile
-      run: mvn -B clean compile
+    - name: Make mvnw executable
+      run: chmod +x mvnw
 
-    - name: Run Tests
-      run: mvn -B test
-
-    - name: Package
-      run: mvn -B package
-
-    - name: Verify
-      run: mvn -B verify
+    - name: Build and Verify with Maven
+      run: ./mvnw -B clean verify
+      env:
+        JWT_SECRET: "chave-secreta-longa-para-testes-de-ci-32-caracteres"
+        SPRING_DATASOURCE_URL: "jdbc:h2:mem:testdb"
+        SPRING_DATASOURCE_USERNAME: "sa"
+        SPRING_DATASOURCE_PASSWORD: ""
+        CLOUDINARY_CLOUD_NAME: "test"
+        CLOUDINARY_API_KEY: "test"
+        CLOUDINARY_API_SECRET: "test"

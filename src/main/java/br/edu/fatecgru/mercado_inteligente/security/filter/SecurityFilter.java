@@ -38,9 +38,9 @@ public class SecurityFilter extends OncePerRequestFilter {
 				UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(usuario,
 						null, usuario.getAuthorities());
 				SecurityContextHolder.getContext().setAuthentication(authentication);
-			} catch (RuntimeException e) {
-				// Token inválido ou expirado, não setamos o contexto de autenticação.
-				// O Spring Security retornará 401 automaticamente para rotas protegidas.
+			} catch (Exception e) {
+				// Se o token for inválido, limpamos o contexto para garantir que não haja autenticação parcial
+				SecurityContextHolder.clearContext();
 			}
 		}
 

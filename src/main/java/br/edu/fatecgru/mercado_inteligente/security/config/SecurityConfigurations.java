@@ -23,6 +23,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import br.edu.fatecgru.mercado_inteligente.security.filter.SecurityFilter;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -51,22 +54,37 @@ public class SecurityConfigurations {
 					req.requestMatchers(HttpMethod.GET, "/api/enderecos/cep/**").permitAll();
 					
 					req.anyRequest().authenticated();
-				}).addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-				.exceptionHandling(ex -> ex.authenticationEntryPoint((request, response, authException) -> {
-					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					response.setContentType("application/json");
-					response.setCharacterEncoding("UTF-8");
-					response.getWriter().write(
-							"{\"status\": 401, \"erro\": \"Não autorizado: você precisa de um token válido.\", \"timestamp\": \""
-									+ java.time.LocalDateTime.now() + "\"}");
-				}).accessDeniedHandler((request, response, accessDeniedException) -> {
-					response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-					response.setContentType("application/json");
-					response.setCharacterEncoding("UTF-8");
-					response.getWriter().write(
-							"{\"status\": 403, \"erro\": \"Acesso negado: você não tem permissão para este recurso.\", \"timestamp\": \""
-									+ java.time.LocalDateTime.now() + "\"}");
-				})).build();
+				})
+				.addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+				.exceptionHandling(ex -> ex
+						.authenticationEntryPoint(authenticationEntryPoint())
+						.accessDeniedHandler(accessDeniedHandler())
+				)
+				.build();
+	}
+
+	@Bean
+	public AuthenticationEntryPoint authenticationEntryPoint() {
+		return (request, response, authException) -> {
+			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(
+					"{\"status\": 401, \"erro\": \"Não autorizado: você precisa de um token válido.\", \"timestamp\": \""
+							+ java.time.LocalDateTime.now() + "\"}");
+		};
+	}
+
+	@Bean
+	public AccessDeniedHandler accessDeniedHandler() {
+		return (request, response, accessDeniedException) -> {
+			response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8");
+			response.getWriter().write(
+					"{\"status\": 403, \"erro\": \"Acesso negado: você não tem permissão para este recurso.\", \"timestamp\": \""
+							+ java.time.LocalDateTime.now() + "\"}");
+		};
 	}
 
 	@Bean
