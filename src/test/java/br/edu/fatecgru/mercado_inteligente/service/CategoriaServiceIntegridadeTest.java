@@ -1,6 +1,7 @@
 package br.edu.fatecgru.mercado_inteligente.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -16,7 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
+import br.edu.fatecgru.mercado_inteligente.model.entity.StatusCarrinho;
 import br.edu.fatecgru.mercado_inteligente.repository.CategoriaRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.ItemCarrinhoRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +33,9 @@ public class CategoriaServiceIntegridadeTest {
 
     @Mock
     private ProdutoRepository produtoRepository;
+
+    @Mock
+    private ItemCarrinhoRepository itemCarrinhoRepository;
 
     @Mock
     private ProdutoService produtoService;
@@ -49,8 +55,10 @@ public class CategoriaServiceIntegridadeTest {
         Long categoriaId = 1L;
         Produto p1 = new Produto();
         p1.setId(20L);
+        p1.setNome("Produto Teste");
         
         when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(List.of(p1));
+        when(itemCarrinhoRepository.existsByProdutoIdAndCarrinhoStatus(20L, StatusCarrinho.ATIVO)).thenReturn(false);
 
         categoriaService.delete(categoriaId);
 
@@ -63,16 +71,18 @@ public class CategoriaServiceIntegridadeTest {
         Long categoriaId = 1L;
         Produto p1 = new Produto();
         p1.setId(20L);
+        p1.setNome("Produto Ativo");
         
         when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(List.of(p1));
         
-        // Simula bloqueio de integridade
-        doThrow(new IllegalStateException("Erro de integridade")).when(produtoService).deleteProduto(20L);
+        // Agora o bloqueio acontece antes, no check do repositório
+        when(itemCarrinhoRepository.existsByProdutoIdAndCarrinhoStatus(20L, StatusCarrinho.ATIVO)).thenReturn(true);
 
         assertThrows(IllegalStateException.class, () -> {
             categoriaService.delete(categoriaId);
         });
 
+        verify(produtoService, never()).deleteProduto(anyLong());
         verify(categoriaRepository, never()).deleteById(categoriaId);
     }
 }

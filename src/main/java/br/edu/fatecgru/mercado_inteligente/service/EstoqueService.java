@@ -81,12 +81,19 @@ public class EstoqueService {
         Estoque estoque = estoqueRepository.findByProdutoId(produtoId)
                 .orElseThrow(() -> new EstoqueInsuficienteException("Produto não possui registro de estoque: " + produtoId));
 
+        if (estoque.getQuantidadeReservada() < quantidade) {
+            // Se tentar liberar mais do que o reservado, apenas zeramos para evitar estoque negativo
+            quantidade = estoque.getQuantidadeReservada();
+        }
+
         estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() + quantidade);
         estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() - quantidade);
         
         estoqueRepository.save(estoque);
 
-        registrarMovimentacao(estoque, quantidade, TipoMovimentacao.LIBERACAO, OrigemMovimentacao.CARRINHO, carrinhoId);
+        if (quantidade > 0) {
+            registrarMovimentacao(estoque, quantidade, TipoMovimentacao.LIBERACAO, OrigemMovimentacao.CARRINHO, carrinhoId);
+        }
     }
 
     private void registrarMovimentacao(Estoque estoque, Integer quantidade, TipoMovimentacao tipo, OrigemMovimentacao origem, Long referenciaId) {

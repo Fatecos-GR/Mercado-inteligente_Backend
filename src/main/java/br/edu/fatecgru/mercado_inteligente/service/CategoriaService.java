@@ -9,7 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import br.edu.fatecgru.mercado_inteligente.model.dto.CategoriaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
+import br.edu.fatecgru.mercado_inteligente.model.entity.StatusCarrinho;
 import br.edu.fatecgru.mercado_inteligente.repository.CategoriaRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.ItemCarrinhoRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
 
 @Service
@@ -20,6 +22,9 @@ public class CategoriaService {
 
 	@Autowired
 	private ProdutoRepository produtoRepository;
+
+	@Autowired
+	private ItemCarrinhoRepository itemCarrinhoRepository;
 
 	@Autowired
 	private ProdutoService produtoService;
@@ -59,12 +64,19 @@ public class CategoriaService {
 	public void delete(Long id) {
 		List<Produto> produtos = produtoRepository.findByCategoriaId(id);
 		
-		// 1. Validar integridade e deletar produtos em cascata
+		// 1. Validar se algum produto da categoria está em carrinho ativo ANTES de começar a deletar
+		for (Produto produto : produtos) {
+			if (itemCarrinhoRepository.existsByProdutoIdAndCarrinhoStatus(produto.getId(), StatusCarrinho.ATIVO)) {
+				throw new IllegalStateException("A categoria não pode ser excluída pois contém o produto '" + produto.getNome() + "' que está presente em carrinhos ativos.");
+			}
+		}
+
+		// 2. Se todos os produtos estão liberados, deleta em cascata
 		for (Produto produto : produtos) {
 			produtoService.deleteProduto(produto.getId());
 		}
 
-		// 2. Se todos os produtos foram removidos, deleta a categoria
+		// 3. Deleta a categoria
 		categoriaRepository.deleteById(id);
 	}
 

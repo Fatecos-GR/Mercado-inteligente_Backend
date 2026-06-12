@@ -29,6 +29,18 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.badRequest().body(response);
 	}
 
+	@ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+	public ResponseEntity<ErrorResponse> handleConstraintViolation(jakarta.validation.ConstraintViolationException ex) {
+		List<ErrorResponse.ValidationError> errors = ex.getConstraintViolations().stream()
+				.map(v -> new ErrorResponse.ValidationError(v.getPropertyPath().toString(), v.getMessage()))
+				.collect(Collectors.toList());
+
+		ErrorResponse response = new ErrorResponse(HttpStatus.BAD_REQUEST.value(),
+				"Erro de validação nos campos enviados", LocalDateTime.now(), errors);
+
+		return ResponseEntity.badRequest().body(response);
+	}
+
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
 		ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage(), LocalDateTime.now(),

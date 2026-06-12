@@ -38,6 +38,9 @@ public class CategoriaController {
 	@Autowired
 	private ImagemService imagemService;
 
+	@Autowired
+	private jakarta.validation.Validator validator;
+
 	private final String pastaCategorias = "categories/";
 
 	@GetMapping
@@ -76,6 +79,12 @@ public class CategoriaController {
 
 		ObjectMapper mapper = new ObjectMapper();
 		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
+
+		// Validação Manual do DTO
+		var violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new jakarta.validation.ConstraintViolationException(violations);
+		}
 
 		Categoria categoria = categoriaService.cadastrar(dto);
 
