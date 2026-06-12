@@ -23,11 +23,14 @@ import br.edu.fatecgru.mercado_inteligente.service.EnderecoService;
 import br.edu.fatecgru.mercado_inteligente.service.UsuarioService;
 import br.edu.fatecgru.mercado_inteligente.service.ViaCepService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/enderecos")
-@io.swagger.v3.oas.annotations.tags.Tag(name = "Endereços", description = "Endpoints relacionados aos Endereços")
+@Tag(name = "Endereços", description = "Endpoints relacionados aos Endereços")
 public class EnderecoController {
 
 	@Autowired
@@ -39,17 +42,23 @@ public class EnderecoController {
 	@Autowired
 	private EnderecoService enderecoService;
 
-	// Busca por CEP
 	@GetMapping("/cep/{cep}")
 	@Operation(summary = "Buscar endereço por CEP via ViaCEP")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Endereço encontrado"),
+        @ApiResponse(responseCode = "404", description = "CEP não encontrado")
+    })
 	public ResponseEntity<EnderecoDTO> buscarPorCep(@PathVariable String cep) {
 		return ResponseEntity.ok(enderecoService.buscarPorCep(cep));
 	}
 
-	// Listar endereços de um usuário
 	@GetMapping("/{id}/enderecos")
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Listar endereços do usuário")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Endereços listados com sucesso"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado")
+    })
 	public ResponseEntity<List<EnderecoDTO>> listarEnderecos(@PathVariable Long id) {
 		List<EnderecoDTO> enderecos = usuarioService.listarEnderecosUsuario(id).stream()
 				.map(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper::toDTO)
@@ -57,27 +66,40 @@ public class EnderecoController {
 		return ResponseEntity.ok(enderecos);
 	}
 
-	// Adicionar endereço a um usuário
 	@PostMapping("/{id}/enderecos")
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Adicionar endereço ao usuário")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "201", description = "Endereço adicionado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado")
+    })
 	public ResponseEntity<EnderecoDTO> adicionarEndereco(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto) {
 		Endereco endereco = usuarioService.adicionarEndereco(id, dto);
 		return ResponseEntity.status(HttpStatus.CREATED).body(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper.toDTO(endereco));
 	}
 
-	// Alterar endereço
 	@PutMapping("/{id}")
 	@Operation(summary = "Atualizar endereço")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Endereço atualizado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado"),
+        @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
+    })
 	public ResponseEntity<EnderecoDTO> atualizar(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto,
 			@AuthenticationPrincipal Usuario usuarioLogado) {
 		Endereco endereco = enderecoService.atualizar(id, dto, usuarioLogado);
 		return ResponseEntity.ok(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper.toDTO(endereco));
 	}
 
-	// Deletar endereço
 	@DeleteMapping("/{id}")
 	@Operation(summary = "Excluir endereço")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "204", description = "Endereço excluído com sucesso"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado"),
+        @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
+    })
 	public ResponseEntity<Void> deletar(@PathVariable Long id, @AuthenticationPrincipal Usuario usuarioLogado) {
 		enderecoService.deletar(id, usuarioLogado);
 		return ResponseEntity.noContent().build();

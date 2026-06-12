@@ -19,6 +19,7 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Carrinho;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.service.CarrinhoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -91,7 +92,7 @@ public class CarrinhoController {
     @DeleteMapping("/itens/{produtoId}")
     public ResponseEntity<CarrinhoResponseDTO> removerItem(
             @AuthenticationPrincipal Usuario usuario, 
-            @PathVariable Long produtoId) {
+            @Parameter(description = "ID do produto a ser removido", required = true) @PathVariable Long produtoId) {
         Carrinho carrinho = carrinhoService.removerItem(usuario.getId(), produtoId);
         return ResponseEntity.ok(converterParaDTO(carrinho));
     }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +27,7 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.MarcaService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -62,7 +64,7 @@ public class MarcaController {
         @ApiResponse(responseCode = "200", description = "Marca encontrada"),
         @ApiResponse(responseCode = "404", description = "Marca não encontrada")
     })
-	public ResponseEntity<MarcaResponseDTO> buscarPorId(@PathVariable Long id) {
+	public ResponseEntity<MarcaResponseDTO> buscarPorId(@Parameter(description = "ID da marca", required = true) @PathVariable Long id) {
 		Marca marca = marcaService.getById(id);
 		if (marca == null) {
 			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
@@ -77,7 +79,7 @@ public class MarcaController {
         @ApiResponse(responseCode = "200", description = "Marcas encontradas")
     })
 	public ResponseEntity<List<MarcaResponseDTO>> buscarPorNome(
-			@org.springframework.web.bind.annotation.RequestParam String nome) {
+			@Parameter(description = "Nome ou parte do nome", required = true) @RequestParam String nome) {
 		List<MarcaResponseDTO> marcas = marcaService.getByContainsName(nome).stream().map(MarcaResponseDTO::fromEntity)
 				.toList();
 		return ResponseEntity.ok(marcas);
@@ -91,8 +93,8 @@ public class MarcaController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-	public ResponseEntity<MarcaResponseDTO> insert(@RequestPart("marca") String marcaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	public ResponseEntity<MarcaResponseDTO> insert(@Parameter(description = "Dados da marca em JSON", required = true) @RequestPart("marca") String marcaJson,
+			@Parameter(description = "Arquivo de imagem da marca") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
@@ -123,8 +125,9 @@ public class MarcaController {
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Marca não encontrada")
     })
-	public ResponseEntity<MarcaResponseDTO> update(@PathVariable Long id, @RequestPart("marca") String marcaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	public ResponseEntity<MarcaResponseDTO> update(@Parameter(description = "ID da marca", required = true) @PathVariable Long id, 
+            @Parameter(description = "Dados atualizados da marca em JSON", required = true) @RequestPart("marca") String marcaJson,
+			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
@@ -164,7 +167,7 @@ public class MarcaController {
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Marca não encontrada")
     })
-	public ResponseEntity<Void> delete(@PathVariable Long id) {
+	public ResponseEntity<Void> delete(@Parameter(description = "ID da marca", required = true) @PathVariable Long id) {
 		Marca marca = marcaService.getById(id);
 
 		if (marca == null) {

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +28,7 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
 import br.edu.fatecgru.mercado_inteligente.service.CategoriaService;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -63,7 +65,7 @@ public class CategoriaController {
         @ApiResponse(responseCode = "200", description = "Categoria encontrada"),
         @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
     })
-	public ResponseEntity<CategoriaResponseDTO> buscarPorId(@PathVariable Long id) {
+	public ResponseEntity<CategoriaResponseDTO> buscarPorId(@Parameter(description = "ID da categoria", required = true) @PathVariable Long id) {
 		Categoria categoria = categoriaService.getById(id);
 		if (categoria == null) {
 			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
@@ -78,7 +80,7 @@ public class CategoriaController {
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Categorias encontradas")
     })
-	public ResponseEntity<List<CategoriaResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
+	public ResponseEntity<List<CategoriaResponseDTO>> buscarPorNome(@Parameter(description = "Nome ou parte do nome", required = true) @RequestParam String nome) {
 		List<CategoriaResponseDTO> categorias = categoriaService.getByContainsName(nome).stream()
 				.map(c -> new CategoriaResponseDTO(c.getId(), c.getNome(), c.getDescricao(), c.getImagem())).toList();
 		return ResponseEntity.ok(categorias);
@@ -94,8 +96,8 @@ public class CategoriaController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-	public ResponseEntity<CategoriaResponseDTO> insert(@RequestPart("categoria") String categoriaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	public ResponseEntity<CategoriaResponseDTO> insert(@Parameter(description = "Dados da categoria em JSON", required = true) @RequestPart("categoria") String categoriaJson,
+			@Parameter(description = "Arquivo de imagem da categoria") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
@@ -131,9 +133,9 @@ public class CategoriaController {
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
     })
-	public ResponseEntity<CategoriaResponseDTO> update(@PathVariable Long id,
-			@RequestPart("categoria") String categoriaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	public ResponseEntity<CategoriaResponseDTO> update(@Parameter(description = "ID da categoria", required = true) @PathVariable Long id,
+			@Parameter(description = "Dados atualizados da categoria em JSON", required = true) @RequestPart("categoria") String categoriaJson,
+			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
@@ -172,7 +174,7 @@ public class CategoriaController {
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
     })
-	public ResponseEntity<Void> delete(@PathVariable Long id) {
+	public ResponseEntity<Void> delete(@Parameter(description = "ID da categoria", required = true) @PathVariable Long id) {
 		Categoria categoria = categoriaService.getById(id);
 
 		if (categoria == null) {

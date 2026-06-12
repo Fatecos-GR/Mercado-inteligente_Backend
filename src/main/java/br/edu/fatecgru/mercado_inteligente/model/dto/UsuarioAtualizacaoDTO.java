@@ -1,24 +1,30 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
 public class UsuarioAtualizacaoDTO {
 
+	@Schema(description = "Nome do usuário", example = "Maria", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Nome é obrigatório")
 	private String nome;
 
+	@Schema(description = "Sobrenome do usuário", example = "Oliveira", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Sobrenome é obrigatório")
 	private String sobrenome;
 
+	@Schema(description = "Telefone de contato", example = "11988887777", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Telefone é obrigatório")
 	private String telefone;
 
+	@Schema(description = "Email atualizado", example = "maria@novoemail.com", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Email é obrigatório")
 	@Email(message = "Email inválido")
 	private String email;
 
+	@Schema(description = "URL da imagem (preenchido automaticamente pelo sistema após upload)")
 	private String imagem;
 
 	public static UsuarioResponseDTO fromEntity(Usuario usuario) {

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,6 +26,7 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
 import br.edu.fatecgru.mercado_inteligente.service.FuncionarioService;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -63,7 +65,7 @@ public class FuncionarioController {
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Funcionário não encontrado")
     })
-	public ResponseEntity<FuncionarioResponseDTO> buscarPorId(@PathVariable Long id) {
+	public ResponseEntity<FuncionarioResponseDTO> buscarPorId(@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id) {
 		Funcionario funcionario = funcionarioService.getById(id);
 		if (funcionario == null) {
 			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
@@ -106,8 +108,8 @@ public class FuncionarioController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-	public ResponseEntity<FuncionarioResponseDTO> insert(@RequestPart("funcionario") String funcionarioJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	public ResponseEntity<FuncionarioResponseDTO> insert(@Parameter(description = "Dados do funcionário em JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
+			@Parameter(description = "Arquivo de imagem do funcionário") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
@@ -132,9 +134,9 @@ public class FuncionarioController {
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Funcionário não encontrado")
     })
-	public ResponseEntity<FuncionarioResponseDTO> atualizar(@PathVariable Long id,
-			@RequestPart("funcionario") String funcionarioJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	public ResponseEntity<FuncionarioResponseDTO> atualizar(@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id,
+			@Parameter(description = "Dados atualizados do funcionário em JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
+			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
@@ -158,7 +160,7 @@ public class FuncionarioController {
         @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Funcionário não encontrado")
     })
-	public ResponseEntity<Void> delete(@PathVariable Long id) {
+	public ResponseEntity<Void> delete(@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id) {
 		funcionarioService.deletar(id);
 		return ResponseEntity.noContent().build();
 	}
