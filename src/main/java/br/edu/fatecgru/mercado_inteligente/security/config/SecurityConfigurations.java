@@ -64,7 +64,8 @@ public class SecurityConfigurations {
 					})
 					.accessDeniedHandler((request, response, accessDeniedException) -> {
 						// Se o usuário não está autenticado, manda 401 em vez de 403
-						if (org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication() == null) {
+						org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+						if (auth == null || auth instanceof org.springframework.security.authentication.AnonymousAuthenticationToken) {
 							response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 							response.setContentType("application/json");
 							response.setCharacterEncoding("UTF-8");
