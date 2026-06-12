@@ -9,23 +9,28 @@ public class UsuarioResponseDTO {
 	private String sobrenome;
 	private String telefone;
 	private String email;
+	private String imagem;
+	private String publicIdImagem;
 
 	// Construtores
 	public UsuarioResponseDTO() {
 
 	}
 
-	public UsuarioResponseDTO(Long id, String nome, String sobrenome, String telefone, String email) {
+	public UsuarioResponseDTO(Long id, String nome, String sobrenome, String telefone, String email, String imagem,
+			String publicIdImagem) {
 		this.id = id;
 		this.nome = nome;
 		this.sobrenome = sobrenome;
 		this.telefone = telefone;
 		this.email = email;
+		this.imagem = imagem;
+		this.publicIdImagem = publicIdImagem;
 	}
 
 	public static UsuarioResponseDTO fromEntity(Usuario usuario) {
 		return new UsuarioResponseDTO(usuario.getId(), usuario.getNome(), usuario.getSobrenome(), usuario.getTelefone(),
-				usuario.getEmail());
+				usuario.getEmail(), usuario.getImagem(), usuario.getPublicIdImagem());
 	}
 
 	// Getters e Setters
@@ -67,6 +72,22 @@ public class UsuarioResponseDTO {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getImagem() {
+		return imagem;
+	}
+
+	public void setImagem(String imagem) {
+		this.imagem = imagem;
+	}
+
+	public String getPublicIdImagem() {
+		return publicIdImagem;
+	}
+
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
 	}
 
 }

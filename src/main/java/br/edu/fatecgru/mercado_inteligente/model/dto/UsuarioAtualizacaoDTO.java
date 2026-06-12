@@ -1,7 +1,7 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -29,7 +29,7 @@ public class UsuarioAtualizacaoDTO {
 
 	public static UsuarioResponseDTO fromEntity(Usuario usuario) {
 		return new UsuarioResponseDTO(usuario.getId(), usuario.getNome(), usuario.getSobrenome(), usuario.getTelefone(),
-				usuario.getEmail());
+				usuario.getEmail(), usuario.getImagem(), usuario.getPublicIdImagem());
 	}
 
 	// Getters e Setters
