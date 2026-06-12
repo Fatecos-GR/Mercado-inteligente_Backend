@@ -1,0 +1,35 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main", "development" ]
+  pull_request:
+    branches: [ "main", "development" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Make mvnw executable
+      run: chmod +x mvnw
+
+    - name: Build and Verify with Maven
+      run: ./mvnw -B clean verify
+      env:
+        JWT_SECRET: "chave-secreta-longa-para-testes-de-ci-32-caracteres"
+        SPRING_DATASOURCE_URL: "jdbc:h2:mem:testdb"
+        SPRING_DATASOURCE_USERNAME: "sa"
+        SPRING_DATASOURCE_PASSWORD: ""
+        CLOUDINARY_CLOUD_NAME: "test"
+        CLOUDINARY_API_KEY: "test"
+        CLOUDINARY_API_SECRET: "test"
