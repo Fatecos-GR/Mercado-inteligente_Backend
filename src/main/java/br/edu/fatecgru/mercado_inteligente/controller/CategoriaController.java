@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -60,8 +61,8 @@ public class CategoriaController {
 
 	@GetMapping("/search")
 	@Operation(summary = "Buscar categorias por nome")
-	public ResponseEntity<List<CategoriaResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
-		List<CategoriaResponseDTO> categorias = categoriaService.getByContainsName(nome).stream()
+	public ResponseEntity<List<CategoriaResponseDTO>> buscarPorNome(@RequestParam String nome) {
+		List<CategoriaResponseDTO> categorias = categoriaService.getByContainingName(nome).stream()
 				.map(CategoriaResponseDTO::fromEntity)
 				.toList();
 		return ResponseEntity.ok(categorias);

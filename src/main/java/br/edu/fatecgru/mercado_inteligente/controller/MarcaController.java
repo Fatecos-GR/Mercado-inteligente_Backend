@@ -61,7 +61,7 @@ public class MarcaController {
 	@GetMapping("/search")
 	@Operation(summary = "Buscar marcas por nome")
 	public ResponseEntity<List<MarcaResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
-		List<MarcaResponseDTO> marcas = marcaService.getByContainsName(nome).stream()
+		List<MarcaResponseDTO> marcas = marcaService.getByContainingName(nome).stream()
 				.map(MarcaResponseDTO::fromEntity)
 				.toList();
 		return ResponseEntity.ok(marcas);

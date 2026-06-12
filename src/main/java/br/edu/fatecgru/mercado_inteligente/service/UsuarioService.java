@@ -42,9 +42,9 @@ public class UsuarioService {
 		return usuarioRepository.findById(id).orElse(null);
 	}
 
-	// Listar produto pelo o nome "contido"
-	public List<Usuario> getByContainsName(String nome) {
-		return usuarioRepository.findByNomeContains(nome);
+	// Listar usuários pelo o nome (case-insensitive)
+	public List<Usuario> getByContainingName(String nome) {
+		return usuarioRepository.findByNomeContainingIgnoreCase(nome);
 	}
 
 	// Listar clientes

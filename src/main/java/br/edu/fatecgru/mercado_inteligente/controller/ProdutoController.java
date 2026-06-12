@@ -77,7 +77,7 @@ public class ProdutoController {
 	@GetMapping("/search")
 	@Operation(summary = "Buscar produtos por Nome")
 	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
-		List<ProdutoResponseDTO> produtos = produtoService.getByContainsName(nome).stream()
+		List<ProdutoResponseDTO> produtos = produtoService.getByContainingName(nome).stream()
 				.map(ProdutoMapper::toDTO)
 				.toList();
 		return ResponseEntity.ok(produtos);

@@ -63,7 +63,7 @@ public class FornecedorController {
 	@GetMapping("/search")
 	@Operation(summary = "Buscar fornecedor por nome")
 	public ResponseEntity<List<FornecedorResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
-		List<FornecedorResponseDTO> fornecedores = fornecedorService.getByContainsName(nome).stream()
+		List<FornecedorResponseDTO> fornecedores = fornecedorService.getByContainingName(nome).stream()
 				.map(FornecedorResponseDTO::fromEntity)
 				.toList();
 		return ResponseEntity.ok(fornecedores);

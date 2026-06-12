@@ -65,7 +65,7 @@ public class UsuarioController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Buscar usuários por nome (Apenas ADMIN)")
 	public ResponseEntity<List<UsuarioResponseDTO>> buscarPorNome(@org.springframework.web.bind.annotation.RequestParam String nome) {
-		List<UsuarioResponseDTO> usuarios = usuarioService.getByContainsName(nome).stream()
+		List<UsuarioResponseDTO> usuarios = usuarioService.getByContainingName(nome).stream()
 				.map(UsuarioResponseDTO::fromEntity)
 				.toList();
 		return ResponseEntity.ok(usuarios);

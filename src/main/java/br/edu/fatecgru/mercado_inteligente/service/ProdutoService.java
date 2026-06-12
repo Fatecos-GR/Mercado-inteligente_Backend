@@ -28,9 +28,9 @@ public class ProdutoService {
 		return produtoRepository.findById(id).orElse(null);
 	}
 
-	// Listar produto pelo o nome "contido"
-	public List<Produto> getByContainsName(String nome) {
-		return produtoRepository.findByNomeContains(nome);
+	// Listar produto pelo o nome (case-insensitive)
+	public List<Produto> getByContainingName(String nome) {
+		return produtoRepository.findByNomeContainingIgnoreCase(nome);
 	}
 
 	// Listar por ID da categoria

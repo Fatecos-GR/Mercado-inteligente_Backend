@@ -31,9 +31,9 @@ public class FornecedorService {
 		return fornecedorRepository.findById(id).orElse(null);
 	}
 
-	// Listar produto pelo o nome "contido"
-	public List<Fornecedor> getByContainsName(String nome) {
-		return fornecedorRepository.findByNomeContains(nome);
+	// Listar produto pelo o nome (case-insensitive)
+	public List<Fornecedor> getByContainingName(String nome) {
+		return fornecedorRepository.findByNomeContainingIgnoreCase(nome);
 	}
 
 	// salvar

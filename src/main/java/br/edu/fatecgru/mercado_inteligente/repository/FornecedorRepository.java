@@ -8,7 +8,7 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
 
 public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
 
-	// Método para fazer buscar por fornecedor
-	public List<Fornecedor> findByNomeContains(String nome);
+	// Método para buscar fornecedores por nome (case-insensitive)
+	public List<Fornecedor> findByNomeContainingIgnoreCase(String nome);
 
 }

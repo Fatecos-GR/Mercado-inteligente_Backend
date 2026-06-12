@@ -28,8 +28,8 @@ public class CategoriaService {
 		return categoriaRepository.findAll();
 	}
 
-	public List<Categoria> getByContainsName(String nome) {
-		return categoriaRepository.findByNomeContains(nome);
+	public List<Categoria> getByContainingName(String nome) {
+		return categoriaRepository.findByNomeContainingIgnoreCase(nome);
 	}
 
 	public Categoria getById(Long id) {

@@ -9,8 +9,8 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-	// Método para fazer busca por nome
-	public List<Usuario> findByNomeContains(String nome);
+	// Método para buscar usuários por nome (case-insensitive)
+	public List<Usuario> findByNomeContainingIgnoreCase(String nome);
 
 	// Buscar usuário por email
 	Optional<Usuario> findByEmail(String email);
