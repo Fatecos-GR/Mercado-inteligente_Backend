@@ -26,9 +26,10 @@ public class UsuarioCadastroDTO {
 	@Email(message = "Email inválido")
 	private String email;
 
-	@Schema(description = "Senha (mínimo 6 caracteres)", example = "123456", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "Senha com no mínimo 8 caracteres, contendo letra maiúscula, minúscula, número e caractere especial", example = "Senha@123", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Senha é obrigatória")
-	@Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
+	@Size(min = 8, message = "Senha deve ter no mínimo 8 caracteres")
+	@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&._#-]).*$", message = "A senha deve conter letra maiúscula, minúscula, número e caractere especial")
 	private String senha;
 
 	// Getters e Setters
