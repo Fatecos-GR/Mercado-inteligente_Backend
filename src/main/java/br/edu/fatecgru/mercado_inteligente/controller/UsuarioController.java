@@ -52,10 +52,8 @@ public class UsuarioController {
 	@GetMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar todos os usuários(Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuários listados com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuários listados com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<List<UsuarioResponseDTO>> listarTodos() {
 		List<UsuarioResponseDTO> usuarios = usuarioService.listarTodos().stream().map(UsuarioResponseDTO::fromEntity)
 				.toList();
@@ -63,14 +61,13 @@ public class UsuarioController {
 	}
 
 	@GetMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN')")
+	// @PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar usuário por ID (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    })
-	public ResponseEntity<UsuarioResponseDTO> buscarPorId(@Parameter(description = "ID do usuário", required = true) @PathVariable Long id) {
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Usuário não encontrado") })
+	public ResponseEntity<UsuarioResponseDTO> buscarPorId(
+			@Parameter(description = "ID do usuário", required = true) @PathVariable Long id) {
 		Usuario usuario = usuarioService.getById(id);
 		if (usuario == null) {
 			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
@@ -82,10 +79,8 @@ public class UsuarioController {
 	@GetMapping("/search")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Buscar usuários por nome (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuários encontrados"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuários encontrados"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<List<UsuarioResponseDTO>> buscarPorNome(
 			@Parameter(description = "Nome ou parte do nome", required = true) @RequestParam String nome) {
 		List<UsuarioResponseDTO> usuarios = usuarioService.getByContainsName(nome).stream()
@@ -96,10 +91,8 @@ public class UsuarioController {
 	@GetMapping("/clientes")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar clientes (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Clientes listados com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Clientes listados com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<List<UsuarioResponseDTO>> listarClientes() {
 		List<UsuarioResponseDTO> dtos = usuarioService.listarClientes().stream().map(UsuarioResponseDTO::fromEntity)
 				.toList();
@@ -109,13 +102,13 @@ public class UsuarioController {
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar usuário (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
-	public ResponseEntity<UsuarioResponseDTO> insert(@Parameter(description = "Dados do usuário em JSON", required = true) @RequestPart("usuario") String usuarioJson,
-			@Parameter(description = "Arquivo de imagem do usuário") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
+	public ResponseEntity<UsuarioResponseDTO> insert(
+			@Parameter(description = "Dados do usuário em JSON", required = true) @RequestPart("usuario") String usuarioJson,
+			@Parameter(description = "Arquivo de imagem do usuário") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		UsuarioCadastroDTO dto = mapper.readValue(usuarioJson, UsuarioCadastroDTO.class);
@@ -123,7 +116,11 @@ public class UsuarioController {
 		// Validação Manual
 		java.util.Set<jakarta.validation.ConstraintViolation<UsuarioCadastroDTO>> violations = validator.validate(dto);
 		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null, createBindingResult(dto, violations));
+
+			String mensagem = violations.stream().map(jakarta.validation.ConstraintViolation::getMessage).findFirst()
+					.orElse("Dados inválidos");
+
+			throw new IllegalArgumentException(mensagem);
 		}
 
 		Usuario usuario = usuarioService.cadastrar(dto, imagem);
@@ -134,23 +131,25 @@ public class UsuarioController {
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Alterar usuário")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Usuário alterado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    })
-	public ResponseEntity<UsuarioResponseDTO> atualizar(@Parameter(description = "ID do usuário", required = true) @PathVariable Long id,
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuário alterado com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Usuário não encontrado") })
+	public ResponseEntity<UsuarioResponseDTO> atualizar(
+			@Parameter(description = "ID do usuário", required = true) @PathVariable Long id,
 			@Parameter(description = "Dados atualizados do usuário em JSON", required = true) @RequestPart("usuario") String usuarioJson,
-			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		UsuarioAtualizacaoDTO dto = mapper.readValue(usuarioJson, UsuarioAtualizacaoDTO.class);
 
 		// Validação Manual
-		java.util.Set<jakarta.validation.ConstraintViolation<UsuarioAtualizacaoDTO>> violations = validator.validate(dto);
+		java.util.Set<jakarta.validation.ConstraintViolation<UsuarioAtualizacaoDTO>> violations = validator
+				.validate(dto);
 		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null, createBindingResult(dto, violations));
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
 		}
 
 		Usuario usuario = usuarioService.atualizar(id, dto);
@@ -170,20 +169,22 @@ public class UsuarioController {
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Excluir usuário (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    })
-	public ResponseEntity<Void> delete(@Parameter(description = "ID do usuário", required = true) @PathVariable Long id) {
+	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Usuário não encontrado") })
+	public ResponseEntity<Void> delete(
+			@Parameter(description = "ID do usuário", required = true) @PathVariable Long id) {
 		usuarioService.deletar(id);
 		return ResponseEntity.noContent().build();
 	}
 
-	private org.springframework.validation.BindingResult createBindingResult(Object target, java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
-		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(target, "dto");
+	private org.springframework.validation.BindingResult createBindingResult(Object target,
+			java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
+		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(
+				target, "dto");
 		for (jakarta.validation.ConstraintViolation<?> violation : violations) {
-			bindingResult.addError(new org.springframework.validation.FieldError("dto", violation.getPropertyPath().toString(), violation.getMessage()));
+			bindingResult.addError(new org.springframework.validation.FieldError("dto",
+					violation.getPropertyPath().toString(), violation.getMessage()));
 		}
 		return bindingResult;
 	}

@@ -8,6 +8,7 @@ public class FornecedorResponseDTO {
 	private Long id;
 	private String nome;
 	private String imagem;
+	private String publicIdImagem;
 	private EnderecoDTO endereco;
 
 	// Construtores
@@ -15,16 +16,17 @@ public class FornecedorResponseDTO {
 
 	}
 
-	public FornecedorResponseDTO(Long id, String nome, String imagem, EnderecoDTO endereco) {
+	public FornecedorResponseDTO(Long id, String nome, String imagem, String publicIdImagem, EnderecoDTO endereco) {
 		this.id = id;
 		this.nome = nome;
 		this.imagem = imagem;
+		this.publicIdImagem = publicIdImagem;
 		this.endereco = endereco;
 	}
 
 	public static FornecedorResponseDTO fromEntity(Fornecedor fornecedor) {
 		return new FornecedorResponseDTO(fornecedor.getId(), fornecedor.getNome(), fornecedor.getImagem(),
-				EnderecoMapper.toDTO(fornecedor.getEndereco()));
+				fornecedor.getPublicIdImagem(), EnderecoMapper.toDTO(fornecedor.getEndereco()));
 	}
 
 	// Getters e Setters
@@ -50,6 +52,14 @@ public class FornecedorResponseDTO {
 
 	public void setImagem(String imagem) {
 		this.imagem = imagem;
+	}
+
+	public String getPublicIdImagem() {
+		return publicIdImagem;
+	}
+
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
 	}
 
 	public EnderecoDTO getEndereco() {

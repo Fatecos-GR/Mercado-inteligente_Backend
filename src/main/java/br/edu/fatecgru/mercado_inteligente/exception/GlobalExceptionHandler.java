@@ -71,4 +71,14 @@ public class GlobalExceptionHandler {
 		// Em produção, não retornar ex.getMessage() por segurança
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 	}
+
+	@ExceptionHandler(EmailJaCadastradoException.class)
+	public ResponseEntity<ErrorResponse> handleEmailJaCadastrado(EmailJaCadastradoException ex) {
+
+		ErrorResponse response = new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage(), LocalDateTime.now(),
+				null);
+
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+	}
+
 }

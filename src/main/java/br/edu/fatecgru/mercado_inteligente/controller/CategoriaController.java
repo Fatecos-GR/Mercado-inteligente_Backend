@@ -50,39 +50,39 @@ public class CategoriaController {
 
 	@GetMapping
 	@Operation(summary = "Listar todas as categorias")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Categorias listadas com sucesso")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Categorias listadas com sucesso") })
 	public ResponseEntity<List<CategoriaResponseDTO>> listarTodos() {
 		List<CategoriaResponseDTO> categorias = categoriaService.listarTodos().stream()
-				.map(c -> new CategoriaResponseDTO(c.getId(), c.getNome(), c.getDescricao(), c.getImagem())).toList();
+				.map(c -> new CategoriaResponseDTO(c.getId(), c.getNome(), c.getDescricao(), c.getImagem(),
+						c.getPublicIdImagem()))
+				.toList();
 		return ResponseEntity.ok(categorias);
 	}
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar categoria por ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Categoria encontrada"),
-        @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
-    })
-	public ResponseEntity<CategoriaResponseDTO> buscarPorId(@Parameter(description = "ID da categoria", required = true) @PathVariable Long id) {
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Categoria encontrada"),
+			@ApiResponse(responseCode = "404", description = "Categoria não encontrada") })
+	public ResponseEntity<CategoriaResponseDTO> buscarPorId(
+			@Parameter(description = "ID da categoria", required = true) @PathVariable Long id) {
 		Categoria categoria = categoriaService.getById(id);
 		if (categoria == null) {
 			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
 					"Categoria não encontrada com ID: " + id);
 		}
 		return ResponseEntity.ok(new CategoriaResponseDTO(categoria.getId(), categoria.getNome(),
-				categoria.getDescricao(), categoria.getImagem()));
+				categoria.getDescricao(), categoria.getImagem(), categoria.getPublicIdImagem()));
 	}
 
 	@GetMapping("/search")
 	@Operation(summary = "Buscar categorias por nome")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Categorias encontradas")
-    })
-	public ResponseEntity<List<CategoriaResponseDTO>> buscarPorNome(@Parameter(description = "Nome ou parte do nome", required = true) @RequestParam String nome) {
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Categorias encontradas") })
+	public ResponseEntity<List<CategoriaResponseDTO>> buscarPorNome(
+			@Parameter(description = "Nome ou parte do nome", required = true) @RequestParam String nome) {
 		List<CategoriaResponseDTO> categorias = categoriaService.getByContainsName(nome).stream()
-				.map(c -> new CategoriaResponseDTO(c.getId(), c.getNome(), c.getDescricao(), c.getImagem())).toList();
+				.map(c -> new CategoriaResponseDTO(c.getId(), c.getNome(), c.getDescricao(), c.getImagem(),
+						c.getPublicIdImagem()))
+				.toList();
 		return ResponseEntity.ok(categorias);
 	}
 
@@ -91,20 +91,21 @@ public class CategoriaController {
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Categoria")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Categoria criada com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
-	public ResponseEntity<CategoriaResponseDTO> insert(@Parameter(description = "Dados da categoria em JSON", required = true) @RequestPart("categoria") String categoriaJson,
-			@Parameter(description = "Arquivo de imagem da categoria") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Categoria criada com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
+	public ResponseEntity<CategoriaResponseDTO> insert(
+			@Parameter(description = "Dados da categoria em JSON", required = true) @RequestPart("categoria") String categoriaJson,
+			@Parameter(description = "Arquivo de imagem da categoria") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
 
 		java.util.Set<jakarta.validation.ConstraintViolation<CategoriaDTO>> violations = validator.validate(dto);
 		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null, createBindingResult(dto, violations));
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
 		}
 
 		Categoria categoria = categoriaService.cadastrar(dto);
@@ -119,7 +120,7 @@ public class CategoriaController {
 		categoriaService.save(categoria);
 
 		CategoriaResponseDTO response = new CategoriaResponseDTO(categoria.getId(), categoria.getNome(),
-				categoria.getDescricao(), categoria.getImagem());
+				categoria.getDescricao(), categoria.getImagem(), categoria.getPublicIdImagem());
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
@@ -127,22 +128,23 @@ public class CategoriaController {
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Categoria")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Categoria alterada com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
-    })
-	public ResponseEntity<CategoriaResponseDTO> update(@Parameter(description = "ID da categoria", required = true) @PathVariable Long id,
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Categoria alterada com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Categoria não encontrada") })
+	public ResponseEntity<CategoriaResponseDTO> update(
+			@Parameter(description = "ID da categoria", required = true) @PathVariable Long id,
 			@Parameter(description = "Dados atualizados da categoria em JSON", required = true) @RequestPart("categoria") String categoriaJson,
-			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
 
 		java.util.Set<jakarta.validation.ConstraintViolation<CategoriaDTO>> violations = validator.validate(dto);
 		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null, createBindingResult(dto, violations));
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
 		}
 
 		Categoria atual = categoriaService.getById(id);
@@ -163,18 +165,18 @@ public class CategoriaController {
 		}
 
 		categoriaService.save(atual);
-		return ResponseEntity.ok(new CategoriaResponseDTO(atual.getId(), atual.getNome(), atual.getDescricao(), atual.getImagem()));
+		return ResponseEntity.ok(new CategoriaResponseDTO(atual.getId(), atual.getNome(), atual.getDescricao(),
+				atual.getImagem(), atual.getPublicIdImagem()));
 	}
 
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Deletar Categoria")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Categoria excluída com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Categoria não encontrada")
-    })
-	public ResponseEntity<Void> delete(@Parameter(description = "ID da categoria", required = true) @PathVariable Long id) {
+	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Categoria excluída com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Categoria não encontrada") })
+	public ResponseEntity<Void> delete(
+			@Parameter(description = "ID da categoria", required = true) @PathVariable Long id) {
 		Categoria categoria = categoriaService.getById(id);
 
 		if (categoria == null) {
@@ -190,10 +192,13 @@ public class CategoriaController {
 		return ResponseEntity.noContent().build();
 	}
 
-	private org.springframework.validation.BindingResult createBindingResult(Object target, java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
-		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(target, "dto");
+	private org.springframework.validation.BindingResult createBindingResult(Object target,
+			java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
+		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(
+				target, "dto");
 		for (jakarta.validation.ConstraintViolation<?> violation : violations) {
-			bindingResult.addError(new org.springframework.validation.FieldError("dto", violation.getPropertyPath().toString(), violation.getMessage()));
+			bindingResult.addError(new org.springframework.validation.FieldError("dto",
+					violation.getPropertyPath().toString(), violation.getMessage()));
 		}
 		return bindingResult;
 	}

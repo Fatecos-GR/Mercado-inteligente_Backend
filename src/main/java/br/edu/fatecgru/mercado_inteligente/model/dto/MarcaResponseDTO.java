@@ -8,22 +8,25 @@ public class MarcaResponseDTO {
 	private String nome;
 	private String descricao;
 	private String imagem;
+	private String publicIdImagem;
 
 	public MarcaResponseDTO() {
 
 	}
 
-	public MarcaResponseDTO(Long id, String nome, String descricao, String imagem) {
+	public MarcaResponseDTO(Long id, String nome, String descricao, String imagem, String publicIdImagem) {
 		this.id = id;
 		this.nome = nome;
 		this.descricao = descricao;
 		this.imagem = imagem;
+		this.publicIdImagem = publicIdImagem;
 	}
 
 	public static MarcaResponseDTO fromEntity(Marca marca) {
 		if (marca == null)
 			return null;
-		return new MarcaResponseDTO(marca.getId(), marca.getNome(), marca.getDescricao(), marca.getImagem());
+		return new MarcaResponseDTO(marca.getId(), marca.getNome(), marca.getDescricao(), marca.getImagem(),
+				marca.getPublicIdImagem());
 	}
 
 	// Getters e Setters
@@ -57,6 +60,14 @@ public class MarcaResponseDTO {
 
 	public void setImagem(String imagem) {
 		this.imagem = imagem;
+	}
+
+	public String getPublicIdImagem() {
+		return publicIdImagem;
+	}
+
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
 	}
 
 }

@@ -8,23 +8,25 @@ public class CategoriaResponseDTO {
 	private String nome;
 	private String descricao;
 	private String imagem;
+	private String publicIdImagem;
 
 	public CategoriaResponseDTO() {
 
 	}
 
-	public CategoriaResponseDTO(Long id, String nome, String descricao, String imagem) {
+	public CategoriaResponseDTO(Long id, String nome, String descricao, String imagem, String publicIdImagem) {
 		this.id = id;
 		this.nome = nome;
 		this.descricao = descricao;
 		this.imagem = imagem;
+		this.publicIdImagem = publicIdImagem;
 	}
 
 	public static CategoriaResponseDTO fromEntity(Categoria categoria) {
 		if (categoria == null)
 			return null;
 		return new CategoriaResponseDTO(categoria.getId(), categoria.getNome(), categoria.getDescricao(),
-				categoria.getImagem());
+				categoria.getImagem(), categoria.getPublicIdImagem());
 	}
 
 	// Getters e Setters
@@ -58,6 +60,14 @@ public class CategoriaResponseDTO {
 
 	public void setImagem(String imagem) {
 		this.imagem = imagem;
+	}
+
+	public String getPublicIdImagem() {
+		return publicIdImagem;
+	}
+
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
 	}
 
 }
