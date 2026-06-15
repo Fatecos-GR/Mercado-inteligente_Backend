@@ -48,10 +48,8 @@ public class FuncionarioController {
 
 	@GetMapping
 	@Operation(summary = "Listar todos os funcionários")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Funcionários listados com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Funcionários listados com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<List<FuncionarioResponseDTO>> listarTodos() {
 		List<FuncionarioResponseDTO> funcionarios = funcionarioService.listarTodos().stream()
 				.map(FuncionarioResponseDTO::fromEntity).toList();
@@ -60,12 +58,11 @@ public class FuncionarioController {
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Listar funcionário por ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Funcionário encontrado"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Funcionário não encontrado")
-    })
-	public ResponseEntity<FuncionarioResponseDTO> buscarPorId(@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id) {
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Funcionário encontrado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") })
+	public ResponseEntity<FuncionarioResponseDTO> buscarPorId(
+			@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id) {
 		Funcionario funcionario = funcionarioService.getById(id);
 		if (funcionario == null) {
 			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
@@ -77,10 +74,8 @@ public class FuncionarioController {
 	@GetMapping("/admins")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar admins (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Admins listados com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Admins listados com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<List<FuncionarioResponseDTO>> listarAdmins() {
 		List<FuncionarioResponseDTO> dtos = funcionarioService.listarAdministradores().stream()
 				.map(FuncionarioResponseDTO::fromEntity).toList();
@@ -90,10 +85,8 @@ public class FuncionarioController {
 	@GetMapping("/estoquistas")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar estoquistas (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Estoquistas listados com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Estoquistas listados com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<List<FuncionarioResponseDTO>> listarEstoquistas() {
 		List<FuncionarioResponseDTO> dtos = funcionarioService.listarEstoquistas().stream()
 				.map(FuncionarioResponseDTO::fromEntity).toList();
@@ -103,21 +96,23 @@ public class FuncionarioController {
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar funcionário (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Funcionário criado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
-	public ResponseEntity<FuncionarioResponseDTO> insert(@Parameter(description = "Dados do funcionário em JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
-			@Parameter(description = "Arquivo de imagem do funcionário") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Funcionário criado com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
+	public ResponseEntity<FuncionarioResponseDTO> insert(
+			@Parameter(description = "Dados do funcionário em JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
+			@Parameter(description = "Arquivo de imagem do funcionário") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
 
 		// Validação Manual
-		java.util.Set<jakarta.validation.ConstraintViolation<FuncionarioCadastroDTO>> violations = validator.validate(dto);
+		java.util.Set<jakarta.validation.ConstraintViolation<FuncionarioCadastroDTO>> violations = validator
+				.validate(dto);
 		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null, createBindingResult(dto, violations));
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
 		}
 
 		Funcionario funcionario = funcionarioService.cadastrar(dto, imagem);
@@ -128,23 +123,25 @@ public class FuncionarioController {
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Alterar funcionário")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Funcionário alterado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Funcionário não encontrado")
-    })
-	public ResponseEntity<FuncionarioResponseDTO> atualizar(@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id,
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Funcionário alterado com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") })
+	public ResponseEntity<FuncionarioResponseDTO> atualizar(
+			@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id,
 			@Parameter(description = "Dados atualizados do funcionário em JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
-			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
 		FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
 
 		// Validação Manual
-		java.util.Set<jakarta.validation.ConstraintViolation<FuncionarioCadastroDTO>> violations = validator.validate(dto);
+		java.util.Set<jakarta.validation.ConstraintViolation<FuncionarioCadastroDTO>> violations = validator
+				.validate(dto);
 		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null, createBindingResult(dto, violations));
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
 		}
 
 		Funcionario funcionario = funcionarioService.atualizar(id, dto, imagem);
@@ -155,20 +152,22 @@ public class FuncionarioController {
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Excluir funcionário (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Funcionário excluído com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Funcionário não encontrado")
-    })
-	public ResponseEntity<Void> delete(@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id) {
+	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Funcionário excluído com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") })
+	public ResponseEntity<Void> delete(
+			@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id) {
 		funcionarioService.deletar(id);
 		return ResponseEntity.noContent().build();
 	}
 
-	private org.springframework.validation.BindingResult createBindingResult(Object target, java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
-		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(target, "dto");
+	private org.springframework.validation.BindingResult createBindingResult(Object target,
+			java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
+		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(
+				target, "dto");
 		for (jakarta.validation.ConstraintViolation<?> violation : violations) {
-			bindingResult.addError(new org.springframework.validation.FieldError("dto", violation.getPropertyPath().toString(), violation.getMessage()));
+			bindingResult.addError(new org.springframework.validation.FieldError("dto",
+					violation.getPropertyPath().toString(), violation.getMessage()));
 		}
 		return bindingResult;
 	}
