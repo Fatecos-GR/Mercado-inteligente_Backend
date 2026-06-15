@@ -93,7 +93,7 @@ public class CategoriaService {
 
 		// 1. Validar integridade e deletar produtos em cascata
 		for (Produto produto : produtos) {
-			produtoService.deleteProduto(produto.getId());
+			produtoService.delete(produto.getId());
 		}
 
 		// Deleta a imagem da categoria no Cloudinary

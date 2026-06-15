@@ -94,7 +94,7 @@ public class MarcaService {
 		// O método deleteProduto já faz essa validação interna e lança
 		// IllegalStateException
 		for (Produto produto : produtos) {
-			produtoService.deleteProduto(produto.getId());
+			produtoService.delete(produto.getId());
 		}
 
 		// Deleta a imagem da categoria no Cloudinary

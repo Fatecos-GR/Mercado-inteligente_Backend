@@ -74,7 +74,19 @@ public class FornecedorService {
 
 		fornecedor.setNome(dto.nome());
 
-		Endereco endereco = criarEndereco(dto.endereco());
+		Endereco endereco = fornecedor.getEndereco();
+
+		if (endereco == null) {
+			endereco = new Endereco();
+		}
+
+		endereco.setCep(dto.endereco().cep());
+		endereco.setLogradouro(dto.endereco().logradouro());
+		endereco.setNumero(dto.endereco().numero());
+		endereco.setComplemento(dto.endereco().complemento());
+		endereco.setBairro(dto.endereco().bairro());
+		endereco.setCidade(dto.endereco().cidade());
+		endereco.setEstado(dto.endereco().estado());
 
 		fornecedor.setEndereco(endereco);
 
@@ -96,7 +108,8 @@ public class FornecedorService {
 		Fornecedor fornecedor = fornecedorRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
 
-		if (fornecedor.getPublicIdImagem() != null) {
+		if (fornecedor.getPublicIdImagem() != null && !fornecedor.getPublicIdImagem().isBlank()) {
+
 			imagemService.deletarImagem(fornecedor.getPublicIdImagem());
 		}
 
