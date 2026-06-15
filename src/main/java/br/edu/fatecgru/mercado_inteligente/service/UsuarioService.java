@@ -90,15 +90,30 @@ public class UsuarioService {
 	}
 
 	// Método para atualizar usuário
-	public Usuario atualizar(Long id, UsuarioAtualizacaoDTO dto) {
+	public Usuario atualizar(Long id, UsuarioAtualizacaoDTO dto, MultipartFile imagem) throws Exception {
 
 		Usuario usuario = usuarioRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+		// Verifica se outro usuário já possui esse email
+		Usuario usuarioComMesmoEmail = usuarioRepository.findByEmail(dto.getEmail()).orElse(null);
+
+		if (usuarioComMesmoEmail != null && !usuarioComMesmoEmail.getId().equals(id)) {
+
+			throw new RuntimeException("Email já cadastrado");
+		}
 
 		usuario.setNome(dto.getNome());
 		usuario.setSobrenome(dto.getSobrenome());
 		usuario.setTelefone(dto.getTelefone());
 		usuario.setEmail(dto.getEmail());
+
+		ImagemDTO novaImagem = imagemService.substituirImagem(usuario.getPublicIdImagem(), imagem, pastaUsuarios);
+
+		if (novaImagem != null) {
+			usuario.setImagem(novaImagem.getUrl());
+			usuario.setPublicIdImagem(novaImagem.getPublicId());
+		}
 
 		return usuarioRepository.save(usuario);
 	}
