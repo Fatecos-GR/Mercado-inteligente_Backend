@@ -10,6 +10,9 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.TipoFuncionario;
 
 public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> {
 
+	// Método para fazer busca por nome
+	public List<Funcionario> findByNomeContains(String nome);
+
 	// Listar funcionário por tipo
 	List<Funcionario> findByTipoFuncionario(TipoFuncionario tipoFuncionario);
 
