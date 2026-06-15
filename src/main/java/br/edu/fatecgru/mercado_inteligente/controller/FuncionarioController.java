@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,6 +69,20 @@ public class FuncionarioController {
 					"Funcionário não encontrado com ID: " + id);
 		}
 		return ResponseEntity.ok(FuncionarioResponseDTO.fromEntity(funcionario));
+	}
+
+	@GetMapping("/buscar")
+	@PreAuthorize("hasRole('ADMIN')")
+	@Operation(summary = "Buscar funcionário por nome completo (Apenas ADMIN)")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Funcionário encontrado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") })
+	public ResponseEntity<List<FuncionarioResponseDTO>> buscarPorNome(@RequestParam String nome) {
+
+		List<FuncionarioResponseDTO> funcionarios = funcionarioService.getByNomeCompleto(nome).stream()
+				.map(FuncionarioResponseDTO::fromEntity).toList();
+
+		return ResponseEntity.ok(funcionarios);
 	}
 
 	@GetMapping("/admins")

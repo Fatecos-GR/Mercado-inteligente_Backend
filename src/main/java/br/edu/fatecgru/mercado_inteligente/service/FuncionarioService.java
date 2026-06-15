@@ -54,9 +54,11 @@ public class FuncionarioService {
 		return funcionarioRepository.findById(id).orElse(null);
 	}
 
-	// Listar produto pelo o nome "contido"
-	public List<Funcionario> getByContainsName(String nome) {
-		return funcionarioRepository.findByNomeContains(nome);
+	// Listar funcionário pelo o nome completo
+	public List<Funcionario> getByNomeCompleto(String nomeCompleto) {
+
+		return funcionarioRepository.findByNomeCompleto(nomeCompleto);
+
 	}
 
 	// Listar administradores
