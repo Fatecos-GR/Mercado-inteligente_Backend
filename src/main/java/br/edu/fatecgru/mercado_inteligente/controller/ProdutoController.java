@@ -1,6 +1,7 @@
 package br.edu.fatecgru.mercado_inteligente.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 
 @RestController
 @RequestMapping("/api/produtos")
@@ -40,6 +42,9 @@ public class ProdutoController {
 
 	@Autowired
 	private ProdutoService produtoService;
+
+	@Autowired
+	private Validator validator;
 
 	@GetMapping
 	@Operation(summary = "Listar todos os produtos")
@@ -101,7 +106,7 @@ public class ProdutoController {
 			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<ProdutoResponseDTO> insert(
-			@Parameter(description = "Dados do produto", required = true) @Valid @RequestPart("produto") String produtoJson,
+			@Parameter(description = "Dados do produto", required = true) @RequestPart("produto") String produtoJson,
 			@Parameter(description = "Arquivo de imagem do produto") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
 
@@ -109,6 +114,16 @@ public class ProdutoController {
 		mapper.registerModule(new JavaTimeModule());
 
 		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
+
+		Set<ConstraintViolation<ProdutoDTO>> violations = validator.validate(dto);
+
+		if (!violations.isEmpty()) {
+
+			String mensagem = violations.stream().map(ConstraintViolation::getMessage).findFirst()
+					.orElse("Dados inválidos");
+
+			throw new IllegalArgumentException(mensagem);
+		}
 
 		Produto produto = produtoService.cadastrar(dto, imagem);
 
@@ -124,7 +139,7 @@ public class ProdutoController {
 			@ApiResponse(responseCode = "404", description = "Produto não encontrado") })
 	public ResponseEntity<ProdutoResponseDTO> update(
 			@Parameter(description = "ID do produto", required = true) @PathVariable Long id,
-			@Parameter(description = "Dados atualizados do produto em JSON", required = true) @Valid @RequestPart("produto") String produtoJson,
+			@Parameter(description = "Dados atualizados do produto em JSON", required = true) @RequestPart("produto") String produtoJson,
 			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
 
@@ -132,6 +147,16 @@ public class ProdutoController {
 		mapper.registerModule(new JavaTimeModule());
 
 		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
+
+		Set<ConstraintViolation<ProdutoDTO>> violations = validator.validate(dto);
+
+		if (!violations.isEmpty()) {
+
+			String mensagem = violations.stream().map(ConstraintViolation::getMessage).findFirst()
+					.orElse("Dados inválidos");
+
+			throw new IllegalArgumentException(mensagem);
+		}
 
 		Produto produto = produtoService.atualizar(id, dto, imagem);
 
