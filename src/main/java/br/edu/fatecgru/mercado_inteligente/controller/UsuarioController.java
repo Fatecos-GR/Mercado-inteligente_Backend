@@ -7,21 +7,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
-import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioAtualizacaoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
@@ -61,7 +59,7 @@ public class UsuarioController {
 	}
 
 	@GetMapping("/{id}")
-	// @PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar usuário por ID (Apenas ADMIN)")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
@@ -78,14 +76,17 @@ public class UsuarioController {
 
 	@GetMapping("/search")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Buscar usuários por nome (Apenas ADMIN)")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuários encontrados"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado") })
-	public ResponseEntity<List<UsuarioResponseDTO>> buscarPorNome(
-			@Parameter(description = "Nome ou parte do nome", required = true) @RequestParam String nome) {
-		List<UsuarioResponseDTO> usuarios = usuarioService.getByContainsName(nome).stream()
-				.map(UsuarioResponseDTO::fromEntity).toList();
-		return ResponseEntity.ok(usuarios);
+	@Operation(summary = "Buscar usuários por nome completo (Apenas ADMIN)")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Usuário não encontrado") })
+	public ResponseEntity<List<UsuarioResponseDTO>> getByNome(@PathVariable String nome) {
+
+		List<Usuario> usuarios = usuarioService.getByNomeCompleto(nome);
+
+		List<UsuarioResponseDTO> response = usuarios.stream().map(UsuarioResponseDTO::fromEntity).toList();
+
+		return ResponseEntity.ok(response);
 	}
 
 	@GetMapping("/clientes")
@@ -111,21 +112,20 @@ public class UsuarioController {
 			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
+
 		UsuarioCadastroDTO dto = mapper.readValue(usuarioJson, UsuarioCadastroDTO.class);
 
-		// Validação Manual
-		java.util.Set<jakarta.validation.ConstraintViolation<UsuarioCadastroDTO>> violations = validator.validate(dto);
+		var violations = validator.validate(dto);
+
 		if (!violations.isEmpty()) {
 
-			String mensagem = violations.stream().map(jakarta.validation.ConstraintViolation::getMessage).findFirst()
-					.orElse("Dados inválidos");
-
-			throw new IllegalArgumentException(mensagem);
+			throw new MethodArgumentNotValidException(null, createBindingResult(dto, violations));
 		}
 
 		Usuario usuario = usuarioService.cadastrar(dto, imagem);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(UsuarioResponseDTO.fromEntity(usuario));
+
 	}
 
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -141,29 +141,10 @@ public class UsuarioController {
 			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
 
-		ObjectMapper mapper = new ObjectMapper();
-		UsuarioAtualizacaoDTO dto = mapper.readValue(usuarioJson, UsuarioAtualizacaoDTO.class);
+		usuarioService.deletar(id);
 
-		// Validação Manual
-		java.util.Set<jakarta.validation.ConstraintViolation<UsuarioAtualizacaoDTO>> violations = validator
-				.validate(dto);
-		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
-					createBindingResult(dto, violations));
-		}
+		return ResponseEntity.noContent().build();
 
-		Usuario usuario = usuarioService.atualizar(id, dto);
-
-		ImagemDTO novaImagem = imagemService.substituirImagem(usuario.getPublicIdImagem(), imagem, pastaUsuarios);
-
-		if (novaImagem != null) {
-			usuario.setImagem(novaImagem.getUrl());
-			usuario.setPublicIdImagem(novaImagem.getPublicId());
-		}
-
-		usuarioService.save(usuario);
-
-		return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
 	}
 
 	@DeleteMapping("/{id}")

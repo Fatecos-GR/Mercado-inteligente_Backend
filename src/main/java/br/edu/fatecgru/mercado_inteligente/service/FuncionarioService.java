@@ -7,6 +7,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import br.edu.fatecgru.mercado_inteligente.exception.EmailJaCadastradoException;
+import br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
@@ -33,10 +35,11 @@ public class FuncionarioService {
 	 */
 	private void validarEscalacaoDePrivilegio(TipoFuncionario tipoPretendido) {
 		if (tipoPretendido == TipoFuncionario.ADMIN) {
-			org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
-			if (auth == null || !auth.getAuthorities().stream()
-					.anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-				throw new org.springframework.security.access.AccessDeniedException("Apenas administradores podem atribuir o cargo de ADMIN.");
+			org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
+					.getContext().getAuthentication();
+			if (auth == null || !auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+				throw new org.springframework.security.access.AccessDeniedException(
+						"Apenas administradores podem atribuir o cargo de ADMIN.");
 			}
 		}
 	}
@@ -49,6 +52,13 @@ public class FuncionarioService {
 	// Listar pelo ID do funcionário
 	public Funcionario getById(Long id) {
 		return funcionarioRepository.findById(id).orElse(null);
+	}
+
+	// Listar funcionário pelo o nome completo
+	public List<Funcionario> getByNomeCompleto(String nomeCompleto) {
+
+		return funcionarioRepository.findByNomeCompleto(nomeCompleto);
+
 	}
 
 	// Listar administradores
@@ -68,7 +78,7 @@ public class FuncionarioService {
 		validarEscalacaoDePrivilegio(dto.getTipoFuncionario());
 
 		if (funcionarioRepository.findByEmail(dto.getEmail()).isPresent()) {
-			throw new RuntimeException("Email já cadastrado");
+			throw new EmailJaCadastradoException(dto.getEmail());
 		}
 
 		Funcionario funcionario = new Funcionario();
@@ -97,20 +107,19 @@ public class FuncionarioService {
 		validarEscalacaoDePrivilegio(dto.getTipoFuncionario());
 
 		Funcionario funcionario = funcionarioRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
-
-		funcionario.setNome(dto.getNome());
-		funcionario.setSobrenome(dto.getSobrenome());
-		funcionario.setTelefone(dto.getTelefone());
+				.orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado com ID: " + id));
 
 		// Validação de email duplicado
 		Funcionario funcionarioComMesmoEmail = funcionarioRepository.findByEmail(dto.getEmail()).orElse(null);
 
 		if (funcionarioComMesmoEmail != null && !funcionarioComMesmoEmail.getId().equals(id)) {
 
-			throw new RuntimeException("Email já cadastrado");
+			throw new EmailJaCadastradoException(dto.getEmail());
 		}
 
+		funcionario.setNome(dto.getNome());
+		funcionario.setSobrenome(dto.getSobrenome());
+		funcionario.setTelefone(dto.getTelefone());
 		funcionario.setEmail(dto.getEmail());
 		funcionario.setTipoFuncionario(dto.getTipoFuncionario());
 
@@ -134,7 +143,8 @@ public class FuncionarioService {
 		Funcionario funcionario = funcionarioRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
 
-		if (funcionario.getPublicIdImagem() != null) {
+		if (funcionario.getPublicIdImagem() != null && !funcionario.getPublicIdImagem().isBlank()) {
+
 			imagemService.deletarImagem(funcionario.getPublicIdImagem());
 		}
 

@@ -4,13 +4,20 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 
 public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
-	// Método para fazer busca por nome
-	public List<Usuario> findByNomeContains(String nome);
+	@Query("""
+			SELECT u
+			FROM Usuario u
+			WHERE LOWER(CONCAT(u.nome, ' ', u.sobrenome))
+			LIKE LOWER(CONCAT('%', :nomeCompleto, '%'))
+			""")
+	List<Usuario> buscarPorNomeCompleto(@Param("nomeCompleto") String nomeCompleto);
 
 	// Buscar usuário por email
 	Optional<Usuario> findByEmail(String email);

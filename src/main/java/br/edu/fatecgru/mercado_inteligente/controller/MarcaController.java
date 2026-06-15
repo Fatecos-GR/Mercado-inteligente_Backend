@@ -20,11 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.MarcaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.MarcaResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
-import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.MarcaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -41,12 +39,7 @@ public class MarcaController {
 	private MarcaService marcaService;
 
 	@Autowired
-	private ImagemService imagemService;
-
-	@Autowired
 	private jakarta.validation.Validator validator;
-
-	private final String pastaMarcas = "brands/";
 
 	@GetMapping
 	@Operation(summary = "Listar todas as Marcas")
@@ -101,14 +94,8 @@ public class MarcaController {
 					createBindingResult(dto, violations));
 		}
 
-		Marca marca = marcaService.cadastrar(dto);
+		Marca marca = marcaService.cadastrar(dto, imagem);
 
-		ImagemDTO imagemDTO = imagemService.salvarImagem(imagem, pastaMarcas);
-
-		if (imagemDTO != null) {
-			marca.setImagem(imagemDTO.getUrl());
-			marca.setPublicIdImagem(imagemDTO.getPublicId());
-		}
 		return ResponseEntity.status(HttpStatus.CREATED).body(MarcaResponseDTO.fromEntity(marca));
 	}
 
@@ -135,25 +122,10 @@ public class MarcaController {
 					createBindingResult(dto, violations));
 		}
 
-		Marca atual = marcaService.getById(id);
+		Marca marca = marcaService.atualizar(id, dto, imagem);
 
-		if (atual == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
-					"Marca não encontrada com ID: " + id);
-		}
+		return ResponseEntity.ok(MarcaResponseDTO.fromEntity(marca));
 
-		atual.setNome(dto.getNome());
-		atual.setDescricao(dto.getDescricao());
-
-		ImagemDTO novaImagem = imagemService.substituirImagem(atual.getPublicIdImagem(), imagem, pastaMarcas);
-
-		if (novaImagem != null) {
-			atual.setImagem(novaImagem.getUrl());
-			atual.setPublicIdImagem(novaImagem.getPublicId());
-		}
-
-		Marca salvo = marcaService.save(atual);
-		return ResponseEntity.ok(MarcaResponseDTO.fromEntity(salvo));
 	}
 
 	@DeleteMapping("/{id}")
@@ -163,18 +135,9 @@ public class MarcaController {
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
 			@ApiResponse(responseCode = "404", description = "Marca não encontrada") })
 	public ResponseEntity<Void> delete(@Parameter(description = "ID da marca", required = true) @PathVariable Long id) {
-		Marca marca = marcaService.getById(id);
-
-		if (marca == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
-					"Marca não encontrada com ID: " + id);
-		}
-
-		if (marca.getPublicIdImagem() != null) {
-			imagemService.deletarImagem(marca.getPublicIdImagem());
-		}
 
 		marcaService.delete(id);
+
 		return ResponseEntity.noContent().build();
 	}
 

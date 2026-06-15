@@ -23,10 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.CategoriaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.CategoriaResponseDTO;
-import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
 import br.edu.fatecgru.mercado_inteligente.service.CategoriaService;
-import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -41,9 +39,6 @@ public class CategoriaController {
 
 	@Autowired
 	private CategoriaService categoriaService;
-
-	@Autowired
-	private ImagemService imagemService;
 
 	@Autowired
 	private jakarta.validation.Validator validator;
@@ -108,14 +103,7 @@ public class CategoriaController {
 					createBindingResult(dto, violations));
 		}
 
-		Categoria categoria = categoriaService.cadastrar(dto);
-
-		ImagemDTO imagemDTO = imagemService.salvarImagem(imagem, pastaCategorias);
-
-		if (imagemDTO != null) {
-			categoria.setImagem(imagemDTO.getUrl());
-			categoria.setPublicIdImagem(imagemDTO.getPublicId());
-		}
+		Categoria categoria = categoriaService.cadastrar(dto, imagem);
 
 		categoriaService.save(categoria);
 
@@ -139,34 +127,20 @@ public class CategoriaController {
 			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
+
 		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
 
+		// Validação Manual
 		java.util.Set<jakarta.validation.ConstraintViolation<CategoriaDTO>> violations = validator.validate(dto);
 		if (!violations.isEmpty()) {
 			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
 					createBindingResult(dto, violations));
 		}
 
-		Categoria atual = categoriaService.getById(id);
+		Categoria categoria = categoriaService.atualizar(id, dto, imagem);
 
-		if (atual == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
-					"Categoria não encontrada com ID: " + id);
-		}
+		return ResponseEntity.ok(CategoriaResponseDTO.fromEntity(categoria));
 
-		atual.setNome(dto.getNome());
-		atual.setDescricao(dto.getDescricao());
-
-		ImagemDTO novaImagem = imagemService.substituirImagem(atual.getPublicIdImagem(), imagem, pastaCategorias);
-
-		if (novaImagem != null) {
-			atual.setImagem(novaImagem.getUrl());
-			atual.setPublicIdImagem(novaImagem.getPublicId());
-		}
-
-		categoriaService.save(atual);
-		return ResponseEntity.ok(new CategoriaResponseDTO(atual.getId(), atual.getNome(), atual.getDescricao(),
-				atual.getImagem(), atual.getPublicIdImagem()));
 	}
 
 	@DeleteMapping("/{id}")
@@ -177,18 +151,9 @@ public class CategoriaController {
 			@ApiResponse(responseCode = "404", description = "Categoria não encontrada") })
 	public ResponseEntity<Void> delete(
 			@Parameter(description = "ID da categoria", required = true) @PathVariable Long id) {
-		Categoria categoria = categoriaService.getById(id);
-
-		if (categoria == null) {
-			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
-					"Categoria não encontrada com ID: " + id);
-		}
-
-		if (categoria.getPublicIdImagem() != null) {
-			imagemService.deletarImagem(categoria.getPublicIdImagem());
-		}
 
 		categoriaService.delete(id);
+
 		return ResponseEntity.noContent().build();
 	}
 
