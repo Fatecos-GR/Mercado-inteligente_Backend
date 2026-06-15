@@ -33,24 +33,23 @@ public class AuthController {
 
 	@PostMapping("/login")
 	@Operation(summary = "Realiza o login de um usuário e retorna o token JWT")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
-        @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
-    })
-	public ResponseEntity<LoginResponse> login(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Credenciais de login", required = true) @RequestBody @Valid LoginRequest request, HttpServletRequest servletRequest) {
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
+			@ApiResponse(responseCode = "401", description = "Credenciais inválidas") })
+	public ResponseEntity<LoginResponse> login(
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Credenciais de login", required = true) @RequestBody @Valid LoginRequest request,
+			HttpServletRequest servletRequest) {
 
-		String token = authService.login(request, servletRequest.getRemoteAddr());
+		LoginResponse response = authService.login(request, servletRequest.getRemoteAddr());
 
-		return ResponseEntity.ok(new LoginResponse(token));
+		return ResponseEntity.ok(response);
 	}
 
 	@PostMapping("/register")
 	@Operation(summary = "Registra um novo usuário no sistema")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Usuário registrado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados de registro inválidos")
-    })
-	public ResponseEntity<String> register(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados para registro de novo usuário", required = true) @RequestBody @Valid RegistroRequest request) {
+	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Usuário registrado com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados de registro inválidos") })
+	public ResponseEntity<String> register(
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados para registro de novo usuário", required = true) @RequestBody @Valid RegistroRequest request) {
 
 		authService.registrar(request);
 		return ResponseEntity.status(HttpStatus.CREATED).body("Usuário registrado com sucesso!");
