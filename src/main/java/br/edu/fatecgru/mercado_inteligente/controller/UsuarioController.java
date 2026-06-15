@@ -61,7 +61,7 @@ public class UsuarioController {
 	}
 
 	@GetMapping("/{id}")
-	// @PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Listar usuário por ID (Apenas ADMIN)")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
