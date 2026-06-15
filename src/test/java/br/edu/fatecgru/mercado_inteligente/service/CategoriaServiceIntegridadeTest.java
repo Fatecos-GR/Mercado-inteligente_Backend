@@ -22,57 +22,57 @@ import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
 @ExtendWith(MockitoExtension.class)
 public class CategoriaServiceIntegridadeTest {
 
-    @InjectMocks
-    private CategoriaService categoriaService;
+	@InjectMocks
+	private CategoriaService categoriaService;
 
-    @Mock
-    private CategoriaRepository categoriaRepository;
+	@Mock
+	private CategoriaRepository categoriaRepository;
 
-    @Mock
-    private ProdutoRepository produtoRepository;
+	@Mock
+	private ProdutoRepository produtoRepository;
 
-    @Mock
-    private ProdutoService produtoService;
+	@Mock
+	private ProdutoService produtoService;
 
-    @Test
-    void delete_Sucesso_QuandoNaoHaProdutos() {
-        Long categoriaId = 1L;
-        when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(Collections.emptyList());
+	@Test
+	void delete_Sucesso_QuandoNaoHaProdutos() {
+		Long categoriaId = 1L;
+		when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(Collections.emptyList());
 
-        categoriaService.delete(categoriaId);
+		categoriaService.delete(categoriaId);
 
-        verify(categoriaRepository).deleteById(categoriaId);
-    }
+		verify(categoriaRepository).deleteById(categoriaId);
+	}
 
-    @Test
-    void delete_Sucesso_ComCascata_QuandoProdutosNaoEstaoAtivos() {
-        Long categoriaId = 1L;
-        Produto p1 = new Produto();
-        p1.setId(20L);
-        
-        when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(List.of(p1));
+	@Test
+	void delete_Sucesso_ComCascata_QuandoProdutosNaoEstaoAtivos() {
+		Long categoriaId = 1L;
+		Produto p1 = new Produto();
+		p1.setId(20L);
 
-        categoriaService.delete(categoriaId);
+		when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(List.of(p1));
 
-        verify(produtoService).deleteProduto(20L);
-        verify(categoriaRepository).deleteById(categoriaId);
-    }
+		categoriaService.delete(categoriaId);
 
-    @Test
-    void delete_Erro_QuandoAlgumProdutoEstaEmCarrinhoAtivo() {
-        Long categoriaId = 1L;
-        Produto p1 = new Produto();
-        p1.setId(20L);
-        
-        when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(List.of(p1));
-        
-        // Simula bloqueio de integridade
-        doThrow(new IllegalStateException("Erro de integridade")).when(produtoService).deleteProduto(20L);
+		verify(produtoService).delete(20L);
+		verify(categoriaRepository).deleteById(categoriaId);
+	}
 
-        assertThrows(IllegalStateException.class, () -> {
-            categoriaService.delete(categoriaId);
-        });
+	@Test
+	void delete_Erro_QuandoAlgumProdutoEstaEmCarrinhoAtivo() {
+		Long categoriaId = 1L;
+		Produto p1 = new Produto();
+		p1.setId(20L);
 
-        verify(categoriaRepository, never()).deleteById(categoriaId);
-    }
+		when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(List.of(p1));
+
+		// Simula bloqueio de integridade
+		doThrow(new IllegalStateException("Erro de integridade")).when(produtoService).delete(20L);
+
+		assertThrows(IllegalStateException.class, () -> {
+			categoriaService.delete(categoriaId);
+		});
+
+		verify(categoriaRepository, never()).deleteById(categoriaId);
+	}
 }
