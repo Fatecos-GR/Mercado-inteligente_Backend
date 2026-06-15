@@ -46,9 +46,9 @@ public class UsuarioService {
 		return usuarioRepository.findById(id).orElse(null);
 	}
 
-	// Listar produto pelo o nome "contido"
-	public List<Usuario> getByContainsName(String nome) {
-		return usuarioRepository.findByNomeContains(nome);
+	// Listar usuário pelo nome completo (nome + sobrenome)
+	public List<Usuario> getByNomeCompleto(String nomeCompleto) {
+		return usuarioRepository.buscarPorNomeCompleto(nomeCompleto);
 	}
 
 	// Listar clientes

@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -77,14 +76,17 @@ public class UsuarioController {
 
 	@GetMapping("/search")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Buscar usuários por nome (Apenas ADMIN)")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuários encontrados"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado") })
-	public ResponseEntity<List<UsuarioResponseDTO>> buscarPorNome(
-			@Parameter(description = "Nome ou parte do nome", required = true) @RequestParam String nome) {
-		List<UsuarioResponseDTO> usuarios = usuarioService.getByContainsName(nome).stream()
-				.map(UsuarioResponseDTO::fromEntity).toList();
-		return ResponseEntity.ok(usuarios);
+	@Operation(summary = "Buscar usuários por nome completo (Apenas ADMIN)")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Usuário não encontrado") })
+	public ResponseEntity<List<UsuarioResponseDTO>> getByNome(@PathVariable String nome) {
+
+		List<Usuario> usuarios = usuarioService.getByNomeCompleto(nome);
+
+		List<UsuarioResponseDTO> response = usuarios.stream().map(UsuarioResponseDTO::fromEntity).toList();
+
+		return ResponseEntity.ok(response);
 	}
 
 	@GetMapping("/clientes")
