@@ -12,9 +12,11 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import br.edu.fatecgru.mercado_inteligente.exception.EmailJaCadastradoException;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginRequest;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroRequest;
+import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioLogadoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
@@ -43,11 +45,11 @@ public class AuthService {
 	private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
 	// Registro de novo usuário
-	public void registrar(RegistroRequest request) {
+	public RegistroResponse registrar(RegistroRequest request) {
 
 		// Validação
-		if (usuarioRepository.findByEmail(request.email()).isPresent()) {
-			throw new IllegalArgumentException("Email já está em uso");
+		if (usuarioRepository.existsByEmail(request.email())) {
+			throw new EmailJaCadastradoException(request.email());
 		}
 
 		// Criação do Objeto Usuário
@@ -60,7 +62,11 @@ public class AuthService {
 		// Senha criptografada
 		novoUsuario.setSenha(passwordEncoder.encode(request.senha()));
 
-		usuarioRepository.save(novoUsuario);
+		Usuario usuarioSalvo = usuarioRepository.save(novoUsuario);
+
+		return new RegistroResponse(usuarioSalvo.getId(), usuarioSalvo.getNome(), usuarioSalvo.getSobrenome(),
+				usuarioSalvo.getEmail(), usuarioSalvo.getTelefone());
+
 	}
 
 	// Login do usuário
