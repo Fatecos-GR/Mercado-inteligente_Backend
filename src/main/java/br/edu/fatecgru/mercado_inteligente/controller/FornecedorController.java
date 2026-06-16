@@ -90,7 +90,7 @@ public class FornecedorController {
 			@ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
 	})
-	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") String fornecedorJson,
+	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") @Valid FornecedorDTO dto,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -117,7 +117,7 @@ public class FornecedorController {
 			@ApiResponse(responseCode = "404", description = "Fornecedor não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
 	})
 	public ResponseEntity<FornecedorResponseDTO> atualizar(@PathVariable Long id,
-			@RequestPart("fornecedor") String fornecedorJson,
+			@RequestPart("fornecedor") @Valid FornecedorDTO dto,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
