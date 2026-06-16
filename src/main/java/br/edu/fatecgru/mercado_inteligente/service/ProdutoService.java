@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
-import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoRequestDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
@@ -72,7 +72,7 @@ public class ProdutoService {
 		return produtoRepository.save(produto);
 	}
 
-	public Produto cadastrar(ProdutoDTO dto, MultipartFile imagem) throws Exception {
+	public Produto cadastrar(ProdutoRequestDTO dto, MultipartFile imagem) throws Exception {
 
 		Produto produto = new Produto();
 
@@ -104,7 +104,7 @@ public class ProdutoService {
 		return produtoRepository.save(produto);
 	}
 
-	public Produto atualizar(Long id, ProdutoDTO dto, MultipartFile imagem) throws Exception {
+	public Produto atualizar(Long id, ProdutoRequestDTO dto, MultipartFile imagem) throws Exception {
 
 		Produto produto = produtoRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com ID: " + id));

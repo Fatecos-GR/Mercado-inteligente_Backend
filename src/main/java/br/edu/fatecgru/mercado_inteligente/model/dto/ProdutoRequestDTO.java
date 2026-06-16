@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record ProdutoDTO(
+public record ProdutoRequestDTO(
     @Schema(description = "Nome do produto", example = "Arroz 5kg", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "Nome é obrigatório")
     String nome,
