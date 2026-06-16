@@ -110,8 +110,8 @@ public class EstoqueService {
     }
 
     @Transactional
-    public void confirmarSaidaDeCarrinho(Long produtoId, int quantidade, Long carrinhoId) {
-      
+    public void confirmarSaidaDeCarrinho(Long produtoId, int quantidade, Long carrinhoId)      
+
         if (quantidade <= 0) {
             throw new IllegalArgumentException("A quantidade para confirmação deve ser maior que zero.");
         }
