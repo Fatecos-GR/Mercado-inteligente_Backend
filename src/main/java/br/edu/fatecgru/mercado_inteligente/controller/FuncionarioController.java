@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.model.dto.ErrorResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
@@ -128,10 +129,31 @@ public class FuncionarioController {
 					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
 
 							schema = @Schema(implementation = FuncionarioMultipartRequest.class))))
-	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Funcionário criado com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos ou email já cadastrado"),
-			@ApiResponse(responseCode = "401", description = "Não autenticado"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado") })
+	@ApiResponses(value = {
+
+			@ApiResponse(responseCode = "201", description = "Funcionário criado com sucesso",
+
+					content = @Content(mediaType = "application/json",
+
+							schema = @Schema(implementation = FuncionarioResponseDTO.class))),
+
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou email já cadastrado",
+
+					content = @Content(mediaType = "application/json",
+
+							schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "401", description = "Não autenticado",
+
+					content = @Content(mediaType = "application/json",
+
+							schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "403", description = "Acesso negado",
+
+					content = @Content(mediaType = "application/json",
+
+							schema = @Schema(implementation = ErrorResponse.class))) })
 	public ResponseEntity<FuncionarioResponseDTO> insert(
 			@Parameter(description = "Dados do funcionário em formato JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
 			@Parameter(description = "Arquivo de imagem de perfil (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
@@ -163,11 +185,36 @@ public class FuncionarioController {
 					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
 
 							schema = @Schema(implementation = FuncionarioMultipartRequest.class))))
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Funcionário atualizado com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
-			@ApiResponse(responseCode = "401", description = "Não autenticado"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado"),
-			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") })
+	@ApiResponses(value = {
+
+			@ApiResponse(responseCode = "201", description = "Funcionário atualizado com sucesso",
+
+					content = @Content(mediaType = "application/json",
+
+							schema = @Schema(implementation = FuncionarioResponseDTO.class))),
+
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou email já cadastrado",
+
+					content = @Content(mediaType = "application/json",
+
+							schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "401", description = "Não autenticado",
+
+					content = @Content(mediaType = "application/json",
+
+							schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "403", description = "Acesso negado",
+
+					content = @Content(mediaType = "application/json",
+
+							schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado",
+
+					content = @Content(mediaType = "application/json",
+
+							schema = @Schema(implementation = ErrorResponse.class))) })
 	public ResponseEntity<FuncionarioResponseDTO> atualizar(
 			@Parameter(description = "ID do funcionário a ser atualizado", required = true, example = "1") @PathVariable Long id,
 			@Parameter(description = "Novos dados do funcionário em formato JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
