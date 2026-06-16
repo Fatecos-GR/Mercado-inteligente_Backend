@@ -109,6 +109,21 @@ public class CarrinhoController {
         return ResponseEntity.ok(converterParaDTO(carrinho));
     }
 
+    @Operation(summary = "Finaliza o pedido (Checkout)", 
+               description = "Converte o carrinho ativo em um pedido finalizado. Exige um endereço de entrega vinculado ao usuário.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Pedido finalizado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos ou carrinho vazio"),
+        @ApiResponse(responseCode = "404", description = "Carrinho ou endereço não encontrado")
+    })
+    @PostMapping("/checkout/{enderecoId}")
+    public ResponseEntity<CarrinhoResponseDTO> finalizarPedido(
+            @AuthenticationPrincipal Usuario usuario,
+            @Parameter(description = "ID do endereço de entrega", required = true) @PathVariable Long enderecoId) {
+        Carrinho carrinho = carrinhoService.finalizarPedido(usuario.getId(), enderecoId);
+        return ResponseEntity.ok(converterParaDTO(carrinho));
+    }
+
     private CarrinhoResponseDTO converterParaDTO(Carrinho carrinho) {
         List<ItemCarrinhoResponseDTO> itensDTO = carrinho.getItens().stream()
                 .map(item -> new ItemCarrinhoResponseDTO(

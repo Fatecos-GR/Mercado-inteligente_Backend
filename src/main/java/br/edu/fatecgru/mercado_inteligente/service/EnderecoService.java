@@ -39,6 +39,9 @@ public class EnderecoService {
 		// Validação de Propriedade
 		validarPropriedade(endereco, usuarioLogado);
 
+		// Validação de Endereço Único
+		validarEnderecoUnico(dto, id);
+
 		endereco.setCep(dto.cep());
 		endereco.setLogradouro(dto.logradouro());
 		endereco.setNumero(dto.numero());
@@ -50,7 +53,17 @@ public class EnderecoService {
 		return enderecoRepository.save(endereco);
 	}
 
-	// Deletar endereço
+	public void validarEnderecoUnico(EnderecoDTO dto, Long currentId) {
+		enderecoRepository
+				.findIdenticalAddress(dto.cep(), dto.logradouro(), dto.numero(), dto.bairro(), dto.cidade(),
+						dto.estado(), dto.complemento())
+				.ifPresent(enderecoExistente -> {
+					if (currentId == null || !enderecoExistente.getId().equals(currentId)) {
+						throw new IllegalArgumentException("Este endereço já está cadastrado no sistema.");
+					}
+				});
+	}
+
 	public void deletar(Long id, Usuario usuarioLogado) {
 
 		Endereco endereco = enderecoRepository.findById(id)

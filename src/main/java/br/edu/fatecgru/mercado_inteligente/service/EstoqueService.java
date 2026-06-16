@@ -94,6 +94,24 @@ public class EstoqueService {
         registrarMovimentacao(estoque, quantidade, TipoMovimentacao.LIBERACAO, OrigemMovimentacao.CARRINHO, carrinhoId);
     }
 
+    @Transactional
+    public void confirmarSaidaDeCarrinho(Long produtoId, int quantidade, Long carrinhoId) {
+        Estoque estoque = estoqueRepository.findByProdutoId(produtoId)
+                .orElseThrow(() -> new EstoqueInsuficienteException("Produto não possui registro de estoque: " + produtoId));
+
+        if (estoque.getQuantidadeReservada() < quantidade) {
+            throw new IllegalStateException("Tentativa de confirmar saída de mais estoque do que o reservado. Reservado: "
+                    + estoque.getQuantidadeReservada() + ", Solicitado: " + quantidade);
+        }
+
+        // Retira da reserva (já foi retirado da disponível no momento da reserva)
+        estoque.setQuantidadeReservada(estoque.getQuantidadeReservada() - quantidade);
+
+        estoqueRepository.save(estoque);
+
+        registrarMovimentacao(estoque, quantidade, TipoMovimentacao.SAIDA, OrigemMovimentacao.CARRINHO, carrinhoId);
+    }
+
     private void registrarMovimentacao(Estoque estoque, Integer quantidade, TipoMovimentacao tipo, OrigemMovimentacao origem, Long referenciaId) {
         MovimentacaoEstoque movimentacao = new MovimentacaoEstoque();
         movimentacao.setEstoque(estoque);

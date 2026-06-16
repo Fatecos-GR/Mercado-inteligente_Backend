@@ -38,6 +38,10 @@ public class Carrinho {
 	@com.fasterxml.jackson.annotation.JsonIgnore
 	private Usuario usuario;
 
+	@ManyToOne
+	@JoinColumn(name = "endereco_entrega_id")
+	private Endereco enderecoEntrega;
+
 	// Um carrinho possui vários itens
 	@OneToMany(mappedBy = "carrinho", cascade = CascadeType.ALL)
 	@com.fasterxml.jackson.annotation.JsonManagedReference
@@ -117,6 +121,14 @@ public class Carrinho {
 
 	public void setItens(List<ItemCarrinho> itens) {
 		this.itens = itens;
+	}
+
+	public Endereco getEnderecoEntrega() {
+		return enderecoEntrega;
+	}
+
+	public void setEnderecoEntrega(Endereco enderecoEntrega) {
+		this.enderecoEntrega = enderecoEntrega;
 	}
 
 }
