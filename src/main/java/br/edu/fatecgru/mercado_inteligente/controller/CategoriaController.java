@@ -23,10 +23,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.CategoriaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.CategoriaResponseDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ErrorResponse;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
+import br.edu.fatecgru.mercado_inteligente.model.swagger.CategoriaMultipartRequest;
 import br.edu.fatecgru.mercado_inteligente.service.CategoriaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -85,10 +89,18 @@ public class CategoriaController {
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Salvar Categoria", description = "Cadastra uma nova categoria no sistema. O nome da categoria deve ser único.")
-	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Categoria criada com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado") })
+	@Operation(summary = "Salvar Categoria", description = "Cadastra uma nova categoria no sistema. O nome da categoria deve ser único.",
+
+			requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = CategoriaMultipartRequest.class))))
+	@ApiResponses(value = {
+
+			@ApiResponse(responseCode = "201", description = "Categoria criada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoriaResponseDTO.class))),
+
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+
+	})
 	public ResponseEntity<CategoriaResponseDTO> insert(
 			@Parameter(description = "Dados da categoria em JSON", required = true) @RequestPart("categoria") String categoriaJson,
 			@Parameter(description = "Arquivo de imagem da categoria") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
@@ -115,11 +127,20 @@ public class CategoriaController {
 
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Alterar Categoria", description = "Atualiza os dados de uma categoria existente. Se o nome for alterado, ele deve continuar sendo único no sistema.")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Categoria alterada com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado"),
-			@ApiResponse(responseCode = "404", description = "Categoria não encontrada") })
+	@Operation(summary = "Alterar Categoria", description = "Atualiza os dados de uma categoria existente. Se o nome for alterado, ele deve continuar sendo único no sistema.",
+
+			requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = CategoriaMultipartRequest.class))))
+	@ApiResponses(value = {
+
+			@ApiResponse(responseCode = "200", description = "Categoria alterada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoriaResponseDTO.class))),
+
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "404", description = "Categoria não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+
+	})
 	public ResponseEntity<CategoriaResponseDTO> update(
 			@Parameter(description = "ID da categoria", required = true) @PathVariable Long id,
 			@Parameter(description = "Dados atualizados da categoria em JSON", required = true) @RequestPart("categoria") String categoriaJson,

@@ -127,6 +127,10 @@ public class UsuarioService {
 		usuario.setTelefone(dto.getTelefone());
 		usuario.setEmail(dto.getEmail());
 
+		if (dto.getSenha() != null && !dto.getSenha().isBlank()) {
+			usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
+		}
+
 		ImagemDTO novaImagem = imagemService.substituirImagem(usuario.getPublicIdImagem(), imagem, pastaUsuarios);
 
 		if (novaImagem != null) {
@@ -147,7 +151,8 @@ public class UsuarioService {
 			throw new IllegalStateException("O usuário não pode ser desativado pois possui um carrinho ativo.");
 		}
 
-		// Em vez de deletar fisicamente, desativamos o usuário para preservar o histórico
+		// Em vez de deletar fisicamente, desativamos o usuário para preservar o
+		// histórico
 		usuario.setAtivo(false);
 
 		usuarioRepository.save(usuario);
@@ -188,7 +193,8 @@ public class UsuarioService {
 		Usuario usuario = usuarioRepository.findById(usuarioId)
 				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-		// Validação de Endereço Único (exceto se for o endereço atual do próprio usuário)
+		// Validação de Endereço Único (exceto se for o endereço atual do próprio
+		// usuário)
 		Long currentEnderecoId = usuario.getEndereco() != null ? usuario.getEndereco().getId() : null;
 		enderecoService.validarEnderecoUnico(dto, currentEnderecoId);
 
