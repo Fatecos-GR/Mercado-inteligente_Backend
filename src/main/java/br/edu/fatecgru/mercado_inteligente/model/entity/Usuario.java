@@ -19,7 +19,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -57,10 +58,10 @@ public class Usuario implements UserDetails {
 	@Column(length = 255)
 	private String publicIdImagem;
 
-	// Cascade --> Ações feitas no usuário também afetam o endereço
-	@JsonManagedReference
-	@OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Endereco> enderecos = new ArrayList<>();
+	// Relacionamento 1 para 1 com Endereço
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "endereco_id", unique = true)
+	private Endereco endereco;
 
 	@Column(nullable = false)
 	private boolean ativo = true;
@@ -71,7 +72,7 @@ public class Usuario implements UserDetails {
 	}
 
 	public Usuario(Long id, String nome, String sobrenome, String telefone, String senha, String email, String imagem,
-			String publicIdImagem, List<Endereco> enderecos, boolean ativo) {
+			String publicIdImagem, Endereco endereco, boolean ativo) {
 		this.id = id;
 		this.nome = nome;
 		this.sobrenome = sobrenome;
@@ -80,7 +81,7 @@ public class Usuario implements UserDetails {
 		this.email = email;
 		this.imagem = imagem;
 		this.publicIdImagem = publicIdImagem;
-		this.enderecos = enderecos;
+		this.endereco = endereco;
 		this.ativo = ativo;
 	}
 
@@ -149,12 +150,12 @@ public class Usuario implements UserDetails {
 		this.publicIdImagem = publicIdImagem;
 	}
 
-	public List<Endereco> getEnderecos() {
-		return enderecos;
+	public Endereco getEndereco() {
+		return endereco;
 	}
 
-	public void setEnderecos(List<Endereco> enderecos) {
-		this.enderecos = enderecos;
+	public void setEndereco(Endereco endereco) {
+		this.endereco = endereco;
 	}
 
 	public boolean isAtivo() {

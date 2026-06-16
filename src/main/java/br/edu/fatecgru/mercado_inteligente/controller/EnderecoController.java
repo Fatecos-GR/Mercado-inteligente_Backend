@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Endereco;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.service.EnderecoService;
@@ -42,6 +43,24 @@ public class EnderecoController {
 	@Autowired
 	private EnderecoService enderecoService;
 
+	@GetMapping
+	@PreAuthorize("hasRole('ADMIN')")
+	@Operation(summary = "Listar todos os endereços do sistema (Admin)")
+    @ApiResponse(responseCode = "200", description = "Lista de todos os endereços com informação de dono")
+	public ResponseEntity<List<EnderecoResponseDTO>> listarTodos() {
+		return ResponseEntity.ok(enderecoService.listarTodos());
+	}
+
+	@GetMapping("/{id}")
+	@Operation(summary = "Buscar detalhes de um endereço por ID")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Endereço encontrado"),
+        @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
+    })
+	public ResponseEntity<EnderecoResponseDTO> buscarPorId(@PathVariable Long id) {
+		return ResponseEntity.ok(enderecoService.buscarPorId(id));
+	}
+
 	@GetMapping("/cep/{cep}")
 	@Operation(summary = "Buscar endereço por CEP via ViaCEP")
     @ApiResponses(value = {
@@ -52,35 +71,37 @@ public class EnderecoController {
 		return ResponseEntity.ok(enderecoService.buscarPorCep(cep));
 	}
 
-	@GetMapping("/{id}/enderecos")
+	@GetMapping("/usuario/{id}")
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-	@Operation(summary = "Listar endereços do usuário")
+	@Operation(summary = "Obter o endereço cadastrado do usuário")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Endereços listados com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
+        @ApiResponse(responseCode = "200", description = "Endereço retornado com sucesso"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado"),
+        @ApiResponse(responseCode = "404", description = "Usuário não possui endereço")
     })
-	public ResponseEntity<List<EnderecoDTO>> listarEnderecos(@PathVariable Long id) {
-		List<EnderecoDTO> enderecos = usuarioService.listarEnderecosUsuario(id).stream()
-				.map(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper::toDTO)
-				.toList();
-		return ResponseEntity.ok(enderecos);
+	public ResponseEntity<EnderecoDTO> obterEnderecoUsuario(@PathVariable Long id) {
+		Endereco endereco = usuarioService.buscarEnderecoUsuario(id);
+		if (endereco == null) {
+			return ResponseEntity.notFound().build();
+		}
+		return ResponseEntity.ok(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper.toDTO(endereco));
 	}
 
-	@PostMapping("/{id}/enderecos")
+	@PostMapping("/usuario/{id}")
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-	@Operation(summary = "Adicionar endereço ao usuário")
+	@Operation(summary = "Adicionar ou atualizar endereço do usuário")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Endereço adicionado com sucesso"),
+        @ApiResponse(responseCode = "201", description = "Endereço salvo com sucesso"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-	public ResponseEntity<EnderecoDTO> adicionarEndereco(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto) {
+	public ResponseEntity<EnderecoDTO> salvarEnderecoUsuario(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto) {
 		Endereco endereco = usuarioService.adicionarEndereco(id, dto);
 		return ResponseEntity.status(HttpStatus.CREATED).body(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper.toDTO(endereco));
 	}
 
 	@PutMapping("/{id}")
-	@Operation(summary = "Atualizar endereço")
+	@Operation(summary = "Atualizar endereço por ID")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Endereço atualizado com sucesso"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),

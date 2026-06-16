@@ -168,7 +168,8 @@ public class CarrinhoService {
         br.edu.fatecgru.mercado_inteligente.model.entity.Endereco endereco = enderecoRepository.findById(enderecoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Endereço não encontrado com ID: " + enderecoId));
 
-        if (endereco.getUsuario() == null || !endereco.getUsuario().getId().equals(usuarioId)) {
+        Usuario usuario = carrinho.getUsuario();
+        if (usuario.getEndereco() == null || !usuario.getEndereco().getId().equals(enderecoId)) {
             throw new IllegalArgumentException("O endereço informado não pertence ao usuário.");
         }
 
