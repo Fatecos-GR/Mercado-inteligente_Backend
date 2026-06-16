@@ -41,5 +41,7 @@ application-secrets.properties
 ENDPOINTS.md
 
 ###application.roperties###
-src/main/resources/application.properties
+
+aplication.properties
+
 

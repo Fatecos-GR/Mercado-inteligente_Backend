@@ -25,15 +25,18 @@ public class EstoqueService {
     @Autowired
     private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
+    @Transactional(readOnly = true)
     public List<Estoque> listarTodos() {
         return estoqueRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public Estoque buscarPorProdutoId(Long produtoId) {
         return estoqueRepository.findByProdutoId(produtoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Estoque não encontrado para o produto ID: " + produtoId));
     }
 
+    @Transactional(readOnly = true)
     public List<MovimentacaoEstoque> buscarMovimentacoes(Long produtoId) {
         Estoque estoque = buscarPorProdutoId(produtoId);
         return movimentacaoEstoqueRepository.findByEstoqueIdOrderByCriadoEmDesc(estoque.getId());
@@ -41,6 +44,10 @@ public class EstoqueService {
 
     @Transactional
     public void executarAjuste(Long produtoId, Integer quantidade, TipoMovimentacao tipo, Long usuarioId) {
+        if (quantidade == null || quantidade <= 0) {
+            throw new IllegalArgumentException("A quantidade para ajuste deve ser maior que zero.");
+        }
+
         Estoque estoque = estoqueRepository.findByProdutoId(produtoId)
                 .orElseThrow(() -> new ResourceNotFoundException("Estoque não encontrado para o produto ID: " + produtoId));
 
@@ -61,6 +68,10 @@ public class EstoqueService {
 
     @Transactional
     public void reservarEstoqueParaCarrinho(Long produtoId, int quantidade, Long carrinhoId) {
+        if (quantidade <= 0) {
+            throw new IllegalArgumentException("A quantidade para reserva deve ser maior que zero.");
+        }
+
         Estoque estoque = estoqueRepository.findByProdutoId(produtoId)
                 .orElseThrow(() -> new EstoqueInsuficienteException("Produto não possui registro de estoque: " + produtoId));
 
@@ -78,6 +89,10 @@ public class EstoqueService {
 
     @Transactional
     public void liberarEstoqueDeCarrinho(Long produtoId, int quantidade, Long carrinhoId) {
+        if (quantidade <= 0) {
+            throw new IllegalArgumentException("A quantidade para liberação deve ser maior que zero.");
+        }
+
         Estoque estoque = estoqueRepository.findByProdutoId(produtoId)
                 .orElseThrow(() -> new EstoqueInsuficienteException("Produto não possui registro de estoque: " + produtoId));
 
@@ -96,6 +111,12 @@ public class EstoqueService {
 
     @Transactional
     public void confirmarSaidaDeCarrinho(Long produtoId, int quantidade, Long carrinhoId) {
+      
+        if (quantidade <= 0) {
+            throw new IllegalArgumentException("A quantidade para confirmação deve ser maior que zero.");
+        }
+
+
         Estoque estoque = estoqueRepository.findByProdutoId(produtoId)
                 .orElseThrow(() -> new EstoqueInsuficienteException("Produto não possui registro de estoque: " + produtoId));
 
