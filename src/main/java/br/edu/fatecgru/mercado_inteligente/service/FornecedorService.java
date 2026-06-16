@@ -20,6 +20,9 @@ public class FornecedorService {
 	private FornecedorRepository fornecedorRepository;
 
 	@Autowired
+	private EnderecoService enderecoService;
+
+	@Autowired
 	private ImagemService imagemService;
 
 	private final String pastaFornecedores = "suppliers/";
@@ -47,6 +50,9 @@ public class FornecedorService {
 	// cadastrar
 	public Fornecedor cadastrar(FornecedorDTO dto, MultipartFile imagem) throws Exception {
 
+		// Validação de Endereço Único
+		enderecoService.validarEnderecoUnico(dto.endereco(), null);
+
 		Fornecedor fornecedor = new Fornecedor();
 
 		fornecedor.setNome(dto.nome());
@@ -71,6 +77,10 @@ public class FornecedorService {
 
 		Fornecedor fornecedor = fornecedorRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+
+		// Validação de Endereço Único
+		enderecoService.validarEnderecoUnico(dto.endereco(),
+				fornecedor.getEndereco() != null ? fornecedor.getEndereco().getId() : null);
 
 		fornecedor.setNome(dto.nome());
 

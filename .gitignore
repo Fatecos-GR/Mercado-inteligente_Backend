@@ -39,3 +39,7 @@ application-secrets.properties
 
 ###endpoint###
 ENDPOINTS.md
+
+###application.roperties###
+src/main/resources/application.properties
+

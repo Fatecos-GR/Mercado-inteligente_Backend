@@ -32,6 +32,9 @@ public class UsuarioService {
 	private EnderecoRepository enderecoRepository;
 
 	@Autowired
+	private EnderecoService enderecoService;
+
+	@Autowired
 	private CarrinhoRepository carrinhoRepository;
 
 	@Autowired
@@ -181,6 +184,9 @@ public class UsuarioService {
 
 	// Adicionar endereço a um usuário
 	public Endereco adicionarEndereco(Long usuarioId, EnderecoDTO dto) {
+
+		// Validação de Endereço Único
+		enderecoService.validarEnderecoUnico(dto, null);
 
 		Usuario usuario = usuarioRepository.findById(usuarioId)
 				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
