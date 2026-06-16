@@ -28,6 +28,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/fornecedores")
@@ -95,17 +96,8 @@ public class FornecedorController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") String fornecedorJson,
+	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") @Valid FornecedorDTO dto,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
-
-		ObjectMapper mapper = new ObjectMapper();
-		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
-
-		// Validação Manual
-		java.util.Set<jakarta.validation.ConstraintViolation<FornecedorDTO>> violations = validator.validate(dto);
-		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null, createBindingResult(dto, violations));
-		}
 
 		Fornecedor fornecedor = fornecedorService.cadastrar(dto, imagem);
 
@@ -122,17 +114,8 @@ public class FornecedorController {
         @ApiResponse(responseCode = "404", description = "Fornecedor não encontrado")
     })
 	public ResponseEntity<FornecedorResponseDTO> atualizar(@PathVariable Long id,
-			@RequestPart("fornecedor") String fornecedorJson,
+			@RequestPart("fornecedor") @Valid FornecedorDTO dto,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
-
-		ObjectMapper mapper = new ObjectMapper();
-		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
-
-		// Validação Manual
-		java.util.Set<jakarta.validation.ConstraintViolation<FornecedorDTO>> violations = validator.validate(dto);
-		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null, createBindingResult(dto, violations));
-		}
 
 		Fornecedor fornecedor = fornecedorService.atualizar(id, dto, imagem);
 
