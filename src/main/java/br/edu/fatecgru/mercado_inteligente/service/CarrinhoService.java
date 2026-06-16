@@ -45,6 +45,9 @@ public class CarrinhoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private br.edu.fatecgru.mercado_inteligente.repository.EnderecoRepository enderecoRepository;
+
     @Transactional(readOnly = true)
     public Carrinho obterCarrinhoAtivo(Long usuarioId) {
         return carrinhoRepository.findByUsuarioIdAndStatus(usuarioId, StatusCarrinho.ATIVO)
@@ -149,8 +152,37 @@ public class CarrinhoService {
         List<Carrinho> carrinhosExpirados = carrinhoRepository.findAllByStatusAndAtualizadoEmBefore(StatusCarrinho.ATIVO, limite);
         
         for (Carrinho carrinho : carrinhosExpirados) {
-            fecharCarrinho(carrinho, StatusCarrinho.FINALIZADO);
+            fecharCarrinho(carrinho, StatusCarrinho.ABANDONADO);
         }
+    }
+
+    @Transactional
+    public Carrinho finalizarPedido(Long usuarioId, Long enderecoId) {
+        Carrinho carrinho = carrinhoRepository.findByUsuarioIdAndStatus(usuarioId, StatusCarrinho.ATIVO)
+                .orElseThrow(() -> new ResourceNotFoundException("Nenhum carrinho ativo encontrado para checkout."));
+
+        if (carrinho.getItens().isEmpty()) {
+            throw new IllegalStateException("Não é possível finalizar um pedido com o carrinho vazio.");
+        }
+
+        br.edu.fatecgru.mercado_inteligente.model.entity.Endereco endereco = enderecoRepository.findById(enderecoId)
+                .orElseThrow(() -> new ResourceNotFoundException("Endereço não encontrado com ID: " + enderecoId));
+
+        if (endereco.getUsuario() == null || !endereco.getUsuario().getId().equals(usuarioId)) {
+            throw new IllegalArgumentException("O endereço informado não pertence ao usuário.");
+        }
+
+        // 1. Vincular endereço de entrega
+        carrinho.setEnderecoEntrega(endereco);
+
+        // 2. Confirmar saída de estoque (RESERVA -> SAIDA)
+        for (ItemCarrinho item : carrinho.getItens()) {
+            estoqueService.confirmarSaidaDeCarrinho(item.getProduto().getId(), item.getQuantidade(), carrinho.getId());
+        }
+
+        // 3. Finalizar carrinho
+        carrinho.setStatus(StatusCarrinho.FINALIZADO);
+        return carrinhoRepository.save(carrinho);
     }
 
     private Carrinho fecharCarrinho(Carrinho carrinho, StatusCarrinho novoStatus) {

@@ -30,6 +30,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/funcionarios")
@@ -136,20 +137,13 @@ public class FuncionarioController {
 			@ApiResponse(responseCode = "403", description = "Acesso negado") 
 	})
 	public ResponseEntity<FuncionarioResponseDTO> insert(
-			@Parameter(description = "Dados do funcionário em formato JSON (FuncionarioCadastroDTO)", required = true) @RequestPart("funcionario") String funcionarioJson,
+
+			@RequestPart("funcionario") @Valid FuncionarioCadastroDTO dto,
+
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados do funcionário em formato JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
+
 			@Parameter(description = "Arquivo de imagem de perfil (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
-
-		ObjectMapper mapper = new ObjectMapper();
-		FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
-
-		// Validação Manual
-		java.util.Set<jakarta.validation.ConstraintViolation<FuncionarioCadastroDTO>> violations = validator
-				.validate(dto);
-		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
-					createBindingResult(dto, violations));
-		}
 
 		Funcionario funcionario = funcionarioService.cadastrar(dto, imagem);
 
@@ -168,20 +162,13 @@ public class FuncionarioController {
 	})
 	public ResponseEntity<FuncionarioResponseDTO> atualizar(
 			@Parameter(description = "ID do funcionário a ser atualizado", required = true, example = "1") @PathVariable Long id,
-			@Parameter(description = "Novos dados do funcionário em formato JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
+
+			@RequestPart("funcionario") @Valid FuncionarioCadastroDTO dto,
+
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Novos dados do funcionário em formato JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
+
 			@Parameter(description = "Nova imagem de perfil (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
-
-		ObjectMapper mapper = new ObjectMapper();
-		FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
-
-		// Validação Manual
-		java.util.Set<jakarta.validation.ConstraintViolation<FuncionarioCadastroDTO>> violations = validator
-				.validate(dto);
-		if (!violations.isEmpty()) {
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
-					createBindingResult(dto, violations));
-		}
 
 		Funcionario funcionario = funcionarioService.atualizar(id, dto, imagem);
 
