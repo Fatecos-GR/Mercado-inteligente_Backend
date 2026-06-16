@@ -12,6 +12,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import br.edu.fatecgru.mercado_inteligente.exception.EmailJaCadastradoException;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginRequest;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroRequest;
@@ -46,8 +47,8 @@ public class AuthService {
 	public void registrar(RegistroRequest request) {
 
 		// Validação
-		if (usuarioRepository.findByEmail(request.email()).isPresent()) {
-			throw new IllegalArgumentException("Email já está em uso");
+		if (usuarioRepository.existsByEmail(request.email())) {
+			throw new EmailJaCadastradoException(request.email());
 		}
 
 		// Criação do Objeto Usuário

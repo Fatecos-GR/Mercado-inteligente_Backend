@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginRequest;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroRequest;
+import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 import br.edu.fatecgru.mercado_inteligente.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -30,6 +31,9 @@ public class AuthController {
 
 	@Autowired
 	private AuthService authService;
+
+	@Autowired
+	private UsuarioRepository usuarioRepository;
 
 	@PostMapping("/login")
 	@Operation(summary = "Realiza o login de um usuário e retorna o token JWT")
