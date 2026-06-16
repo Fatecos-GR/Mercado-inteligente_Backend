@@ -1,9 +1,10 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
-import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 public class UsuarioAtualizacaoDTO {
 
@@ -24,13 +25,13 @@ public class UsuarioAtualizacaoDTO {
 	@Email(message = "Email inválido")
 	private String email;
 
+	@Schema(description = "Nova senha (opcional)", example = "Senha@123", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+	@Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres")
+	@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "A senha deve conter pelo menos uma letra maiúscula, uma letra minúscula, um número e um caractere especial")
+	private String senha;
+
 	@Schema(description = "URL da imagem (preenchido automaticamente pelo sistema após upload)")
 	private String imagem;
-
-	public static UsuarioResponseDTO fromEntity(Usuario usuario) {
-		return new UsuarioResponseDTO(usuario.getId(), usuario.getNome(), usuario.getSobrenome(), usuario.getTelefone(),
-				usuario.getEmail(), usuario.getImagem(), usuario.getPublicIdImagem());
-	}
 
 	// Getters e Setters
 	public String getNome() {
@@ -63,6 +64,14 @@ public class UsuarioAtualizacaoDTO {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getSenha() {
+		return senha;
+	}
+
+	public void setSenha(String senha) {
+		this.senha = senha;
 	}
 
 	public String getImagem() {
