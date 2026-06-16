@@ -173,25 +173,29 @@ public class UsuarioService {
 		usuarioRepository.save(usuario);
 	}
 
-	// Listar endereços por usuário
-	public List<Endereco> listarEnderecosUsuario(Long usuarioId) {
+	// Buscar endereço por usuário
+	public Endereco buscarEnderecoUsuario(Long usuarioId) {
 
 		Usuario usuario = usuarioRepository.findById(usuarioId)
 				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-		return usuario.getEnderecos();
+		return usuario.getEndereco();
 	}
 
-	// Adicionar endereço a um usuário
+	// Adicionar/Atualizar endereço de um usuário
 	public Endereco adicionarEndereco(Long usuarioId, EnderecoDTO dto) {
-
-		// Validação de Endereço Único
-		enderecoService.validarEnderecoUnico(dto, null);
 
 		Usuario usuario = usuarioRepository.findById(usuarioId)
 				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-		Endereco endereco = new Endereco();
+		// Validação de Endereço Único (exceto se for o endereço atual do próprio usuário)
+		Long currentEnderecoId = usuario.getEndereco() != null ? usuario.getEndereco().getId() : null;
+		enderecoService.validarEnderecoUnico(dto, currentEnderecoId);
+
+		Endereco endereco = usuario.getEndereco();
+		if (endereco == null) {
+			endereco = new Endereco();
+		}
 
 		endereco.setCep(dto.cep());
 		endereco.setLogradouro(dto.logradouro());
@@ -201,9 +205,12 @@ public class UsuarioService {
 		endereco.setCidade(dto.cidade());
 		endereco.setEstado(dto.estado());
 
-		endereco.setUsuario(usuario);
+		// Salva o endereço primeiro
+		endereco = enderecoRepository.save(endereco);
 
-		enderecoRepository.save(endereco);
+		// Vincula ao usuário e salva o usuário
+		usuario.setEndereco(endereco);
+		usuarioRepository.save(usuario);
 
 		return endereco;
 	}

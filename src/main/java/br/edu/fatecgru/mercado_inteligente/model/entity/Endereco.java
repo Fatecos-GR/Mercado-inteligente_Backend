@@ -5,8 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -40,11 +39,14 @@ public class Endereco {
 	// Campo opcional
 	private String complemento;
 
-	// Um usuário pode ter vários endereço, e o usuário_id agora é opcional
-	// para permitir endereços de fornecedores que não pertencem a um usuário.
-	@ManyToOne
-	@JoinColumn(name = "usuario_id")
+	// Mapeamentos bidirecionais (apenas Java)
+	@OneToOne(mappedBy = "endereco")
+	@com.fasterxml.jackson.annotation.JsonIgnore
 	private Usuario usuario;
+
+	@OneToOne(mappedBy = "endereco")
+	@com.fasterxml.jackson.annotation.JsonIgnore
+	private Fornecedor fornecedor;
 
 	// Construtores
 	public Endereco() {
@@ -52,7 +54,7 @@ public class Endereco {
 	}
 
 	public Endereco(Long id, String cep, String logradouro, String bairro, String numero, String estado, String cidade,
-			String complemento, Usuario usuario) {
+			String complemento) {
 		super();
 		this.id = id;
 		this.cep = cep;
@@ -62,7 +64,6 @@ public class Endereco {
 		this.estado = estado;
 		this.cidade = cidade;
 		this.complemento = complemento;
-		this.usuario = usuario;
 	}
 
 	// Getters e Setters
@@ -136,6 +137,14 @@ public class Endereco {
 
 	public void setUsuario(Usuario usuario) {
 		this.usuario = usuario;
+	}
+
+	public Fornecedor getFornecedor() {
+		return fornecedor;
+	}
+
+	public void setFornecedor(Fornecedor fornecedor) {
+		this.fornecedor = fornecedor;
 	}
 
 }
