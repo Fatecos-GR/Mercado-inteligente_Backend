@@ -13,7 +13,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginRequest;
+import br.edu.fatecgru.mercado_inteligente.model.dto.LoginResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroRequest;
+import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioLogadoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 import br.edu.fatecgru.mercado_inteligente.security.service.RateLimitingService;
@@ -62,7 +64,7 @@ public class AuthService {
 	}
 
 	// Login do usuário
-	public String login(LoginRequest request, String ip) {
+	public LoginResponse login(LoginRequest request, String ip) {
 
 		Bucket bucket = rateLimitingService.resolveBucket(ip);
 
@@ -76,7 +78,12 @@ public class AuthService {
 
 			Authentication authentication = authenticationManager.authenticate(authenticationToken);
 
-			return tokenService.gerarToken((Usuario) authentication.getPrincipal());
+			Usuario usuario = (Usuario) authentication.getPrincipal();
+
+			String token = tokenService.gerarToken(usuario);
+
+			return new LoginResponse(token, UsuarioLogadoDTO.fromEntity(usuario));
+
 		} catch (AuthenticationException e) {
 			log.warn("Tentativa de login falhou para o email: {} vindo do IP: {} em {}", request.email(), ip,
 					LocalDateTime.now());

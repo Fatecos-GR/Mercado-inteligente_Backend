@@ -1,6 +1,7 @@
 package br.edu.fatecgru.mercado_inteligente.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,16 +26,14 @@ import br.edu.fatecgru.mercado_inteligente.mapper.ProdutoMapper;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
-import br.edu.fatecgru.mercado_inteligente.repository.CategoriaRepository;
-import br.edu.fatecgru.mercado_inteligente.repository.FornecedorRepository;
-import br.edu.fatecgru.mercado_inteligente.repository.MarcaRepository;
-import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 
 @RestController
 @RequestMapping("/api/produtos")
@@ -42,24 +41,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ProdutoController {
 
 	@Autowired
-	private CategoriaRepository categoriaRepository;
-
-	@Autowired
-	private MarcaRepository marcaRepository;
-
-	@Autowired
-	private FornecedorRepository fornecedorRepository;
-
-	@Autowired
 	private ProdutoService produtoService;
 
 	@Autowired
-	private ImagemService imagemService;
-
-	@Autowired
-	private jakarta.validation.Validator validator;
-
-	private final String pastaProdutos = "products/";
+	private Validator validator;
 
 	@GetMapping
 	@Operation(summary = "Listar todos os produtos")
@@ -121,7 +106,7 @@ public class ProdutoController {
 			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<ProdutoResponseDTO> insert(
-			@Parameter(description = "Dados do produto em JSON", required = true) @RequestPart("produto") String produtoJson,
+			@Parameter(description = "Dados do produto", required = true) @RequestPart("produto") String produtoJson,
 			@Parameter(description = "Arquivo de imagem do produto") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
 
@@ -130,13 +115,14 @@ public class ProdutoController {
 
 		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
 
-		// Validação manual
-		java.util.Set<jakarta.validation.ConstraintViolation<ProdutoDTO>> violations = validator.validate(dto);
+		Set<ConstraintViolation<ProdutoDTO>> violations = validator.validate(dto);
 
 		if (!violations.isEmpty()) {
 
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
-					createBindingResult(dto, violations));
+			String mensagem = violations.stream().map(ConstraintViolation::getMessage).findFirst()
+					.orElse("Dados inválidos");
+
+			throw new IllegalArgumentException(mensagem);
 		}
 
 		Produto produto = produtoService.cadastrar(dto, imagem);
@@ -162,13 +148,14 @@ public class ProdutoController {
 
 		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
 
-		// Validação manual
-		java.util.Set<jakarta.validation.ConstraintViolation<ProdutoDTO>> violations = validator.validate(dto);
+		Set<ConstraintViolation<ProdutoDTO>> violations = validator.validate(dto);
 
 		if (!violations.isEmpty()) {
 
-			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
-					createBindingResult(dto, violations));
+			String mensagem = violations.stream().map(ConstraintViolation::getMessage).findFirst()
+					.orElse("Dados inválidos");
+
+			throw new IllegalArgumentException(mensagem);
 		}
 
 		Produto produto = produtoService.atualizar(id, dto, imagem);
@@ -192,14 +179,4 @@ public class ProdutoController {
 
 	}
 
-	private org.springframework.validation.BindingResult createBindingResult(Object target,
-			java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
-		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(
-				target, "dto");
-		for (jakarta.validation.ConstraintViolation<?> violation : violations) {
-			bindingResult.addError(new org.springframework.validation.FieldError("dto",
-					violation.getPropertyPath().toString(), violation.getMessage()));
-		}
-		return bindingResult;
-	}
 }
