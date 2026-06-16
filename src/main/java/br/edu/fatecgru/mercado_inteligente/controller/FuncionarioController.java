@@ -137,7 +137,11 @@ public class FuncionarioController {
 			@ApiResponse(responseCode = "403", description = "Acesso negado") 
 	})
 	public ResponseEntity<FuncionarioResponseDTO> insert(
+
 			@RequestPart("funcionario") @Valid FuncionarioCadastroDTO dto,
+
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados do funcionário em formato JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
+
 			@Parameter(description = "Arquivo de imagem de perfil (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
 
@@ -158,7 +162,11 @@ public class FuncionarioController {
 	})
 	public ResponseEntity<FuncionarioResponseDTO> atualizar(
 			@Parameter(description = "ID do funcionário a ser atualizado", required = true, example = "1") @PathVariable Long id,
+
 			@RequestPart("funcionario") @Valid FuncionarioCadastroDTO dto,
+
+			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Novos dados do funcionário em formato JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
+
 			@Parameter(description = "Nova imagem de perfil (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
 
