@@ -11,4 +11,6 @@ public interface MarcaRepository extends JpaRepository<Marca, Long> {
 	// Método para buscar marca insensível a maiúsculas/minúsculas
 	public List<Marca> findByNomeContainingIgnoreCase(String nome);
 
+	boolean existsByNomeIgnoreCase(String nome);
+
 }

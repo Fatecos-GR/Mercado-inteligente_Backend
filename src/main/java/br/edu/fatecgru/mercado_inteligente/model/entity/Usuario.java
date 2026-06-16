@@ -62,13 +62,16 @@ public class Usuario implements UserDetails {
 	@OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Endereco> enderecos = new ArrayList<>();
 
+	@Column(nullable = false)
+	private boolean ativo = true;
+
 	// Construtores
 	public Usuario() {
 
 	}
 
 	public Usuario(Long id, String nome, String sobrenome, String telefone, String senha, String email, String imagem,
-			String publicIdImagem, List<Endereco> enderecos) {
+			String publicIdImagem, List<Endereco> enderecos, boolean ativo) {
 		this.id = id;
 		this.nome = nome;
 		this.sobrenome = sobrenome;
@@ -78,6 +81,7 @@ public class Usuario implements UserDetails {
 		this.imagem = imagem;
 		this.publicIdImagem = publicIdImagem;
 		this.enderecos = enderecos;
+		this.ativo = ativo;
 	}
 
 	// Getters e Setters
@@ -153,6 +157,14 @@ public class Usuario implements UserDetails {
 		this.enderecos = enderecos;
 	}
 
+	public boolean isAtivo() {
+		return ativo;
+	}
+
+	public void setAtivo(boolean ativo) {
+		this.ativo = ativo;
+	}
+
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {
 
@@ -195,7 +207,7 @@ public class Usuario implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return true;
+		return this.ativo;
 	}
 
 }

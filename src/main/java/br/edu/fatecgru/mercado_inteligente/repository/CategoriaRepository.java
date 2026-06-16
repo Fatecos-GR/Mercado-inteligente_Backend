@@ -11,4 +11,6 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 	// Método para buscar categoria insensível a maiúsculas/minúsculas
 	public List<Categoria> findByNomeContainingIgnoreCase(String nome);
 
+	boolean existsByNomeIgnoreCase(String nome);
+
 }

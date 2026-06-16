@@ -49,6 +49,9 @@ public class MarcaService {
 	}
 
 	public Marca cadastrar(MarcaDTO dto, MultipartFile imagem) throws Exception {
+		if (marcaRepository.existsByNomeIgnoreCase(dto.getNome())) {
+			throw new IllegalArgumentException("Já existe uma marca cadastrada com este nome.");
+		}
 		Marca marca = new Marca();
 
 		marca.setNome(dto.getNome());
@@ -68,6 +71,11 @@ public class MarcaService {
 
 		Marca marca = marcaRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Marca não encontrada com ID: " + id));
+
+		// Valida unicidade do nome se alterado
+		if (!marca.getNome().equalsIgnoreCase(dto.getNome()) && marcaRepository.existsByNomeIgnoreCase(dto.getNome())) {
+			throw new IllegalArgumentException("Já existe outra marca cadastrada com este nome.");
+		}
 
 		marca.setNome(dto.getNome());
 		marca.setDescricao(dto.getDescricao());

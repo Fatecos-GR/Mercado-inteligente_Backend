@@ -7,4 +7,6 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.MovimentacaoEstoque;
 
 public interface MovimentacaoEstoqueRepository extends JpaRepository<MovimentacaoEstoque, Long> {
     List<MovimentacaoEstoque> findByEstoqueIdOrderByCriadoEmDesc(Long estoqueId);
+    
+    boolean existsByReferenciaId(Long referenciaId);
 }
