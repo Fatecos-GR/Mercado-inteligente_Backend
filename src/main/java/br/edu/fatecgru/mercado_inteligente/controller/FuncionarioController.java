@@ -47,22 +47,29 @@ public class FuncionarioController {
 	private jakarta.validation.Validator validator;
 
 	@GetMapping
-	@Operation(summary = "Listar todos os funcionários")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Funcionários listados com sucesso"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado") })
-	public ResponseEntity<List<FuncionarioResponseDTO>> listarTodos() {
-		List<FuncionarioResponseDTO> funcionarios = funcionarioService.listarTodos().stream()
+	@Operation(summary = "Listar todos os funcionários", description = "Retorna uma lista de todos os funcionários cadastrados. Por padrão, retorna apenas os ativos. Requer permissão de ADMIN ou ESTOQUISTA.")
+	@ApiResponses(value = { 
+			@ApiResponse(responseCode = "200", description = "Funcionários listados com sucesso"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") 
+	})
+	public ResponseEntity<List<FuncionarioResponseDTO>> listarTodos(
+			@Parameter(description = "Se true, inclui funcionários desativados na lista") @RequestParam(defaultValue = "false") boolean incluirInativos) {
+		List<FuncionarioResponseDTO> funcionarios = funcionarioService.listarTodos(incluirInativos).stream()
 				.map(FuncionarioResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(funcionarios);
 	}
 
 	@GetMapping("/{id}")
-	@Operation(summary = "Listar funcionário por ID")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Funcionário encontrado"),
+	@Operation(summary = "Buscar funcionário por ID", description = "Busca os detalhes de um funcionário específico através do seu ID único.")
+	@ApiResponses(value = { 
+			@ApiResponse(responseCode = "200", description = "Funcionário encontrado"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
-			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") })
+			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") 
+	})
 	public ResponseEntity<FuncionarioResponseDTO> buscarPorId(
-			@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id) {
+			@Parameter(description = "ID do funcionário", required = true, example = "1") @PathVariable Long id) {
 		Funcionario funcionario = funcionarioService.getById(id);
 		if (funcionario == null) {
 			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
@@ -73,13 +80,17 @@ public class FuncionarioController {
 
 	@GetMapping("/buscar")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Buscar funcionário por nome completo (Apenas ADMIN)")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Funcionário encontrado"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado"),
-			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") })
-	public ResponseEntity<List<FuncionarioResponseDTO>> buscarPorNome(@RequestParam String nome) {
+	@Operation(summary = "Buscar funcionário por nome (Apenas ADMIN)", description = "Realiza uma busca por funcionários ativos cujo nome contenha o termo pesquisado.")
+	@ApiResponses(value = { 
+			@ApiResponse(responseCode = "200", description = "Busca realizada com sucesso"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") 
+	})
+	public ResponseEntity<List<FuncionarioResponseDTO>> buscarPorNome(
+			@Parameter(description = "Parte do nome ou nome completo para busca", required = true, example = "Carlos") @RequestParam String nome,
+			@Parameter(description = "Se true, inclui funcionários desativados na busca") @RequestParam(defaultValue = "false") boolean incluirInativos) {
 
-		List<FuncionarioResponseDTO> funcionarios = funcionarioService.getByNomeCompleto(nome).stream()
+		List<FuncionarioResponseDTO> funcionarios = funcionarioService.getByNomeCompleto(nome, incluirInativos).stream()
 				.map(FuncionarioResponseDTO::fromEntity).toList();
 
 		return ResponseEntity.ok(funcionarios);
@@ -87,35 +98,46 @@ public class FuncionarioController {
 
 	@GetMapping("/admins")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Listar admins (Apenas ADMIN)")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Admins listados com sucesso"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado") })
-	public ResponseEntity<List<FuncionarioResponseDTO>> listarAdmins() {
-		List<FuncionarioResponseDTO> dtos = funcionarioService.listarAdministradores().stream()
+	@Operation(summary = "Listar administradores (Apenas ADMIN)", description = "Retorna uma lista contendo apenas os administradores. Por padrão, apenas os ativos.")
+	@ApiResponses(value = { 
+			@ApiResponse(responseCode = "200", description = "Administradores listados com sucesso"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") 
+	})
+	public ResponseEntity<List<FuncionarioResponseDTO>> listarAdmins(
+			@Parameter(description = "Se true, inclui administradores desativados na lista") @RequestParam(defaultValue = "false") boolean incluirInativos) {
+		List<FuncionarioResponseDTO> dtos = funcionarioService.listarAdministradores(incluirInativos).stream()
 				.map(FuncionarioResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(dtos);
 	}
 
 	@GetMapping("/estoquistas")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Listar estoquistas (Apenas ADMIN)")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Estoquistas listados com sucesso"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado") })
-	public ResponseEntity<List<FuncionarioResponseDTO>> listarEstoquistas() {
-		List<FuncionarioResponseDTO> dtos = funcionarioService.listarEstoquistas().stream()
+	@Operation(summary = "Listar estoquistas (Apenas ADMIN)", description = "Retorna uma lista contendo apenas os estoquistas. Por padrão, apenas os ativos.")
+	@ApiResponses(value = { 
+			@ApiResponse(responseCode = "200", description = "Estoquistas listados com sucesso"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") 
+	})
+	public ResponseEntity<List<FuncionarioResponseDTO>> listarEstoquistas(
+			@Parameter(description = "Se true, inclui estoquistas desativados na lista") @RequestParam(defaultValue = "false") boolean incluirInativos) {
+		List<FuncionarioResponseDTO> dtos = funcionarioService.listarEstoquistas(incluirInativos).stream()
 				.map(FuncionarioResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(dtos);
 	}
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Criar funcionário (Apenas ADMIN)")
-	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Funcionário criado com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado") })
+	@Operation(summary = "Criar novo funcionário (Apenas ADMIN)", description = "Cadastra um novo funcionário no sistema, definindo obrigatoriamente se é ADMIN ou ESTOQUISTA. Requer privilégios de administrador.")
+	@ApiResponses(value = { 
+			@ApiResponse(responseCode = "201", description = "Funcionário criado com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou email já cadastrado"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") 
+	})
 	public ResponseEntity<FuncionarioResponseDTO> insert(
-			@Parameter(description = "Dados do funcionário em JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
-			@Parameter(description = "Arquivo de imagem do funcionário") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			@Parameter(description = "Dados do funcionário em formato JSON (FuncionarioCadastroDTO)", required = true) @RequestPart("funcionario") String funcionarioJson,
+			@Parameter(description = "Arquivo de imagem de perfil (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -136,15 +158,18 @@ public class FuncionarioController {
 
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-	@Operation(summary = "Alterar funcionário")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Funcionário alterado com sucesso"),
+	@Operation(summary = "Atualizar funcionário", description = "Atualiza os dados de um funcionário existente. Um ADMIN pode atualizar qualquer funcionário, enquanto um funcionário só pode atualizar o seu próprio perfil.")
+	@ApiResponses(value = { 
+			@ApiResponse(responseCode = "200", description = "Funcionário atualizado com sucesso"),
 			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
-			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") })
+			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") 
+	})
 	public ResponseEntity<FuncionarioResponseDTO> atualizar(
-			@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id,
-			@Parameter(description = "Dados atualizados do funcionário em JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
-			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			@Parameter(description = "ID do funcionário a ser atualizado", required = true, example = "1") @PathVariable Long id,
+			@Parameter(description = "Novos dados do funcionário em formato JSON", required = true) @RequestPart("funcionario") String funcionarioJson,
+			@Parameter(description = "Nova imagem de perfil (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
@@ -165,12 +190,15 @@ public class FuncionarioController {
 
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Excluir funcionário (Apenas ADMIN)")
-	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Funcionário excluído com sucesso"),
+	@Operation(summary = "Desativar funcionário (Apenas ADMIN)", description = "Desativa um funcionário do sistema. Isso bloqueia seu acesso mas mantém o histórico de suas movimentações de estoque para fins de auditoria.")
+	@ApiResponses(value = { 
+			@ApiResponse(responseCode = "204", description = "Funcionário desativado com sucesso"),
+			@ApiResponse(responseCode = "401", description = "Não autenticado"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
-			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") })
+			@ApiResponse(responseCode = "404", description = "Funcionário não encontrado") 
+	})
 	public ResponseEntity<Void> delete(
-			@Parameter(description = "ID do funcionário", required = true) @PathVariable Long id) {
+			@Parameter(description = "ID do funcionário a ser removido", required = true, example = "1") @PathVariable Long id) {
 		funcionarioService.deletar(id);
 		return ResponseEntity.noContent().build();
 	}

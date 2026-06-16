@@ -20,8 +20,12 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
 			""")
 	List<Funcionario> findByNomeCompleto(@Param("nomeCompleto") String nomeCompleto);
 
-	// Listar funcionário por tipo
+	// Listar funcionário por tipo e status
+	List<Funcionario> findByTipoFuncionarioAndAtivo(TipoFuncionario tipoFuncionario, boolean ativo);
+
 	List<Funcionario> findByTipoFuncionario(TipoFuncionario tipoFuncionario);
+
+	List<Funcionario> findAllByAtivo(boolean ativo);
 
 	// Buscar funcionário por email
 	Optional<Funcionario> findByEmail(String email);

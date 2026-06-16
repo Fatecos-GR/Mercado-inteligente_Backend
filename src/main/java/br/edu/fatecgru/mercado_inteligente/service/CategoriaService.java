@@ -32,23 +32,27 @@ public class CategoriaService {
 
 	private final String pastaCategorias = "categories/";
 
+	// Método para listar todas
 	public List<Categoria> listarTodos() {
 		return categoriaRepository.findAll();
 	}
 
-	public List<Categoria> getByContainsName(String nome) {
-		return categoriaRepository.findByNomeContainingIgnoreCase(nome);
-	}
-
+	// Listar pelo ID
 	public Categoria getById(Long id) {
 		return categoriaRepository.findById(id).orElse(null);
 	}
 
-	public Categoria save(Categoria categoria) {
-		return categoriaRepository.save(categoria);
+	// Listar pelo nome
+	public List<Categoria> getByContainsName(String nome) {
+		return categoriaRepository.findByNomeContainingIgnoreCase(nome);
 	}
 
+	// Método para cadastrar categoria
 	public Categoria cadastrar(CategoriaDTO dto, MultipartFile imagem) throws Exception {
+
+		if (categoriaRepository.existsByNomeIgnoreCase(dto.getNome())) {
+			throw new IllegalArgumentException("Já existe uma categoria cadastrada com este nome.");
+		}
 
 		Categoria categoria = new Categoria();
 
@@ -65,10 +69,21 @@ public class CategoriaService {
 		return categoriaRepository.save(categoria);
 	}
 
+	public Categoria save(Categoria categoria) {
+		return categoriaRepository.save(categoria);
+	}
+
+	// Método para atualizar categoria
 	public Categoria atualizar(Long id, CategoriaDTO dto, MultipartFile imagem) throws Exception {
 
 		Categoria categoria = categoriaRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com ID: " + id));
+
+		// Valida unicidade do nome se alterado
+		if (!categoria.getNome().equalsIgnoreCase(dto.getNome())
+				&& categoriaRepository.existsByNomeIgnoreCase(dto.getNome())) {
+			throw new IllegalArgumentException("Já existe outra categoria cadastrada com este nome.");
+		}
 
 		categoria.setNome(dto.getNome());
 		categoria.setDescricao(dto.getDescricao());
@@ -83,6 +98,7 @@ public class CategoriaService {
 		return categoriaRepository.save(categoria);
 	}
 
+	// Método para excluir categoria
 	@Transactional
 	public void delete(Long id) {
 

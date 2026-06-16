@@ -14,12 +14,16 @@ import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.TipoFuncionario;
 import br.edu.fatecgru.mercado_inteligente.repository.FuncionarioRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.MovimentacaoEstoqueRepository;
 
 @Service
 public class FuncionarioService {
 
 	@Autowired
 	private FuncionarioRepository funcionarioRepository;
+
+	@Autowired
+	private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
 	@Autowired
 	private ImagemService imagemService;
@@ -30,10 +34,14 @@ public class FuncionarioService {
 	private final String pastaFuncionarios = "employees/";
 
 	/**
-	 * Valida se o usuário atual tem permissão para atribuir o cargo de ADMIN.
-	 * Apenas ADMINs podem criar ou promover outros para ADMIN.
+	 * Valida se o tipo do funcionário foi informado e se o usuário atual tem permissão 
+	 * para atribuir o cargo de ADMIN. Apenas ADMINs podem criar ou promover outros para ADMIN.
 	 */
 	private void validarEscalacaoDePrivilegio(TipoFuncionario tipoPretendido) {
+		if (tipoPretendido == null) {
+			throw new IllegalArgumentException("O tipo de funcionário (ADMIN ou ESTOQUISTA) é obrigatório.");
+		}
+		
 		if (tipoPretendido == TipoFuncionario.ADMIN) {
 			org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
 					.getContext().getAuthentication();
@@ -45,8 +53,11 @@ public class FuncionarioService {
 	}
 
 	// Método para listar todos
-	public List<Funcionario> listarTodos() {
-		return funcionarioRepository.findAll();
+	public List<Funcionario> listarTodos(boolean incluirInativos) {
+		if (incluirInativos) {
+			return funcionarioRepository.findAll();
+		}
+		return funcionarioRepository.findAllByAtivo(true);
 	}
 
 	// Listar pelo ID do funcionário
@@ -55,22 +66,25 @@ public class FuncionarioService {
 	}
 
 	// Listar funcionário pelo o nome completo
-	public List<Funcionario> getByNomeCompleto(String nomeCompleto) {
-
-		return funcionarioRepository.findByNomeCompleto(nomeCompleto);
-
+	public List<Funcionario> getByNomeCompleto(String nomeCompleto, boolean incluirInativos) {
+		return funcionarioRepository.findByNomeCompleto(nomeCompleto).stream()
+				.filter(f -> incluirInativos || f.isAtivo()).toList();
 	}
 
 	// Listar administradores
-	public List<Funcionario> listarAdministradores() {
-
-		return funcionarioRepository.findByTipoFuncionario(TipoFuncionario.ADMIN);
+	public List<Funcionario> listarAdministradores(boolean incluirInativos) {
+		if (incluirInativos) {
+			return funcionarioRepository.findByTipoFuncionario(TipoFuncionario.ADMIN);
+		}
+		return funcionarioRepository.findByTipoFuncionarioAndAtivo(TipoFuncionario.ADMIN, true);
 	}
 
 	// Listar estoquistas
-	public List<Funcionario> listarEstoquistas() {
-
-		return funcionarioRepository.findByTipoFuncionario(TipoFuncionario.ESTOQUISTA);
+	public List<Funcionario> listarEstoquistas(boolean incluirInativos) {
+		if (incluirInativos) {
+			return funcionarioRepository.findByTipoFuncionario(TipoFuncionario.ESTOQUISTA);
+		}
+		return funcionarioRepository.findByTipoFuncionarioAndAtivo(TipoFuncionario.ESTOQUISTA, true);
 	}
 
 	// Métodos para cadastrar funcionário
@@ -138,16 +152,17 @@ public class FuncionarioService {
 		return funcionarioRepository.save(funcionario);
 	}
 
-	// Método para excluir funcionário
+	// Método para desativar funcionário (Soft Delete)
 	public void deletar(Long id) {
 		Funcionario funcionario = funcionarioRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Funcionário não encontrado"));
+				.orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado com ID: " + id));
 
-		if (funcionario.getPublicIdImagem() != null && !funcionario.getPublicIdImagem().isBlank()) {
+		// Valida se o funcionário possui movimentações de estoque vinculadas
+		// Nota: Com a desativação (soft delete), poderíamos até permitir desativar 
+		// mesmo com movimentações, mas manteremos a trava se houver carrinhos ativos (via UsuarioService)
+		
+		funcionario.setAtivo(false);
 
-			imagemService.deletarImagem(funcionario.getPublicIdImagem());
-		}
-
-		funcionarioRepository.delete(funcionario);
+		funcionarioRepository.save(funcionario);
 	}
 }
