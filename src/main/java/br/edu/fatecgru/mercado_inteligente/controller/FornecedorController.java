@@ -42,6 +42,9 @@ public class FornecedorController {
 	@Autowired
 	private FornecedorService fornecedorService;
 
+	@Autowired
+	private jakarta.validation.Validator validator;
+
 	private final String pastaFornecedores = "suppliers/";
 
 	@GetMapping
@@ -90,6 +93,15 @@ public class FornecedorController {
 	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") @Valid FornecedorDTO dto,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
+		ObjectMapper mapper = new ObjectMapper();
+		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
+
+		java.util.Set<jakarta.validation.ConstraintViolation<FornecedorDTO>> violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
+		}
+
 		Fornecedor fornecedor = fornecedorService.cadastrar(dto, imagem);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(FornecedorResponseDTO.fromEntity(fornecedor));
@@ -108,6 +120,15 @@ public class FornecedorController {
 			@RequestPart("fornecedor") @Valid FornecedorDTO dto,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
+		ObjectMapper mapper = new ObjectMapper();
+		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
+
+		java.util.Set<jakarta.validation.ConstraintViolation<FornecedorDTO>> violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
+		}
+
 		Fornecedor fornecedor = fornecedorService.atualizar(id, dto, imagem);
 
 		return ResponseEntity.ok(FornecedorResponseDTO.fromEntity(fornecedor));
@@ -122,6 +143,17 @@ public class FornecedorController {
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		fornecedorService.deletar(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	private org.springframework.validation.BindingResult createBindingResult(Object target,
+			java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
+		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(
+				target, "dto");
+		for (jakarta.validation.ConstraintViolation<?> violation : violations) {
+			bindingResult.addError(new org.springframework.validation.FieldError("dto",
+					violation.getPropertyPath().toString(), violation.getMessage()));
+		}
+		return bindingResult;
 	}
 
 }
