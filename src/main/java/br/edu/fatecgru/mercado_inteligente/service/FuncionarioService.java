@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import br.edu.fatecgru.mercado_inteligente.exception.EmailJaCadastradoException;
 import br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException;
+import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioAtualizacaoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
@@ -34,14 +35,15 @@ public class FuncionarioService {
 	private final String pastaFuncionarios = "employees/";
 
 	/**
-	 * Valida se o tipo do funcionário foi informado e se o usuário atual tem permissão 
-	 * para atribuir o cargo de ADMIN. Apenas ADMINs podem criar ou promover outros para ADMIN.
+	 * Valida se o tipo do funcionário foi informado e se o usuário atual tem
+	 * permissão para atribuir o cargo de ADMIN. Apenas ADMINs podem criar ou
+	 * promover outros para ADMIN.
 	 */
 	private void validarEscalacaoDePrivilegio(TipoFuncionario tipoPretendido) {
 		if (tipoPretendido == null) {
 			throw new IllegalArgumentException("O tipo de funcionário (ADMIN ou ESTOQUISTA) é obrigatório.");
 		}
-		
+
 		if (tipoPretendido == TipoFuncionario.ADMIN) {
 			org.springframework.security.core.Authentication auth = org.springframework.security.core.context.SecurityContextHolder
 					.getContext().getAuthentication();
@@ -117,7 +119,7 @@ public class FuncionarioService {
 	}
 
 	// Método para atualizar funcionário
-	public Funcionario atualizar(Long id, FuncionarioCadastroDTO dto, MultipartFile imagem) throws Exception {
+	public Funcionario atualizar(Long id, FuncionarioAtualizacaoDTO dto, MultipartFile imagem) throws Exception {
 		validarEscalacaoDePrivilegio(dto.getTipoFuncionario());
 
 		Funcionario funcionario = funcionarioRepository.findById(id)
@@ -158,9 +160,10 @@ public class FuncionarioService {
 				.orElseThrow(() -> new ResourceNotFoundException("Funcionário não encontrado com ID: " + id));
 
 		// Valida se o funcionário possui movimentações de estoque vinculadas
-		// Nota: Com a desativação (soft delete), poderíamos até permitir desativar 
-		// mesmo com movimentações, mas manteremos a trava se houver carrinhos ativos (via UsuarioService)
-		
+		// Nota: Com a desativação (soft delete), poderíamos até permitir desativar
+		// mesmo com movimentações, mas manteremos a trava se houver carrinhos ativos
+		// (via UsuarioService)
+
 		funcionario.setAtivo(false);
 
 		funcionarioRepository.save(funcionario);

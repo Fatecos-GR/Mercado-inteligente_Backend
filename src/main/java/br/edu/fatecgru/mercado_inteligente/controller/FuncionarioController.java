@@ -21,10 +21,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.ErrorResponse;
+import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioAtualizacaoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
-import br.edu.fatecgru.mercado_inteligente.model.swagger.FuncionarioMultipartRequest;
+import br.edu.fatecgru.mercado_inteligente.model.swagger.FuncionarioAtualizacaoMultipartRequest;
+import br.edu.fatecgru.mercado_inteligente.model.swagger.FuncionarioCadastroMultipartRequest;
 import br.edu.fatecgru.mercado_inteligente.service.FuncionarioService;
 import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -128,7 +130,7 @@ public class FuncionarioController {
 
 					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
 
-							schema = @Schema(implementation = FuncionarioMultipartRequest.class))))
+							schema = @Schema(implementation = FuncionarioCadastroMultipartRequest.class))))
 	@ApiResponses(value = {
 
 			@ApiResponse(responseCode = "201", description = "Funcionário criado com sucesso",
@@ -184,7 +186,7 @@ public class FuncionarioController {
 
 					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
 
-							schema = @Schema(implementation = FuncionarioMultipartRequest.class))))
+							schema = @Schema(implementation = FuncionarioAtualizacaoMultipartRequest.class))))
 	@ApiResponses(value = {
 
 			@ApiResponse(responseCode = "201", description = "Funcionário atualizado com sucesso",
@@ -222,9 +224,9 @@ public class FuncionarioController {
 			throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
-		FuncionarioCadastroDTO dto = mapper.readValue(funcionarioJson, FuncionarioCadastroDTO.class);
+		FuncionarioAtualizacaoDTO dto = mapper.readValue(funcionarioJson, FuncionarioAtualizacaoDTO.class);
 
-		java.util.Set<jakarta.validation.ConstraintViolation<FuncionarioCadastroDTO>> violations = validator
+		java.util.Set<jakarta.validation.ConstraintViolation<FuncionarioAtualizacaoDTO>> violations = validator
 				.validate(dto);
 		if (!violations.isEmpty()) {
 			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,

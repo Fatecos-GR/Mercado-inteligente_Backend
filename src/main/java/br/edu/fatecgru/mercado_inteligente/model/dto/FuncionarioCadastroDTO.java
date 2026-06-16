@@ -1,7 +1,7 @@
 package br.edu.fatecgru.mercado_inteligente.model.dto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import br.edu.fatecgru.mercado_inteligente.model.entity.TipoFuncionario;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -28,9 +28,9 @@ public class FuncionarioCadastroDTO {
 	@Email(message = "Email inválido")
 	private String email;
 
-	@Schema(description = "Senha (mínimo 6 caracteres)", example = "senha123", requiredMode = Schema.RequiredMode.REQUIRED)
+	@Schema(description = "Senha (mínimo 8 caracteres)", example = "senha123", requiredMode = Schema.RequiredMode.REQUIRED)
 	@NotBlank(message = "Senha é obrigatória")
-	@Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
+	@Size(min = 8, message = "Senha deve ter no mínimo 6 caracteres")
 	private String senha;
 
 	@Schema(description = "Tipo de cargo do funcionário", example = "ESTOQUISTA", requiredMode = Schema.RequiredMode.REQUIRED)

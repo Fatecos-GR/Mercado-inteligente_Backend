@@ -6,7 +6,7 @@ import br.edu.fatecgru.mercado_inteligente.model.dto.FuncionarioCadastroDTO;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(name = "FuncionarioMultipartRequest")
-public class FuncionarioMultipartRequest {
+public class FuncionarioCadastroMultipartRequest {
 
 	@Schema(description = "Dados do funcionário", implementation = FuncionarioCadastroDTO.class)
 	private FuncionarioCadastroDTO funcionario;
