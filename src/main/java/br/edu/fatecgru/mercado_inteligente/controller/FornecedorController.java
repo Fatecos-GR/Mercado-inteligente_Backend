@@ -31,7 +31,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/fornecedores")
@@ -88,12 +87,12 @@ public class FornecedorController {
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "201", description = "Fornecedor criado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FornecedorResponseDTO.class))),
 			@ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-	})
-	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") @Valid FornecedorDTO dto,
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))) })
+	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") String fornecedorJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
+
 		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
 
 		java.util.Set<jakarta.validation.ConstraintViolation<FornecedorDTO>> violations = validator.validate(dto);
@@ -114,13 +113,13 @@ public class FornecedorController {
 			@ApiResponse(responseCode = "200", description = "Fornecedor alterado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FornecedorResponseDTO.class))),
 			@ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-			@ApiResponse(responseCode = "404", description = "Fornecedor não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-	})
+			@ApiResponse(responseCode = "404", description = "Fornecedor não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))) })
 	public ResponseEntity<FornecedorResponseDTO> atualizar(@PathVariable Long id,
-			@RequestPart("fornecedor") @Valid FornecedorDTO dto,
+			@RequestPart("fornecedor") String fornecedorJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
 
 		ObjectMapper mapper = new ObjectMapper();
+
 		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
 
 		java.util.Set<jakarta.validation.ConstraintViolation<FornecedorDTO>> violations = validator.validate(dto);
