@@ -31,6 +31,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/fornecedores")
@@ -82,53 +83,34 @@ public class FornecedorController {
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar fornecedor (Apenas ADMIN)", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = FornecedorMultipartRequest.class))))
 	@ApiResponses(value = {
-
 			@ApiResponse(responseCode = "201", description = "Fornecedor criado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FornecedorResponseDTO.class))),
-
 			@ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-
 			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-
 	})
-	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") String fornecedorJson,
+	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") @Valid FornecedorDTO dto,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
-
-		ObjectMapper mapper = new ObjectMapper();
-
-		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
 
 		Fornecedor fornecedor = fornecedorService.cadastrar(dto, imagem);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(FornecedorResponseDTO.fromEntity(fornecedor));
-
 	}
 
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar fornecedor (Apenas ADMIN)", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = FornecedorMultipartRequest.class))))
 	@ApiResponses(value = {
-
 			@ApiResponse(responseCode = "200", description = "Fornecedor alterado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FornecedorResponseDTO.class))),
-
 			@ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-
 			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-
 			@ApiResponse(responseCode = "404", description = "Fornecedor não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-
 	})
 	public ResponseEntity<FornecedorResponseDTO> atualizar(@PathVariable Long id,
-			@RequestPart("fornecedor") String fornecedorJson,
+			@RequestPart("fornecedor") @Valid FornecedorDTO dto,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
-
-		ObjectMapper mapper = new ObjectMapper();
-
-		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
 
 		Fornecedor fornecedor = fornecedorService.atualizar(id, dto, imagem);
 
 		return ResponseEntity.ok(FornecedorResponseDTO.fromEntity(fornecedor));
-
 	}
 
 	@DeleteMapping("/{id}")
