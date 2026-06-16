@@ -23,12 +23,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import br.edu.fatecgru.mercado_inteligente.mapper.ProdutoMapper;
-import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoRequestDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
+import br.edu.fatecgru.mercado_inteligente.model.swagger.ProdutoMultipartRequest;
 import br.edu.fatecgru.mercado_inteligente.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -101,7 +105,14 @@ public class ProdutoController {
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Salvar Produto")
+	@Operation(summary = "Salvar Produto",
+
+			requestBody = @RequestBody(required = true,
+
+					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+
+							schema = @Schema(implementation = ProdutoMultipartRequest.class))))
+
 	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Produto criado com sucesso"),
 			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado") })
@@ -113,9 +124,9 @@ public class ProdutoController {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.registerModule(new JavaTimeModule());
 
-		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
+		ProdutoRequestDTO dto = mapper.readValue(produtoJson, ProdutoRequestDTO.class);
 
-		Set<ConstraintViolation<ProdutoDTO>> violations = validator.validate(dto);
+		Set<ConstraintViolation<ProdutoRequestDTO>> violations = validator.validate(dto);
 
 		if (!violations.isEmpty()) {
 
@@ -132,7 +143,14 @@ public class ProdutoController {
 
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Alterar Produto")
+	@Operation(summary = "Alterar Produto",
+
+			requestBody = @RequestBody(required = true,
+
+					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+
+							schema = @Schema(implementation = ProdutoMultipartRequest.class))))
+
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Produto alterado com sucesso"),
 			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
@@ -146,9 +164,9 @@ public class ProdutoController {
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.registerModule(new JavaTimeModule());
 
-		ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
+		ProdutoRequestDTO dto = mapper.readValue(produtoJson, ProdutoRequestDTO.class);
 
-		Set<ConstraintViolation<ProdutoDTO>> violations = validator.validate(dto);
+		Set<ConstraintViolation<ProdutoRequestDTO>> violations = validator.validate(dto);
 
 		if (!violations.isEmpty()) {
 
