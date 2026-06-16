@@ -85,9 +85,9 @@ public class CategoriaController {
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Salvar Categoria")
+	@Operation(summary = "Salvar Categoria", description = "Cadastra uma nova categoria no sistema. O nome da categoria deve ser único.")
 	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Categoria criada com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<CategoriaResponseDTO> insert(
 			@Parameter(description = "Dados da categoria em JSON", required = true) @RequestPart("categoria") String categoriaJson,
@@ -115,9 +115,9 @@ public class CategoriaController {
 
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Alterar Categoria")
+	@Operation(summary = "Alterar Categoria", description = "Atualiza os dados de uma categoria existente. Se o nome for alterado, ele deve continuar sendo único no sistema.")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Categoria alterada com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
 			@ApiResponse(responseCode = "404", description = "Categoria não encontrada") })
 	public ResponseEntity<CategoriaResponseDTO> update(
@@ -145,8 +145,9 @@ public class CategoriaController {
 
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Deletar Categoria")
+	@Operation(summary = "Deletar Categoria", description = "Remove uma categoria e seus produtos vinculados. A exclusão falhará se algum produto da categoria estiver em um carrinho ativo.")
 	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Categoria excluída com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Não é possível excluir (produtos em carrinhos ativos)"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
 			@ApiResponse(responseCode = "404", description = "Categoria não encontrada") })
 	public ResponseEntity<Void> delete(

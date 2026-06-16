@@ -19,6 +19,17 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 			""")
 	List<Usuario> buscarPorNomeCompleto(@Param("nomeCompleto") String nomeCompleto);
 
+	@Query("""
+			SELECT u
+			FROM Usuario u
+			WHERE LOWER(CONCAT(u.nome, ' ', u.sobrenome))
+			LIKE LOWER(CONCAT('%', :nomeCompleto, '%'))
+			AND u.ativo = true
+			""")
+	List<Usuario> buscarAtivosPorNomeCompleto(@Param("nomeCompleto") String nomeCompleto);
+
+	List<Usuario> findAllByAtivo(boolean ativo);
+
 	// Buscar usuário por email
 	Optional<Usuario> findByEmail(String email);
 

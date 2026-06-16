@@ -15,7 +15,9 @@ import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioAtualizacaoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Endereco;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
+import br.edu.fatecgru.mercado_inteligente.model.entity.StatusCarrinho;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
+import br.edu.fatecgru.mercado_inteligente.repository.CarrinhoRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.EnderecoRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 
@@ -30,6 +32,9 @@ public class UsuarioService {
 	private EnderecoRepository enderecoRepository;
 
 	@Autowired
+	private CarrinhoRepository carrinhoRepository;
+
+	@Autowired
 	private ImagemService imagemService;
 
 	@Autowired
@@ -42,19 +47,30 @@ public class UsuarioService {
 	}
 
 	// Listar pelo ID do usuário
+	public List<Usuario> listarTodos(boolean incluirInativos) {
+		if (incluirInativos) {
+			return usuarioRepository.findAll();
+		}
+		return usuarioRepository.findAllByAtivo(true);
+	}
+
+	// Listar pelo ID do usuário
 	public Usuario getById(Long id) {
 		return usuarioRepository.findById(id).orElse(null);
 	}
 
 	// Listar usuário pelo nome completo (nome + sobrenome)
-	public List<Usuario> getByNomeCompleto(String nomeCompleto) {
-		return usuarioRepository.buscarPorNomeCompleto(nomeCompleto);
+	public List<Usuario> getByNomeCompleto(String nomeCompleto, boolean incluirInativos) {
+		if (incluirInativos) {
+			return usuarioRepository.buscarPorNomeCompleto(nomeCompleto);
+		}
+		return usuarioRepository.buscarAtivosPorNomeCompleto(nomeCompleto);
 	}
 
 	// Listar clientes
-	public List<Usuario> listarClientes() {
-
-		return usuarioRepository.findAll().stream().filter(usuario -> !(usuario instanceof Funcionario)).toList();
+	public List<Usuario> listarClientes(boolean incluirInativos) {
+		List<Usuario> base = incluirInativos ? usuarioRepository.findAll() : usuarioRepository.findAllByAtivo(true);
+		return base.stream().filter(usuario -> !(usuario instanceof Funcionario)).toList();
 	}
 
 	// Métodos para cadastrar usuário
@@ -100,7 +116,7 @@ public class UsuarioService {
 
 		if (usuarioComMesmoEmail != null && !usuarioComMesmoEmail.getId().equals(id)) {
 
-			throw new RuntimeException("Email já cadastrado");
+			throw new EmailJaCadastradoException(dto.getEmail());
 		}
 
 		usuario.setNome(dto.getNome());
@@ -118,27 +134,36 @@ public class UsuarioService {
 		return usuarioRepository.save(usuario);
 	}
 
-	// Método para excluir usuário
+	// Método para desativar usuário (Soft Delete)
 	public void deletar(Long id) {
 		Usuario usuario = usuarioRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-		if (usuario.getPublicIdImagem() != null) {
-			imagemService.deletarImagem(usuario.getPublicIdImagem());
+		// Valida se o usuário possui carrinho ativo
+		if (carrinhoRepository.findByUsuarioIdAndStatus(id, StatusCarrinho.ATIVO).isPresent()) {
+			throw new IllegalStateException("O usuário não pode ser desativado pois possui um carrinho ativo.");
 		}
 
-		usuarioRepository.delete(usuario);
+		// Em vez de deletar fisicamente, desativamos o usuário para preservar o histórico
+		usuario.setAtivo(false);
+
+		usuarioRepository.save(usuario);
 	}
 
 	// Método para alterar senha
 	public void alterarSenha(Long id, AlterarSenhaDTO dto) {
 
+		Usuario usuario = usuarioRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+		// Valida senha atual
+		if (!passwordEncoder.matches(dto.getSenhaAtual(), usuario.getSenha())) {
+			throw new IllegalArgumentException("A senha atual está incorreta.");
+		}
+
 		if (!dto.getSenha().equals(dto.getConfirmarSenha())) {
 			throw new RuntimeException("As senhas não coincidem");
 		}
-
-		Usuario usuario = usuarioRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
 		usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
 

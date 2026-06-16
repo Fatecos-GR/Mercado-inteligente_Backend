@@ -14,12 +14,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.model.dto.AlterarSenhaDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioAtualizacaoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioCadastroDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
@@ -27,9 +30,11 @@ import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import br.edu.fatecgru.mercado_inteligente.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -49,12 +54,13 @@ public class UsuarioController {
 
 	@GetMapping
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Listar todos os usuários(Apenas ADMIN)")
+	@Operation(summary = "Listar todos os usuários(Apenas ADMIN)", description = "Retorna uma lista de usuários. Por padrão, retorna apenas usuários ativos.")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuários listados com sucesso"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado") })
-	public ResponseEntity<List<UsuarioResponseDTO>> listarTodos() {
-		List<UsuarioResponseDTO> usuarios = usuarioService.listarTodos().stream().map(UsuarioResponseDTO::fromEntity)
-				.toList();
+	public ResponseEntity<List<UsuarioResponseDTO>> listarTodos(
+			@Parameter(description = "Se true, inclui usuários desativados na lista") @RequestParam(defaultValue = "false") boolean incluirInativos) {
+		List<UsuarioResponseDTO> usuarios = usuarioService.listarTodos(incluirInativos).stream()
+				.map(UsuarioResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(usuarios);
 	}
 
@@ -80,9 +86,10 @@ public class UsuarioController {
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
 			@ApiResponse(responseCode = "404", description = "Usuário não encontrado") })
-	public ResponseEntity<List<UsuarioResponseDTO>> getByNome(@PathVariable String nome) {
+	public ResponseEntity<List<UsuarioResponseDTO>> getByNome(@RequestParam String nome,
+			@Parameter(description = "Se true, inclui usuários desativados na busca") @RequestParam(defaultValue = "false") boolean incluirInativos) {
 
-		List<Usuario> usuarios = usuarioService.getByNomeCompleto(nome);
+		List<Usuario> usuarios = usuarioService.getByNomeCompleto(nome, incluirInativos);
 
 		List<UsuarioResponseDTO> response = usuarios.stream().map(UsuarioResponseDTO::fromEntity).toList();
 
@@ -94,9 +101,10 @@ public class UsuarioController {
 	@Operation(summary = "Listar clientes (Apenas ADMIN)")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Clientes listados com sucesso"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado") })
-	public ResponseEntity<List<UsuarioResponseDTO>> listarClientes() {
-		List<UsuarioResponseDTO> dtos = usuarioService.listarClientes().stream().map(UsuarioResponseDTO::fromEntity)
-				.toList();
+	public ResponseEntity<List<UsuarioResponseDTO>> listarClientes(
+			@Parameter(description = "Se true, inclui clientes desativados na lista") @RequestParam(defaultValue = "false") boolean incluirInativos) {
+		List<UsuarioResponseDTO> dtos = usuarioService.listarClientes(incluirInativos).stream()
+				.map(UsuarioResponseDTO::fromEntity).toList();
 		return ResponseEntity.ok(dtos);
 	}
 
@@ -141,16 +149,39 @@ public class UsuarioController {
 			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
 
-		usuarioService.deletar(id);
+		ObjectMapper mapper = new ObjectMapper();
+		UsuarioAtualizacaoDTO dto = mapper.readValue(usuarioJson, UsuarioAtualizacaoDTO.class);
 
+		var violations = validator.validate(dto);
+
+		if (!violations.isEmpty()) {
+
+			throw new MethodArgumentNotValidException(null, createBindingResult(dto, violations));
+		}
+
+		Usuario usuario = usuarioService.atualizar(id, dto, imagem);
+
+		return ResponseEntity.ok(UsuarioResponseDTO.fromEntity(usuario));
+
+	}
+
+	@org.springframework.web.bind.annotation.PatchMapping("/{id}/senha")
+	@PreAuthorize("#id == authentication.principal.id")
+	@Operation(summary = "Alterar senha do usuário", description = "Permite que o usuário altere sua própria senha. Requer a senha atual para validação.")
+	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Senha alterada com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou senha atual incorreta"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Usuário não encontrado") })
+	public ResponseEntity<Void> alterarSenha(@PathVariable Long id, @RequestBody @Valid AlterarSenhaDTO dto) {
+		usuarioService.alterarSenha(id, dto);
 		return ResponseEntity.noContent().build();
-
 	}
 
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Excluir usuário (Apenas ADMIN)")
-	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso"),
+	@Operation(summary = "Desativar usuário (Apenas ADMIN)", description = "Desativa um usuário do sistema em vez de removê-lo fisicamente, preservando o histórico de pedidos e ações. A desativação falhará se o usuário possuir um carrinho ativo.")
+	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Usuário desativado com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Não é possível desativar (usuário possui carrinho ativo)"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
 			@ApiResponse(responseCode = "404", description = "Usuário não encontrado") })
 	public ResponseEntity<Void> delete(

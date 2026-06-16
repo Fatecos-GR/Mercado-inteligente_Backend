@@ -75,9 +75,9 @@ public class MarcaController {
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Salvar Marca")
+	@Operation(summary = "Salvar Marca", description = "Cadastra uma nova marca no sistema. O nome da marca deve ser único.")
 	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Marca criada com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<MarcaResponseDTO> insert(
 			@Parameter(description = "Dados da marca em JSON", required = true) @RequestPart("marca") String marcaJson,
@@ -101,9 +101,9 @@ public class MarcaController {
 
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Alterar Marca")
+	@Operation(summary = "Alterar Marca", description = "Atualiza os dados de uma marca existente. Se o nome for alterado, ele deve continuar sendo único no sistema.")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Marca alterada com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
 			@ApiResponse(responseCode = "404", description = "Marca não encontrada") })
 	public ResponseEntity<MarcaResponseDTO> update(
@@ -130,8 +130,9 @@ public class MarcaController {
 
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Deletar Marca")
+	@Operation(summary = "Deletar Marca", description = "Remove uma marca e seus produtos vinculados. A exclusão falhará se algum produto da marca estiver em um carrinho ativo.")
 	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Marca excluída com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Não é possível excluir (produtos em carrinhos ativos)"),
 			@ApiResponse(responseCode = "403", description = "Acesso negado"),
 			@ApiResponse(responseCode = "404", description = "Marca não encontrada") })
 	public ResponseEntity<Void> delete(@Parameter(description = "ID da marca", required = true) @PathVariable Long id) {
