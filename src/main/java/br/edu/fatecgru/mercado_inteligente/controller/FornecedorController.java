@@ -19,16 +19,18 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.model.dto.ErrorResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FornecedorDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.FornecedorResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
+import br.edu.fatecgru.mercado_inteligente.model.swagger.FornecedorMultipartRequest;
 import br.edu.fatecgru.mercado_inteligente.service.FornecedorService;
-import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/fornecedores")
@@ -39,20 +41,12 @@ public class FornecedorController {
 	@Autowired
 	private FornecedorService fornecedorService;
 
-	@Autowired
-	private ImagemService imagemService;
-
-	@Autowired
-	private jakarta.validation.Validator validator;
-
 	private final String pastaFornecedores = "suppliers/";
 
 	@GetMapping
 	@Operation(summary = "Listar todos os fornecedores")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Fornecedores listados com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Fornecedores listados com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<List<FornecedorResponseDTO>> listarTodos() {
 		List<FornecedorResponseDTO> fornecedores = fornecedorService.listarTodos().stream()
 				.map(FornecedorResponseDTO::fromEntity).toList();
@@ -61,11 +55,9 @@ public class FornecedorController {
 
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar fornecedor por ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Fornecedor encontrado"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Fornecedor não encontrado")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Fornecedor encontrado"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Fornecedor não encontrado") })
 	public ResponseEntity<FornecedorResponseDTO> buscarPorId(@PathVariable Long id) {
 		Fornecedor fornecedor = fornecedorService.getById(id);
 		if (fornecedor == null) {
@@ -77,10 +69,8 @@ public class FornecedorController {
 
 	@GetMapping("/search")
 	@Operation(summary = "Buscar fornecedor por nome")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Fornecedores encontrados"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Fornecedores encontrados"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
 	public ResponseEntity<List<FornecedorResponseDTO>> buscarPorNome(
 			@org.springframework.web.bind.annotation.RequestParam String nome) {
 		List<FornecedorResponseDTO> fornecedores = fornecedorService.getByContainsName(nome).stream()
@@ -90,56 +80,66 @@ public class FornecedorController {
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Criar fornecedor (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Fornecedor criado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado")
-    })
-	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") @Valid FornecedorDTO dto,
+	@Operation(summary = "Criar fornecedor (Apenas ADMIN)", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = FornecedorMultipartRequest.class))))
+	@ApiResponses(value = {
+
+			@ApiResponse(responseCode = "201", description = "Fornecedor criado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FornecedorResponseDTO.class))),
+
+			@ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+
+	})
+	public ResponseEntity<FornecedorResponseDTO> insert(@RequestPart("fornecedor") String fornecedorJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
 
 		Fornecedor fornecedor = fornecedorService.cadastrar(dto, imagem);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(FornecedorResponseDTO.fromEntity(fornecedor));
+
 	}
 
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Alterar fornecedor (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Fornecedor alterado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Fornecedor não encontrado")
-    })
+	@Operation(summary = "Alterar fornecedor (Apenas ADMIN)", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = FornecedorMultipartRequest.class))))
+	@ApiResponses(value = {
+
+			@ApiResponse(responseCode = "200", description = "Fornecedor alterado com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = FornecedorResponseDTO.class))),
+
+			@ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "404", description = "Fornecedor não encontrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+
+	})
 	public ResponseEntity<FornecedorResponseDTO> atualizar(@PathVariable Long id,
-			@RequestPart("fornecedor") @Valid FornecedorDTO dto,
+			@RequestPart("fornecedor") String fornecedorJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) throws Exception {
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		FornecedorDTO dto = mapper.readValue(fornecedorJson, FornecedorDTO.class);
 
 		Fornecedor fornecedor = fornecedorService.atualizar(id, dto, imagem);
 
 		return ResponseEntity.ok(FornecedorResponseDTO.fromEntity(fornecedor));
+
 	}
 
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Excluir fornecedor (Apenas ADMIN)")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Fornecedor excluído com sucesso"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Fornecedor não encontrado")
-    })
+	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Fornecedor excluído com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Fornecedor não encontrado") })
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		fornecedorService.deletar(id);
 		return ResponseEntity.noContent().build();
 	}
 
-	private org.springframework.validation.BindingResult createBindingResult(Object target, java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
-		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(target, "dto");
-		for (jakarta.validation.ConstraintViolation<?> violation : violations) {
-			bindingResult.addError(new org.springframework.validation.FieldError("dto", violation.getPropertyPath().toString(), violation.getMessage()));
-		}
-		return bindingResult;
-	}
 }
