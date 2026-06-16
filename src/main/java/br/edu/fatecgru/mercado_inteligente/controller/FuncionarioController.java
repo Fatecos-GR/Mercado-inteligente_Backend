@@ -137,7 +137,7 @@ public class FuncionarioController {
 			@ApiResponse(responseCode = "403", description = "Acesso negado") 
 	})
 	public ResponseEntity<FuncionarioResponseDTO> insert(
-			@Parameter(description = "Dados do funcionário em formato JSON (FuncionarioCadastroDTO)", required = true) @RequestPart("funcionario") @Valid FuncionarioCadastroDTO dto,
+			@Parameter(description = "Dados do funcionário em formato JSON", required = true) @RequestPart("funcionario") @Valid FuncionarioCadastroDTO dto,
 			@Parameter(description = "Arquivo de imagem de perfil (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
 			throws Exception {
 
