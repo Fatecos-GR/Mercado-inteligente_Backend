@@ -32,6 +32,10 @@ public class CategoriaService {
 
 	private final String pastaCategorias = "categories/";
 
+	public long contar() {
+		return categoriaRepository.count();
+	}
+
 	// Método para listar todas
 	public List<Categoria> listarTodos() {
 		return categoriaRepository.findAll();
