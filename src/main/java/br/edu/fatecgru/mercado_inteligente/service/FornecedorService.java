@@ -27,6 +27,10 @@ public class FornecedorService {
 
 	private final String pastaFornecedores = "suppliers/";
 
+	public long contar() {
+		return fornecedorRepository.count();
+	}
+
 	// Método para listar todos
 	public List<Fornecedor> listarTodos() {
 		return fornecedorRepository.findAll();
