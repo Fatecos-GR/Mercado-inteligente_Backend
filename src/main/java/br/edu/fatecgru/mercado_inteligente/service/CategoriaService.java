@@ -36,6 +36,13 @@ public class CategoriaService {
 		return categoriaRepository.count();
 	}
 
+	public List<br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO> obterEstatisticasProdutos() {
+		return categoriaRepository.findAll().stream()
+				.map(cat -> new br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO(cat.getNome(),
+						produtoRepository.countByCategoriaId(cat.getId())))
+				.toList();
+	}
+
 	// Método para listar todas
 	public List<Categoria> listarTodos() {
 		return categoriaRepository.findAll();
