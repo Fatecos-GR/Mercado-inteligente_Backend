@@ -103,6 +103,27 @@ public class ProdutoController {
 		return ResponseEntity.ok(produtos);
 	}
 
+	@GetMapping("/fornecedor/{id}")
+	@Operation(summary = "Listar produtos por ID do fornecedor")
+	@ApiResponses(value = {
+
+			@ApiResponse(responseCode = "200", description = "Produtos encontrados"),
+
+			@ApiResponse(responseCode = "404", description = "Fornecedor não encontrado")
+
+	})
+	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorIdFornecedor(
+
+			@Parameter(description = "ID do fornecedor", required = true)
+
+			@PathVariable Long id) {
+
+		List<ProdutoResponseDTO> produtos = produtoService.getBySupplierId(id).stream().map(ProdutoMapper::toDTO)
+				.toList();
+
+		return ResponseEntity.ok(produtos);
+	}
+
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Produto",
