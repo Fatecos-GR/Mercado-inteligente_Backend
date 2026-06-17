@@ -79,6 +79,11 @@ public class UsuarioService {
 				.sorted(Comparator.comparing(Usuario::getNome)).toList();
 	}
 
+	// Contar quantidade de clientes
+	public long contarClientes() {
+		return usuarioRepository.countClientes();
+	}
+
 	// Métodos para cadastrar usuário
 	public Usuario save(Usuario usuario) {
 		return usuarioRepository.save(usuario);
