@@ -12,7 +12,6 @@ import br.edu.fatecgru.mercado_inteligente.model.dto.EnderecoResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ViaCepDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Endereco;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Funcionario;
-import br.edu.fatecgru.mercado_inteligente.model.entity.TipoFuncionario;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.repository.EnderecoRepository;
 
@@ -37,9 +36,7 @@ public class EnderecoService {
 
 	// Listar todos os endereços com informação de dono
 	public List<EnderecoResponseDTO> listarTodos() {
-		return enderecoRepository.findAll().stream()
-				.map(this::toResponseDTO)
-				.collect(Collectors.toList());
+		return enderecoRepository.findAll().stream().map(this::toResponseDTO).collect(Collectors.toList());
 	}
 
 	// Buscar um endereço por ID com informação de dono
@@ -73,10 +70,8 @@ public class EnderecoService {
 	}
 
 	public void validarEnderecoUnico(EnderecoDTO dto, Long currentId) {
-		enderecoRepository
-				.findIdenticalAddress(dto.cep(), dto.logradouro(), dto.numero(), dto.bairro(), dto.cidade(),
-						dto.estado(), dto.complemento())
-				.ifPresent(enderecoExistente -> {
+		enderecoRepository.findIdenticalAddress(dto.cep(), dto.logradouro(), dto.numero(), dto.bairro(), dto.cidade(),
+				dto.estado(), dto.complemento()).ifPresent(enderecoExistente -> {
 					if (currentId == null || !enderecoExistente.getId().equals(currentId)) {
 						throw new IllegalArgumentException("Este endereço já está cadastrado no sistema.");
 					}
@@ -95,9 +90,9 @@ public class EnderecoService {
 	}
 
 	private void validarPropriedade(Endereco endereco, Usuario usuarioLogado) {
-		boolean isOwner = usuarioLogado.getEndereco() != null && usuarioLogado.getEndereco().getId().equals(endereco.getId());
-		boolean isAdmin = usuarioLogado.getAuthorities().stream()
-				.anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+		boolean isOwner = usuarioLogado.getEndereco() != null
+				&& usuarioLogado.getEndereco().getId().equals(endereco.getId());
+		boolean isAdmin = usuarioLogado.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
 		if (!isOwner && !isAdmin) {
 			throw new RuntimeException("Acesso negado: você não tem permissão para alterar este endereço.");
@@ -120,19 +115,9 @@ public class EnderecoService {
 			nomeDono = endereco.getFornecedor().getNome();
 		}
 
-		return new EnderecoResponseDTO(
-				endereco.getId(),
-				endereco.getCep(),
-				endereco.getLogradouro(),
-				endereco.getNumero(),
-				endereco.getComplemento(),
-				endereco.getBairro(),
-				endereco.getCidade(),
-				endereco.getEstado(),
-				tipoDono,
-				donoId,
-				nomeDono
-		);
+		return new EnderecoResponseDTO(endereco.getId(), endereco.getCep(), endereco.getLogradouro(),
+				endereco.getNumero(), endereco.getComplemento(), endereco.getBairro(), endereco.getCidade(),
+				endereco.getEstado(), tipoDono, donoId, nomeDono);
 	}
 
 }
