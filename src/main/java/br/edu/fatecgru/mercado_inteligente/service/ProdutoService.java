@@ -86,6 +86,16 @@ public class ProdutoService {
 		return produtoRepository.findByFornecedorIdOrderByNomeAsc(fornecedorId);
 	}
 
+	public List<Produto> listarPorMenorPreco() {
+
+		return produtoRepository.findAll(Sort.by(Sort.Direction.ASC, "preco"));
+	}
+
+	public List<Produto> listarPorMaiorPreco() {
+
+		return produtoRepository.findAll(Sort.by(Sort.Direction.DESC, "preco"));
+	}
+
 	// Método para salvar
 	public Produto saveProduto(Produto produto) {
 		return produtoRepository.save(produto);
