@@ -25,10 +25,20 @@ public class FornecedorService {
 	@Autowired
 	private ImagemService imagemService;
 
+	@Autowired
+	private br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository produtoRepository;
+
 	private final String pastaFornecedores = "suppliers/";
 
 	public long contar() {
 		return fornecedorRepository.count();
+	}
+
+	public List<br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO> obterEstatisticasProdutos() {
+		return fornecedorRepository.findAll().stream()
+				.map(fornecedor -> new br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO(
+						fornecedor.getNome(), produtoRepository.countByFornecedorId(fornecedor.getId())))
+				.toList();
 	}
 
 	// Método para listar todos

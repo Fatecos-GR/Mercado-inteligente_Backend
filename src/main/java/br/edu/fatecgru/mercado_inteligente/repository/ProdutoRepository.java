@@ -17,4 +17,9 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 	// Buscar todos os produtos de uma determinada marca
 	public List<Produto> findByMarcaId(Long marcaId);
 
+	long countByCategoriaId(Long categoriaId);
+
+	long countByMarcaId(Long marcaId);
+
+	long countByFornecedorId(Long fornecedorId);
 }
