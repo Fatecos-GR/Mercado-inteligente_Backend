@@ -8,22 +8,23 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
 
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
-	// Método para buscar produto insensível a maiúsculas/minúsculas
-	public List<Produto> findByNomeContainingIgnoreCase(String nome);
+	// Método para buscar produto insensível a maiúsculas/minúsculas, em ordem
+	// alfabética
+	List<Produto> findByNomeContainingIgnoreCaseOrderByNomeAsc(String nome);
 
 	// Buscar todos os produtos de uma determinada categoria
-	public List<Produto> findByCategoriaId(Long categoriaId);
+	List<Produto> findByCategoriaIdOrderByNomeAsc(Long categoriaId);
 
 	// Buscar todos os produtos de uma determinada marca
-	public List<Produto> findByMarcaId(Long marcaId);
+	List<Produto> findByMarcaIdOrderByNomeAsc(Long marcaId);
 
-  // Buscar todos os produtos de uma determinada fornecedor
-	List<Produto> findByFornecedorId(Long fornecedorid);
-  
+	// Buscar todos os produtos de uma determinada fornecedor
+	List<Produto> findByFornecedorIdOrderByNomeAsc(Long fornecedorId);
+
 	long countByCategoriaId(Long categoriaId);
 
 	long countByMarcaId(Long marcaId);
 
 	long countByFornecedorId(Long fornecedorId);
- 
+
 }
