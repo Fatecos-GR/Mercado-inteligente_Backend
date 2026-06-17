@@ -14,8 +14,10 @@ import br.edu.fatecgru.mercado_inteligente.model.dto.DashboardStatsDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ErrorResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO;
 import br.edu.fatecgru.mercado_inteligente.service.CategoriaService;
+import br.edu.fatecgru.mercado_inteligente.service.EstoqueService;
 import br.edu.fatecgru.mercado_inteligente.service.FornecedorService;
 import br.edu.fatecgru.mercado_inteligente.service.MarcaService;
+import br.edu.fatecgru.mercado_inteligente.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -38,6 +40,12 @@ public class DashboardController {
 
 	@Autowired
 	private FornecedorService fornecedorService;
+
+	@Autowired
+	private ProdutoService produtoService;
+
+	@Autowired
+	private EstoqueService estoqueService;
 
 	@GetMapping("/marcas/contagem")
 	@PreAuthorize("hasRole('ADMIN')")
@@ -75,9 +83,43 @@ public class DashboardController {
 		return ResponseEntity.ok(fornecedorService.contar());
 	}
 
+	@GetMapping("/produtos/contagem")
+	@PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
+	@Operation(summary = "Contar tipos de produtos (ADMIN/ESTOQUISTA)", description = "Retorna a quantidade de tipos de produtos (SKUs) cadastrados no sistema.")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Contagem realizada com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<Long> contarProdutos() {
+		return ResponseEntity.ok(produtoService.contar());
+	}
+
+	@GetMapping("/produtos/estoque-total")
+	@PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
+	@Operation(summary = "Quantidade total de produtos em estoque (ADMIN/ESTOQUISTA)", description = "Retorna a soma de todas as unidades de todos os produtos disponíveis em estoque.")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Consulta realizada com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<Long> contarTotalEstoque() {
+		return ResponseEntity.ok(estoqueService.contarTotalItens());
+	}
+
+	@GetMapping("/produtos/quantidade-geral")
+	@PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
+	@Operation(summary = "Listar quantidade de todos os produtos (ADMIN/ESTOQUISTA)", description = "Retorna a lista de todos os produtos cadastrados e suas respectivas quantidades em estoque.")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Dados obtidos com sucesso", 
+				content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ItemQuantidadeDTO.class)))),
+			@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<List<ItemQuantidadeDTO>> listarQuantidadeGeral() {
+		return ResponseEntity.ok(estoqueService.obterEstatisticasProdutos());
+	}
+
 	@GetMapping("/estatisticas")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Obter estatísticas resumidas (Apenas ADMIN)", description = "Retorna um resumo contendo a contagem total de marcas, categorias e fornecedores.")
+	@Operation(summary = "Obter estatísticas resumidas (Apenas ADMIN)", description = "Retorna um resumo contendo a contagem total de marcas, categorias, fornecedores e produtos.")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "200", description = "Estatísticas obtidas com sucesso", 
 				content = @Content(mediaType = "application/json", schema = @Schema(implementation = DashboardStatsDTO.class))),
@@ -88,9 +130,22 @@ public class DashboardController {
 		DashboardStatsDTO stats = new DashboardStatsDTO(
 				marcaService.contar(),
 				categoriaService.contar(),
-				fornecedorService.contar()
+				fornecedorService.contar(),
+				produtoService.contar()
 		);
 		return ResponseEntity.ok(stats);
+	}
+
+	@GetMapping("/produtos/baixo-estoque")
+	@PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
+	@Operation(summary = "Produtos com Baixo Estoque (ADMIN/ESTOQUISTA)", description = "Retorna a lista de produtos com estoque abaixo de 10 unidades.")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Dados obtidos com sucesso", 
+				content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ItemQuantidadeDTO.class)))),
+			@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<List<ItemQuantidadeDTO>> listarProdutosBaixoEstoque() {
+		return ResponseEntity.ok(estoqueService.obterProdutosBaixoEstoque());
 	}
 
 	@GetMapping("/produtos/por-marca")

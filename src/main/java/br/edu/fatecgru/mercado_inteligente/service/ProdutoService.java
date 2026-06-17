@@ -50,6 +50,10 @@ public class ProdutoService {
 
 	private final String pastaProdutos = "products/";
 
+	public long contar() {
+		return produtoRepository.count();
+	}
+
 	// Listar todos
 	public List<Produto> listarTodos() {
 		return produtoRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
