@@ -32,6 +32,10 @@ public class MarcaService {
 
 	private final String pastaMarcas = "brands/";
 
+	public long contar() {
+		return marcaRepository.count();
+	}
+
 	public List<Marca> listarTodos() {
 		return marcaRepository.findAll();
 	}
