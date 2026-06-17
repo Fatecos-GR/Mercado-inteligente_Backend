@@ -59,12 +59,27 @@ public class ProdutoService {
 
 	// Listar por ID da categoria
 	public List<Produto> getByCategoryId(Long categoriaId) {
+		categoriaRepository.findById(categoriaId)
+				.orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com ID: " + categoriaId));
+
 		return produtoRepository.findByCategoriaId(categoriaId);
 	}
 
 	// Listar por ID da marca
 	public List<Produto> getByBrandId(Long marcaId) {
+		marcaRepository.findById(marcaId)
+				.orElseThrow(() -> new ResourceNotFoundException("Marca não encontrada com ID: " + marcaId));
+
 		return produtoRepository.findByMarcaId(marcaId);
+	}
+
+	// Listar por ID do fornecedor
+	public List<Produto> getBySupplierId(Long fornecedorId) {
+
+		fornecedorRepository.findById(fornecedorId)
+				.orElseThrow(() -> new ResourceNotFoundException("Fornecedor não encontrado com ID: " + fornecedorId));
+
+		return produtoRepository.findByFornecedorId(fornecedorId);
 	}
 
 	// Método para salvar

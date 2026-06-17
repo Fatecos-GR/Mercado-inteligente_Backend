@@ -36,6 +36,13 @@ public class MarcaService {
 		return marcaRepository.count();
 	}
 
+	public List<br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO> obterEstatisticasProdutos() {
+		return marcaRepository.findAll().stream()
+				.map(marca -> new br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO(marca.getNome(),
+						produtoRepository.countByMarcaId(marca.getId())))
+				.toList();
+	}
+
 	public List<Marca> listarTodos() {
 		return marcaRepository.findAll();
 	}
