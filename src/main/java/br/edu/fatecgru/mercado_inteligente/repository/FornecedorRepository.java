@@ -8,7 +8,10 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
 
 public interface FornecedorRepository extends JpaRepository<Fornecedor, Long> {
 
+	// Listar todos em ordem alfabética
+	List<Fornecedor> findAllByOrderByNomeAsc();
+
 	// Método para fazer buscar por fornecedor
-	public List<Fornecedor> findByNomeContains(String nome);
+	List<Fornecedor> findByNomeContainingIgnoreCaseOrderByNomeAsc(String nome);
 
 }

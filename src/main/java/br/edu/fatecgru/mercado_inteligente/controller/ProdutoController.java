@@ -124,6 +124,26 @@ public class ProdutoController {
 		return ResponseEntity.ok(produtos);
 	}
 
+	// Listar por maior preço
+	@GetMapping("/preco/menor")
+	public ResponseEntity<List<ProdutoResponseDTO>> listarPorMenorPreco() {
+
+		List<ProdutoResponseDTO> produtos = produtoService.listarPorMenorPreco().stream().map(ProdutoMapper::toDTO)
+				.toList();
+
+		return ResponseEntity.ok(produtos);
+	}
+
+	// Listar por menor preço
+	@GetMapping("/preco/maior")
+	public ResponseEntity<List<ProdutoResponseDTO>> listarPorMaiorPreco() {
+
+		List<ProdutoResponseDTO> produtos = produtoService.listarPorMaiorPreco().stream().map(ProdutoMapper::toDTO)
+				.toList();
+
+		return ResponseEntity.ok(produtos);
+	}
+
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Produto",

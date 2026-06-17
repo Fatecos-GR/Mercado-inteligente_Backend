@@ -56,10 +56,12 @@ public class FuncionarioService {
 
 	// Método para listar todos
 	public List<Funcionario> listarTodos(boolean incluirInativos) {
+
 		if (incluirInativos) {
-			return funcionarioRepository.findAll();
+			return funcionarioRepository.findAllByOrderByNomeAsc();
 		}
-		return funcionarioRepository.findAllByAtivo(true);
+
+		return funcionarioRepository.findAllByAtivoOrderByNomeAsc(true);
 	}
 
 	// Listar pelo ID do funcionário
@@ -75,18 +77,22 @@ public class FuncionarioService {
 
 	// Listar administradores
 	public List<Funcionario> listarAdministradores(boolean incluirInativos) {
+
 		if (incluirInativos) {
-			return funcionarioRepository.findByTipoFuncionario(TipoFuncionario.ADMIN);
+			return funcionarioRepository.findByTipoFuncionarioOrderByNomeAsc(TipoFuncionario.ADMIN);
 		}
-		return funcionarioRepository.findByTipoFuncionarioAndAtivo(TipoFuncionario.ADMIN, true);
+
+		return funcionarioRepository.findByTipoFuncionarioAndAtivoOrderByNomeAsc(TipoFuncionario.ADMIN, true);
 	}
 
 	// Listar estoquistas
 	public List<Funcionario> listarEstoquistas(boolean incluirInativos) {
+
 		if (incluirInativos) {
-			return funcionarioRepository.findByTipoFuncionario(TipoFuncionario.ESTOQUISTA);
+			return funcionarioRepository.findByTipoFuncionarioOrderByNomeAsc(TipoFuncionario.ESTOQUISTA);
 		}
-		return funcionarioRepository.findByTipoFuncionarioAndAtivo(TipoFuncionario.ESTOQUISTA, true);
+
+		return funcionarioRepository.findByTipoFuncionarioAndAtivoOrderByNomeAsc(TipoFuncionario.ESTOQUISTA, true);
 	}
 
 	// Métodos para cadastrar funcionário

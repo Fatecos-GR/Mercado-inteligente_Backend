@@ -45,7 +45,7 @@ public class CategoriaService {
 
 	// Método para listar todas
 	public List<Categoria> listarTodos() {
-		return categoriaRepository.findAll();
+		return categoriaRepository.findAllByOrderByNomeAsc();
 	}
 
 	// Listar pelo ID
@@ -55,7 +55,11 @@ public class CategoriaService {
 
 	// Listar pelo nome
 	public List<Categoria> getByContainsName(String nome) {
-		return categoriaRepository.findByNomeContainingIgnoreCase(nome);
+		return categoriaRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(nome);
+	}
+
+	public Categoria save(Categoria categoria) {
+		return categoriaRepository.save(categoria);
 	}
 
 	// Método para cadastrar categoria
@@ -77,10 +81,6 @@ public class CategoriaService {
 			categoria.setPublicIdImagem(imagemDTO.getPublicId());
 		}
 
-		return categoriaRepository.save(categoria);
-	}
-
-	public Categoria save(Categoria categoria) {
 		return categoriaRepository.save(categoria);
 	}
 
@@ -116,7 +116,7 @@ public class CategoriaService {
 		Categoria categoria = categoriaRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com ID: " + id));
 
-		List<Produto> produtos = produtoRepository.findByCategoriaId(id);
+		List<Produto> produtos = produtoRepository.findByCategoriaIdOrderByNomeAsc(id);
 
 		// 1. Validar integridade e deletar produtos em cascata
 		for (Produto produto : produtos) {

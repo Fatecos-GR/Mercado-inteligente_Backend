@@ -35,15 +35,15 @@ public class FornecedorService {
 	}
 
 	public List<br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO> obterEstatisticasProdutos() {
-		return fornecedorRepository.findAll().stream()
-				.map(fornecedor -> new br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO(
-						fornecedor.getNome(), produtoRepository.countByFornecedorId(fornecedor.getId())))
+		return fornecedorRepository.findAll().stream().map(
+				fornecedor -> new br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO(fornecedor.getNome(),
+						produtoRepository.countByFornecedorId(fornecedor.getId())))
 				.toList();
 	}
 
 	// Método para listar todos
 	public List<Fornecedor> listarTodos() {
-		return fornecedorRepository.findAll();
+		return fornecedorRepository.findAllByOrderByNomeAsc();
 	}
 
 	// Listar pelo ID do fornecedor
@@ -51,9 +51,9 @@ public class FornecedorService {
 		return fornecedorRepository.findById(id).orElse(null);
 	}
 
-	// Listar produto pelo o nome "contido"
+	// Listar fornecedor pelo nome
 	public List<Fornecedor> getByContainsName(String nome) {
-		return fornecedorRepository.findByNomeContains(nome);
+		return fornecedorRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(nome);
 	}
 
 	// salvar

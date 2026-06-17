@@ -3,6 +3,7 @@ package br.edu.fatecgru.mercado_inteligente.service;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,15 +11,18 @@ import br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoRequestDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Estoque;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
 import br.edu.fatecgru.mercado_inteligente.model.entity.StatusCarrinho;
 import br.edu.fatecgru.mercado_inteligente.repository.CategoriaRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.EstoqueRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.FornecedorRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.ItemCarrinhoRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.MarcaRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProdutoService {
@@ -39,12 +43,16 @@ public class ProdutoService {
 	private ItemCarrinhoRepository itemCarrinhoRepository;
 
 	@Autowired
+	private EstoqueRepository estoqueRepository;
+
+	@Autowired
 	private ImagemService imagemService;
 
 	private final String pastaProdutos = "products/";
 
+	// Listar todos
 	public List<Produto> listarTodos() {
-		return produtoRepository.findAll();
+		return produtoRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
 	}
 
 	// Listar pelo ID do Produto
@@ -52,25 +60,27 @@ public class ProdutoService {
 		return produtoRepository.findById(id).orElse(null);
 	}
 
-	// Listar produto pelo o nome "contido" insensível a maiúsculas/minúsculas
+	// Listar produto pelo nome em ordem alfabética
 	public List<Produto> getByContainsName(String nome) {
-		return produtoRepository.findByNomeContainingIgnoreCase(nome);
+		return produtoRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(nome);
 	}
 
 	// Listar por ID da categoria
 	public List<Produto> getByCategoryId(Long categoriaId) {
+
 		categoriaRepository.findById(categoriaId)
 				.orElseThrow(() -> new ResourceNotFoundException("Categoria não encontrada com ID: " + categoriaId));
 
-		return produtoRepository.findByCategoriaId(categoriaId);
+		return produtoRepository.findByCategoriaIdOrderByNomeAsc(categoriaId);
 	}
 
 	// Listar por ID da marca
 	public List<Produto> getByBrandId(Long marcaId) {
+
 		marcaRepository.findById(marcaId)
 				.orElseThrow(() -> new ResourceNotFoundException("Marca não encontrada com ID: " + marcaId));
 
-		return produtoRepository.findByMarcaId(marcaId);
+		return produtoRepository.findByMarcaIdOrderByNomeAsc(marcaId);
 	}
 
 	// Listar por ID do fornecedor
@@ -79,7 +89,17 @@ public class ProdutoService {
 		fornecedorRepository.findById(fornecedorId)
 				.orElseThrow(() -> new ResourceNotFoundException("Fornecedor não encontrado com ID: " + fornecedorId));
 
-		return produtoRepository.findByFornecedorId(fornecedorId);
+		return produtoRepository.findByFornecedorIdOrderByNomeAsc(fornecedorId);
+	}
+
+	public List<Produto> listarPorMenorPreco() {
+
+		return produtoRepository.findAll(Sort.by(Sort.Direction.ASC, "preco"));
+	}
+
+	public List<Produto> listarPorMaiorPreco() {
+
+		return produtoRepository.findAll(Sort.by(Sort.Direction.DESC, "preco"));
 	}
 
 	// Método para salvar
@@ -87,6 +107,7 @@ public class ProdutoService {
 		return produtoRepository.save(produto);
 	}
 
+	@Transactional
 	public Produto cadastrar(ProdutoRequestDTO dto, MultipartFile imagem) throws Exception {
 
 		Produto produto = new Produto();
@@ -116,7 +137,19 @@ public class ProdutoService {
 			produto.setPublicIdImagem(imagemDTO.getPublicId());
 		}
 
-		return produtoRepository.save(produto);
+		// Salva o produto
+		Produto produtoSalvo = produtoRepository.save(produto);
+
+		// Cria o estoque automaticamente
+		Estoque estoque = new Estoque();
+		estoque.setProduto(produtoSalvo);
+		estoque.setQuantidadeDisponivel(0);
+		estoque.setQuantidadeReservada(0);
+
+		estoqueRepository.save(estoque);
+
+		return produtoSalvo;
+
 	}
 
 	public Produto atualizar(Long id, ProdutoRequestDTO dto, MultipartFile imagem) throws Exception {

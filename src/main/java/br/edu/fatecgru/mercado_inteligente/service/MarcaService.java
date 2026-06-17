@@ -44,11 +44,11 @@ public class MarcaService {
 	}
 
 	public List<Marca> listarTodos() {
-		return marcaRepository.findAll();
+		return marcaRepository.findAllByOrderByNomeAsc();
 	}
 
 	public List<Marca> getByContainsName(String nome) {
-		return marcaRepository.findByNomeContainingIgnoreCase(nome);
+		return marcaRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(nome);
 	}
 
 	public Marca getById(Long id) {
@@ -107,7 +107,7 @@ public class MarcaService {
 		Marca marca = marcaRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Marca não encontrada com ID: " + id));
 
-		List<Produto> produtos = produtoRepository.findByMarcaId(id);
+		List<Produto> produtos = produtoRepository.findByMarcaIdOrderByNomeAsc(id);
 
 		// 1. Validar se algum produto da marca está em carrinho ativo
 		// O método deleteProduto já faz essa validação interna e lança

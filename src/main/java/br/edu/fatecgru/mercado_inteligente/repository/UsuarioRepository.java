@@ -16,6 +16,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 			FROM Usuario u
 			WHERE LOWER(CONCAT(u.nome, ' ', u.sobrenome))
 			LIKE LOWER(CONCAT('%', :nomeCompleto, '%'))
+			ORDER BY u.nome ASC
 			""")
 	List<Usuario> buscarPorNomeCompleto(@Param("nomeCompleto") String nomeCompleto);
 
@@ -25,10 +26,11 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 			WHERE LOWER(CONCAT(u.nome, ' ', u.sobrenome))
 			LIKE LOWER(CONCAT('%', :nomeCompleto, '%'))
 			AND u.ativo = true
+			ORDER BY u.nome ASC
 			""")
 	List<Usuario> buscarAtivosPorNomeCompleto(@Param("nomeCompleto") String nomeCompleto);
 
-	List<Usuario> findAllByAtivo(boolean ativo);
+	List<Usuario> findAllByAtivoOrderByNomeAsc(boolean ativo);
 
 	// Buscar usuário por email
 	Optional<Usuario> findByEmail(String email);

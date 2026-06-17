@@ -37,7 +37,7 @@ public class CategoriaServiceIntegridadeTest {
 	@Test
 	void delete_Sucesso_QuandoNaoHaProdutos() {
 		Long categoriaId = 1L;
-		when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(Collections.emptyList());
+		when(produtoRepository.findByCategoriaIdOrderByNomeAsc(categoriaId)).thenReturn(Collections.emptyList());
 
 		categoriaService.delete(categoriaId);
 
@@ -50,7 +50,7 @@ public class CategoriaServiceIntegridadeTest {
 		Produto p1 = new Produto();
 		p1.setId(20L);
 
-		when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(List.of(p1));
+		when(produtoRepository.findByCategoriaIdOrderByNomeAsc(categoriaId)).thenReturn(List.of(p1));
 
 		categoriaService.delete(categoriaId);
 
@@ -64,7 +64,7 @@ public class CategoriaServiceIntegridadeTest {
 		Produto p1 = new Produto();
 		p1.setId(20L);
 
-		when(produtoRepository.findByCategoriaId(categoriaId)).thenReturn(List.of(p1));
+		when(produtoRepository.findByCategoriaIdOrderByNomeAsc(categoriaId)).thenReturn(List.of(p1));
 
 		// Simula bloqueio de integridade
 		doThrow(new IllegalStateException("Erro de integridade")).when(produtoService).delete(20L);

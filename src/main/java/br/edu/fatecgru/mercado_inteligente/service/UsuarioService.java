@@ -1,8 +1,10 @@
 package br.edu.fatecgru.mercado_inteligente.service;
 
+import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,7 +26,6 @@ import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 @Service
 public class UsuarioService {
 
-	// Método para listar todos
 	@Autowired
 	private UsuarioRepository usuarioRepository;
 
@@ -45,16 +46,14 @@ public class UsuarioService {
 
 	private final String pastaUsuarios = "users/";
 
-	public List<Usuario> listarTodos() {
-		return usuarioRepository.findAll();
-	}
-
-	// Listar pelo ID do usuário
+	// Listar todos
 	public List<Usuario> listarTodos(boolean incluirInativos) {
+
 		if (incluirInativos) {
-			return usuarioRepository.findAll();
+			return usuarioRepository.findAll(Sort.by(Sort.Direction.ASC, "nome"));
 		}
-		return usuarioRepository.findAllByAtivo(true);
+
+		return usuarioRepository.findAllByAtivoOrderByNomeAsc(true);
 	}
 
 	// Listar pelo ID do usuário
@@ -72,8 +71,12 @@ public class UsuarioService {
 
 	// Listar clientes
 	public List<Usuario> listarClientes(boolean incluirInativos) {
-		List<Usuario> base = incluirInativos ? usuarioRepository.findAll() : usuarioRepository.findAllByAtivo(true);
-		return base.stream().filter(usuario -> !(usuario instanceof Funcionario)).toList();
+
+		List<Usuario> base = incluirInativos ? usuarioRepository.findAll()
+				: usuarioRepository.findAllByAtivoOrderByNomeAsc(true);
+
+		return base.stream().filter(usuario -> !(usuario instanceof Funcionario))
+				.sorted(Comparator.comparing(Usuario::getNome)).toList();
 	}
 
 	// Métodos para cadastrar usuário
