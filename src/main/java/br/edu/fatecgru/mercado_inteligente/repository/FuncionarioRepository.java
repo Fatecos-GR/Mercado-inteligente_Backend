@@ -17,13 +17,18 @@ public interface FuncionarioRepository extends JpaRepository<Funcionario, Long> 
 			FROM Funcionario f
 			WHERE LOWER(CONCAT(f.nome, ' ', f.sobrenome))
 			LIKE LOWER(CONCAT('%', :nomeCompleto, '%'))
+			ORDER BY f.nome ASC, f.sobrenome ASC
 			""")
 	List<Funcionario> findByNomeCompleto(@Param("nomeCompleto") String nomeCompleto);
 
-	// Listar funcionário por tipo e status
-	List<Funcionario> findByTipoFuncionarioAndAtivo(TipoFuncionario tipoFuncionario, boolean ativo);
+	List<Funcionario> findAllByOrderByNomeAsc();
 
-	List<Funcionario> findByTipoFuncionario(TipoFuncionario tipoFuncionario);
+	List<Funcionario> findAllByAtivoOrderByNomeAsc(boolean ativo);
+
+	// Listar funcionário por tipo e status
+	List<Funcionario> findByTipoFuncionarioOrderByNomeAsc(TipoFuncionario tipoFuncionario);
+
+	List<Funcionario> findByTipoFuncionarioAndAtivoOrderByNomeAsc(TipoFuncionario tipoFuncionario, boolean ativo);
 
 	List<Funcionario> findAllByAtivo(boolean ativo);
 

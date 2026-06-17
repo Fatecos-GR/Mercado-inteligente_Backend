@@ -3,6 +3,7 @@ package br.edu.fatecgru.mercado_inteligente.model.entity;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -55,7 +56,7 @@ public class Produto {
 	@JoinColumn(name = "fornecedor_id", nullable = false)
 	private Fornecedor fornecedor;
 
-	@jakarta.persistence.OneToOne(mappedBy = "produto")
+	@jakarta.persistence.OneToOne(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Estoque estoque;
 
 	// Construtores

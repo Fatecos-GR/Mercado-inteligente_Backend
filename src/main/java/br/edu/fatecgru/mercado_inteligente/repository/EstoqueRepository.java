@@ -17,7 +17,32 @@ public interface EstoqueRepository extends JpaRepository<Estoque, Long> {
 	@Query("SELECT e FROM Estoque e JOIN FETCH e.produto")
 	List<Estoque> findAll();
 
-	@Lock(LockModeType.PESSIMISTIC_WRITE)
-	@Query("SELECT e FROM Estoque e JOIN FETCH e.produto WHERE e.produto.id = :produtoId")
+	@Query("""
+			    SELECT e
+			    FROM Estoque e
+			    JOIN FETCH e.produto
+			    WHERE e.produto.id = :produtoId
+			""")
 	Optional<Estoque> findByProdutoId(@Param("produtoId") Long produtoId);
+
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("""
+			    SELECT e
+			    FROM Estoque e
+			    JOIN FETCH e.produto
+			    WHERE e.produto.id = :produtoId
+			""")
+	Optional<Estoque> findByProdutoIdForUpdate(@Param("produtoId") Long produtoId);
+
+	@Query("""
+			    SELECT e
+			    FROM Estoque e
+			    JOIN FETCH e.produto
+			    WHERE e.quantidadeDisponivel < :limite
+			    ORDER BY e.quantidadeDisponivel ASC
+			""")
+	List<Estoque> findByQuantidadeDisponivelLessThan(@Param("limite") Integer limite);
+
+	@Query("SELECT SUM(e.quantidadeDisponivel) FROM Estoque e")
+	Long sumTotalQuantidadeDisponivel();
 }
