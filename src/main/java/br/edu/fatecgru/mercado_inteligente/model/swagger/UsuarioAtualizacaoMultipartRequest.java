@@ -9,7 +9,7 @@ public class UsuarioAtualizacaoMultipartRequest {
 	@Schema(description = "Dados atualizados do usuário", implementation = UsuarioAtualizacaoDTO.class)
 	private UsuarioAtualizacaoDTO usuario;
 
-	@Schema(description = "Nova imagem", type = "string", format = "binary")
+	@Schema(description = "Arquivo da imagem do usuário", type = "string", format = "binary")
 	private String imagem;
 
 	public UsuarioAtualizacaoDTO getUsuario() {

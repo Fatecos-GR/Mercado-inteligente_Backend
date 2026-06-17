@@ -30,9 +30,6 @@ public class UsuarioAtualizacaoDTO {
 	@Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", message = "A senha deve conter pelo menos uma letra maiúscula, uma letra minúscula, um número e um caractere especial")
 	private String senha;
 
-	@Schema(description = "URL da imagem (preenchido automaticamente pelo sistema após upload)")
-	private String imagem;
-
 	// Getters e Setters
 	public String getNome() {
 		return nome;
@@ -72,14 +69,6 @@ public class UsuarioAtualizacaoDTO {
 
 	public void setSenha(String senha) {
 		this.senha = senha;
-	}
-
-	public String getImagem() {
-		return imagem;
-	}
-
-	public void setImagem(String imagem) {
-		this.imagem = imagem;
 	}
 
 }
