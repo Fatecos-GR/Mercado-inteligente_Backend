@@ -21,8 +21,7 @@ public class FuncionarioAtualizacaoDTO {
 	@Email(message = "Email inválido")
 	private String email;
 
-	@NotBlank(message = "Senha é obrigatória")
-	@Size(min = 6, message = "Senha deve ter no mínimo 6 caracteres")
+	@Size(min = 8, message = "Senha deve ter no mínimo 8 caracteres")
 	private String senha;
 
 	@NotNull(message = "Tipo do funcionário é obrigatório")
@@ -64,6 +63,14 @@ public class FuncionarioAtualizacaoDTO {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getSenha() {
+		return senha;
+	}
+
+	public void setSenha(String senha) {
+		this.senha = senha;
 	}
 
 	public TipoFuncionario getTipoFuncionario() {

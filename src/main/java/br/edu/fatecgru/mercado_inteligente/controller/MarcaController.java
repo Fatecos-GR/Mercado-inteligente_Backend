@@ -20,12 +20,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.model.dto.ErrorResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.MarcaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.MarcaResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
+import br.edu.fatecgru.mercado_inteligente.model.swagger.MarcaMultipartRequest;
 import br.edu.fatecgru.mercado_inteligente.service.MarcaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -75,10 +79,15 @@ public class MarcaController {
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Salvar Marca", description = "Cadastra uma nova marca no sistema. O nome da marca deve ser único.")
-	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Marca criada com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado") })
+	@Operation(summary = "Salvar Marca", description = "Cadastra uma nova marca no sistema. O nome da marca deve ser único.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = MarcaMultipartRequest.class))))
+	@ApiResponses(value = {
+
+			@ApiResponse(responseCode = "201", description = "Marca criada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MarcaResponseDTO.class))),
+
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))) })
+
 	public ResponseEntity<MarcaResponseDTO> insert(
 			@Parameter(description = "Dados da marca em JSON", required = true) @RequestPart("marca") String marcaJson,
 			@Parameter(description = "Arquivo de imagem da marca") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
@@ -101,11 +110,29 @@ public class MarcaController {
 
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Alterar Marca", description = "Atualiza os dados de uma marca existente. Se o nome for alterado, ele deve continuar sendo único no sistema.")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Marca alterada com sucesso"),
-			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente"),
-			@ApiResponse(responseCode = "403", description = "Acesso negado"),
-			@ApiResponse(responseCode = "404", description = "Marca não encontrada") })
+	@Operation(
+
+			summary = "Alterar Marca",
+
+			description = "Atualiza os dados de uma marca existente. Se o nome for alterado, ele deve continuar sendo único no sistema.",
+
+			requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+
+					required = true,
+
+					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+
+							schema = @Schema(implementation = MarcaMultipartRequest.class))))
+	@ApiResponses(value = {
+
+			@ApiResponse(responseCode = "200", description = "Marca alterada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MarcaResponseDTO.class))),
+
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+
+			@ApiResponse(responseCode = "404", description = "Marca não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))) })
+
 	public ResponseEntity<MarcaResponseDTO> update(
 			@Parameter(description = "ID da marca", required = true) @PathVariable Long id,
 			@Parameter(description = "Dados atualizados da marca em JSON", required = true) @RequestPart("marca") String marcaJson,
