@@ -27,7 +27,6 @@ import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoRequestDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
 import br.edu.fatecgru.mercado_inteligente.model.swagger.ProdutoMultipartRequest;
-import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
 import br.edu.fatecgru.mercado_inteligente.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,9 +46,6 @@ public class ProdutoController {
 
 	@Autowired
 	private ProdutoService produtoService;
-
-	@Autowired
-	private ProdutoRepository produtoRepository;
 
 	@Autowired
 	private Validator validator;

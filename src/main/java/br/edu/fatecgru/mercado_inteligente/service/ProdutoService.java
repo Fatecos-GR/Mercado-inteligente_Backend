@@ -11,15 +11,18 @@ import br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoRequestDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
+import br.edu.fatecgru.mercado_inteligente.model.entity.Estoque;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
 import br.edu.fatecgru.mercado_inteligente.model.entity.StatusCarrinho;
 import br.edu.fatecgru.mercado_inteligente.repository.CategoriaRepository;
+import br.edu.fatecgru.mercado_inteligente.repository.EstoqueRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.FornecedorRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.ItemCarrinhoRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.MarcaRepository;
 import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
+import jakarta.transaction.Transactional;
 
 @Service
 public class ProdutoService {
@@ -38,6 +41,9 @@ public class ProdutoService {
 
 	@Autowired
 	private ItemCarrinhoRepository itemCarrinhoRepository;
+
+	@Autowired
+	private EstoqueRepository estoqueRepository;
 
 	@Autowired
 	private ImagemService imagemService;
@@ -101,6 +107,7 @@ public class ProdutoService {
 		return produtoRepository.save(produto);
 	}
 
+	@Transactional
 	public Produto cadastrar(ProdutoRequestDTO dto, MultipartFile imagem) throws Exception {
 
 		Produto produto = new Produto();
@@ -130,7 +137,19 @@ public class ProdutoService {
 			produto.setPublicIdImagem(imagemDTO.getPublicId());
 		}
 
-		return produtoRepository.save(produto);
+		// Salva o produto
+		Produto produtoSalvo = produtoRepository.save(produto);
+
+		// Cria o estoque automaticamente
+		Estoque estoque = new Estoque();
+		estoque.setProduto(produtoSalvo);
+		estoque.setQuantidadeDisponivel(0);
+		estoque.setQuantidadeReservada(0);
+
+		estoqueRepository.save(estoque);
+
+		return produtoSalvo;
+
 	}
 
 	public Produto atualizar(Long id, ProdutoRequestDTO dto, MultipartFile imagem) throws Exception {
