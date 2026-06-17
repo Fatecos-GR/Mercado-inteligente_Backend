@@ -37,7 +37,7 @@ public class MarcaServiceIntegridadeTest {
 	@Test
 	void delete_Sucesso_QuandoNaoHaProdutos() {
 		Long marcaId = 1L;
-		when(produtoRepository.findByMarcaId(marcaId)).thenReturn(Collections.emptyList());
+		when(produtoRepository.findByMarcaIdOrderByNomeAsc(marcaId)).thenReturn(Collections.emptyList());
 
 		marcaService.delete(marcaId);
 
@@ -50,7 +50,7 @@ public class MarcaServiceIntegridadeTest {
 		Produto p1 = new Produto();
 		p1.setId(10L);
 
-		when(produtoRepository.findByMarcaId(marcaId)).thenReturn(List.of(p1));
+		when(produtoRepository.findByMarcaIdOrderByNomeAsc(marcaId)).thenReturn(List.of(p1));
 
 		marcaService.delete(marcaId);
 
@@ -64,7 +64,7 @@ public class MarcaServiceIntegridadeTest {
 		Produto p1 = new Produto();
 		p1.setId(10L);
 
-		when(produtoRepository.findByMarcaId(marcaId)).thenReturn(List.of(p1));
+		when(produtoRepository.findByMarcaIdOrderByNomeAsc(marcaId)).thenReturn(List.of(p1));
 
 		// Simula que o produtoService bloqueou a exclusão do produto por estar em
 		// carrinho ativo
