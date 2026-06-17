@@ -12,6 +12,9 @@ public record DashboardStatsDTO(
 		long quantidadeCategorias,
 
 		@Schema(description = "Quantidade total de fornecedores cadastrados", example = "3")
-		long quantidadeFornecedores
+		long quantidadeFornecedores,
+
+		@Schema(description = "Quantidade total de produtos cadastrados", example = "50")
+		long quantidadeProdutos
 ) {
 }

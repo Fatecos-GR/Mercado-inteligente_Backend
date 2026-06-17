@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.edu.fatecgru.mercado_inteligente.exception.EstoqueInsuficienteException;
 import br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ItemQuantidadeDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Estoque;
 import br.edu.fatecgru.mercado_inteligente.model.entity.MovimentacaoEstoque;
 import br.edu.fatecgru.mercado_inteligente.model.entity.OrigemMovimentacao;
@@ -27,6 +28,25 @@ public class EstoqueService {
 	@Transactional(readOnly = true)
 	public List<Estoque> listarTodos() {
 		return estoqueRepository.findAll();
+	}
+
+	public List<ItemQuantidadeDTO> obterProdutosBaixoEstoque() {
+		return estoqueRepository.findByQuantidadeDisponivelLessThan(10).stream()
+				.map(estoque -> new ItemQuantidadeDTO(estoque.getProduto().getNome(),
+						estoque.getQuantidadeDisponivel()))
+				.toList();
+	}
+
+	public Long contarTotalItens() {
+		Long total = estoqueRepository.sumTotalQuantidadeDisponivel();
+		return total != null ? total : 0L;
+	}
+
+	public List<ItemQuantidadeDTO> obterEstatisticasProdutos() {
+		return estoqueRepository.findAll().stream()
+				.map(estoque -> new ItemQuantidadeDTO(estoque.getProduto().getNome(),
+						estoque.getQuantidadeDisponivel()))
+				.toList();
 	}
 
 	@Transactional(readOnly = true)
