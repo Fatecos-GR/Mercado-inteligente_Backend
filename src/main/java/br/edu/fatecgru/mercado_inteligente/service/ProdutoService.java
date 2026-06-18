@@ -167,10 +167,23 @@ public class ProdutoService {
 
 	}
 
+	public List<Produto> listarUltimosDescontos() {
+		return produtoRepository.findByPrecoAnteriorIsNotNullOrderByDataReducaoPrecoDesc(org.springframework.data.domain.PageRequest.of(0, 5));
+	}
+
 	public Produto atualizar(Long id, ProdutoRequestDTO dto, MultipartFile imagem) throws Exception {
 
 		Produto produto = produtoRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Produto não encontrado com ID: " + id));
+
+		// Lógica inteligente de desconto / alteração de preço
+		if (dto.preco().compareTo(produto.getPreco()) < 0) {
+			produto.setPrecoAnterior(produto.getPreco());
+			produto.setDataReducaoPreco(java.time.LocalDateTime.now());
+		} else if (dto.preco().compareTo(produto.getPreco()) > 0 || produto.getPrecoAnterior() != null) {
+			produto.setPrecoAnterior(null);
+			produto.setDataReducaoPreco(null);
+		}
 
 		produto.setNome(dto.nome());
 		produto.setDescricao(dto.descricao());
