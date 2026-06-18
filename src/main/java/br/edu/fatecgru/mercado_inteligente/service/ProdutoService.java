@@ -1,5 +1,6 @@
 package br.edu.fatecgru.mercado_inteligente.service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,16 @@ public class ProdutoService {
 
 	public long contar() {
 		return produtoRepository.count();
+	}
+
+	public long contarProdutosVencidos() {
+		return produtoRepository.countByValidadeBefore(LocalDate.now());
+	}
+
+	public long contarProdutosVencimentoProximo() {
+		LocalDate hoje = LocalDate.now();
+		LocalDate limite = hoje.plusDays(5);
+		return produtoRepository.countByValidadeBetween(hoje, limite);
 	}
 
 	// Listar todos
