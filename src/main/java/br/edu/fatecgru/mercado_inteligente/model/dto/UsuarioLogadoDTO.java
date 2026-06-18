@@ -17,7 +17,9 @@ public record UsuarioLogadoDTO(
 
 		String imagem,
 
-		String perfil
+		String perfil,
+
+		EnderecoLoginDTO endereco
 
 ) {
 
@@ -43,6 +45,9 @@ public record UsuarioLogadoDTO(
 
 				usuario.getImagem(),
 
-				perfil);
+				perfil,
+
+				EnderecoLoginDTO.fromEntity(usuario.getEndereco()));
+
 	}
 }
