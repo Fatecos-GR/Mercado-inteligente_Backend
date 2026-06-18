@@ -21,6 +21,10 @@ public class ProdutoMapper {
 
 				produto.getPreco(),
 
+				produto.getPrecoAnterior(),
+
+				produto.getDataReducaoPreco(),
+
 				produto.getValidade(),
 
 				produto.getImagem(),

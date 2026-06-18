@@ -58,6 +58,15 @@ public class ProdutoController {
 		return ResponseEntity.ok(produtos);
 	}
 
+	@GetMapping("/descontos")
+	@Operation(summary = "Listar últimos produtos com redução de preço (Público)", description = "Retorna os últimos 5 produtos do catálogo que receberam descontos, ordenados do mais recente para o mais antigo.")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Lista de descontos obtida com sucesso") })
+	public ResponseEntity<List<ProdutoResponseDTO>> listarUltimosDescontos() {
+		List<ProdutoResponseDTO> descontos = produtoService.listarUltimosDescontos().stream()
+				.map(ProdutoMapper::toDTO).toList();
+		return ResponseEntity.ok(descontos);
+	}
+
 	@GetMapping("/{id}")
 	@Operation(summary = "Listar produto por ID")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Produto encontrado"),
