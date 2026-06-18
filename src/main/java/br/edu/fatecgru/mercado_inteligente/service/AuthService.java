@@ -16,7 +16,6 @@ import br.edu.fatecgru.mercado_inteligente.exception.EmailJaCadastradoException;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginRequest;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroRequest;
-import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.UsuarioLogadoDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
@@ -45,7 +44,7 @@ public class AuthService {
 	private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
 	// Registro de novo usuário
-	public RegistroResponse registrar(RegistroRequest request) {
+	public LoginResponse registrar(RegistroRequest request) {
 
 		// Validação
 		if (usuarioRepository.existsByEmail(request.email())) {
@@ -64,8 +63,10 @@ public class AuthService {
 
 		Usuario usuarioSalvo = usuarioRepository.save(novoUsuario);
 
-		return new RegistroResponse(usuarioSalvo.getId(), usuarioSalvo.getNome(), usuarioSalvo.getSobrenome(),
-				usuarioSalvo.getEmail(), usuarioSalvo.getTelefone());
+		// Gerar token
+		String token = tokenService.gerarToken(usuarioSalvo);
+
+		return new LoginResponse(token, UsuarioLogadoDTO.fromEntity(usuarioSalvo));
 
 	}
 
