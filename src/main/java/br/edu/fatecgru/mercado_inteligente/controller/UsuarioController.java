@@ -107,6 +107,13 @@ public class UsuarioController {
 		return ResponseEntity.ok(dtos);
 	}
 
+	@GetMapping("/clientes/count")
+	@Operation(summary = "Contar quantidade de clientes (Público)", description = "Retorna o número total de usuários registrados que são do tipo Cliente. Endpoint público e aberto.")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Contagem realizada com sucesso") })
+	public ResponseEntity<Long> contarClientes() {
+		return ResponseEntity.ok(usuarioService.contarClientes());
+	}
+
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar usuário (Apenas ADMIN)",
