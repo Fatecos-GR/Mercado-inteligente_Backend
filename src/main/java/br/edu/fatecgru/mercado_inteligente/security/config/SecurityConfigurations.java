@@ -52,6 +52,7 @@ public class SecurityConfigurations {
 					req.requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll();
 					req.requestMatchers(HttpMethod.GET, "/api/marcas/**").permitAll();
 					req.requestMatchers(HttpMethod.GET, "/api/enderecos/cep/**").permitAll();
+					req.requestMatchers(HttpMethod.GET, "/api/usuarios/clientes/count").permitAll();
 					
 					req.anyRequest().authenticated();
 				})
