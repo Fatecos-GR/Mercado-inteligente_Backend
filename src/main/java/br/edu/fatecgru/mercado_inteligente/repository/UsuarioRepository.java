@@ -38,4 +38,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 	// Verificação da existência de um email
 	boolean existsByEmail(String email);
 
+	@Query("SELECT COUNT(u) FROM Usuario u WHERE TYPE(u) <> Funcionario")
+	long countClientes();
+
 }
