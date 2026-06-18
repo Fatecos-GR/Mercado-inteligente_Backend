@@ -94,6 +94,28 @@ public class DashboardController {
 		return ResponseEntity.ok(produtoService.contar());
 	}
 
+	@GetMapping("/produtos/vencidos/contagem")
+	@PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
+	@Operation(summary = "Contar produtos vencidos (ADMIN/ESTOQUISTA)", description = "Retorna a quantidade de tipos de produtos cuja data de validade já expirou.")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Contagem realizada com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<Long> contarProdutosVencidos() {
+		return ResponseEntity.ok(produtoService.contarProdutosVencidos());
+	}
+
+	@GetMapping("/produtos/vencimento-proximo/contagem")
+	@PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
+	@Operation(summary = "Contar produtos próximos ao vencimento (ADMIN/ESTOQUISTA)", description = "Retorna a quantidade de tipos de produtos com validade prevista para os próximos 5 dias a partir da data atual.")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Contagem realizada com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado")
+	})
+	public ResponseEntity<Long> contarProdutosVencimentoProximo() {
+		return ResponseEntity.ok(produtoService.contarProdutosVencimentoProximo());
+	}
+
 	@GetMapping("/produtos/estoque-total")
 	@PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
 	@Operation(summary = "Quantidade total de produtos em estoque (ADMIN/ESTOQUISTA)", description = "Retorna a soma de todas as unidades de todos os produtos disponíveis em estoque.")
