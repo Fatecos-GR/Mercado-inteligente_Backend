@@ -14,7 +14,6 @@ import br.edu.fatecgru.mercado_inteligente.model.dto.ErrorResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginRequest;
 import br.edu.fatecgru.mercado_inteligente.model.dto.LoginResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroRequest;
-import br.edu.fatecgru.mercado_inteligente.model.dto.RegistroResponse;
 import br.edu.fatecgru.mercado_inteligente.repository.UsuarioRepository;
 import br.edu.fatecgru.mercado_inteligente.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -61,11 +60,12 @@ public class AuthController {
 			@ApiResponse(responseCode = "400", description = "Dados inválidos", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 
 			@ApiResponse(responseCode = "409", description = "Email já cadastrado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))) })
-	public ResponseEntity<RegistroResponse> register(
+	public ResponseEntity<LoginResponse> register(
 			@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Dados para registro de novo usuário", required = true) @RequestBody @Valid RegistroRequest request) {
 
-		RegistroResponse response = authService.registrar(request);
+		LoginResponse response = authService.registrar(request);
 
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
 	}
 }
