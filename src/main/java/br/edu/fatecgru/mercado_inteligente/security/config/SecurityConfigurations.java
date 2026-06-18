@@ -49,6 +49,7 @@ public class SecurityConfigurations {
 					
 					// Vitrine Pública (Apenas Leitura)
 					req.requestMatchers(HttpMethod.GET, "/api/produtos/**").permitAll();
+					req.requestMatchers(HttpMethod.GET, "/api/produtos/descontos").permitAll();
 					req.requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll();
 					req.requestMatchers(HttpMethod.GET, "/api/marcas/**").permitAll();
 					req.requestMatchers(HttpMethod.GET, "/api/enderecos/cep/**").permitAll();

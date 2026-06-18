@@ -2,6 +2,7 @@ package br.edu.fatecgru.mercado_inteligente.model.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -40,6 +41,11 @@ public class Produto {
 
 	@Column(length = 255)
 	private String publicIdImagem;
+
+	@Column(precision = 10, scale = 2)
+	private BigDecimal precoAnterior;
+
+	private LocalDateTime dataReducaoPreco;
 
 	// Muitos produtos podem pertencer à mesma marca
 	@ManyToOne
@@ -165,6 +171,22 @@ public class Produto {
 
 	public void setFornecedor(Fornecedor fornecedor) {
 		this.fornecedor = fornecedor;
+	}
+
+	public BigDecimal getPrecoAnterior() {
+		return precoAnterior;
+	}
+
+	public void setPrecoAnterior(BigDecimal precoAnterior) {
+		this.precoAnterior = precoAnterior;
+	}
+
+	public LocalDateTime getDataReducaoPreco() {
+		return dataReducaoPreco;
+	}
+
+	public void setDataReducaoPreco(LocalDateTime dataReducaoPreco) {
+		this.dataReducaoPreco = dataReducaoPreco;
 	}
 
 }
