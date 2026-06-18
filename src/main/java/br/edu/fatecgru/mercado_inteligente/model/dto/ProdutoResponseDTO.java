@@ -13,6 +13,10 @@ public record ProdutoResponseDTO(
 
 		BigDecimal preco,
 
+		BigDecimal precoAnterior,
+
+		java.time.LocalDateTime dataReducaoPreco,
+
 		LocalDate validade,
 
 		String imagem,
