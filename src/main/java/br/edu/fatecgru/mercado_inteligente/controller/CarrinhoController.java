@@ -19,6 +19,7 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Carrinho;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.service.CarrinhoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -91,7 +92,7 @@ public class CarrinhoController {
     @DeleteMapping("/itens/{produtoId}")
     public ResponseEntity<CarrinhoResponseDTO> removerItem(
             @AuthenticationPrincipal Usuario usuario, 
-            @PathVariable Long produtoId) {
+            @Parameter(description = "ID do produto a ser removido", required = true) @PathVariable Long produtoId) {
         Carrinho carrinho = carrinhoService.removerItem(usuario.getId(), produtoId);
         return ResponseEntity.ok(converterParaDTO(carrinho));
     }
@@ -105,6 +106,21 @@ public class CarrinhoController {
     @DeleteMapping
     public ResponseEntity<CarrinhoResponseDTO> abandonarCarrinho(@AuthenticationPrincipal Usuario usuario) {
         Carrinho carrinho = carrinhoService.abandonarCarrinho(usuario.getId());
+        return ResponseEntity.ok(converterParaDTO(carrinho));
+    }
+
+    @Operation(summary = "Finaliza o pedido (Checkout)", 
+               description = "Converte o carrinho ativo em um pedido finalizado. Exige um endereço de entrega vinculado ao usuário.")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Pedido finalizado com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos ou carrinho vazio"),
+        @ApiResponse(responseCode = "404", description = "Carrinho ou endereço não encontrado")
+    })
+    @PostMapping("/checkout/{enderecoId}")
+    public ResponseEntity<CarrinhoResponseDTO> finalizarPedido(
+            @AuthenticationPrincipal Usuario usuario,
+            @Parameter(description = "ID do endereço de entrega", required = true) @PathVariable Long enderecoId) {
+        Carrinho carrinho = carrinhoService.finalizarPedido(usuario.getId(), enderecoId);
         return ResponseEntity.ok(converterParaDTO(carrinho));
     }
 

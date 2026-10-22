@@ -8,7 +8,13 @@ import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
 
 public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
 
-	// Método para fazer buscar por categoria
-	public List<Categoria> findByNomeContains(String nome);
+	// Listar todos por ordem alfabética
+	List<Categoria> findAllByOrderByNomeAsc();
+
+	// Método para buscar categoria insensível a maiúsculas/minúsculas, em ordem
+	// alfabética
+	List<Categoria> findByNomeContainingIgnoreCaseOrderByNomeAsc(String nome);
+
+	boolean existsByNomeIgnoreCase(String nome);
 
 }

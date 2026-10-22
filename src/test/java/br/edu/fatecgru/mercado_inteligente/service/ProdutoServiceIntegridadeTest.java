@@ -18,34 +18,36 @@ import br.edu.fatecgru.mercado_inteligente.repository.ProdutoRepository;
 @ExtendWith(MockitoExtension.class)
 public class ProdutoServiceIntegridadeTest {
 
-    @InjectMocks
-    private ProdutoService produtoService;
+	@InjectMocks
+	private ProdutoService produtoService;
 
-    @Mock
-    private ProdutoRepository produtoRepository;
+	@Mock
+	private ProdutoRepository produtoRepository;
 
-    @Mock
-    private ItemCarrinhoRepository itemCarrinhoRepository;
+	@Mock
+	private ItemCarrinhoRepository itemCarrinhoRepository;
 
-    @Test
-    void deleteProduto_Sucesso_QuandoNaoEstaEmCarrinhoAtivo() {
-        Long produtoId = 1L;
-        when(itemCarrinhoRepository.existsByProdutoIdAndCarrinhoStatus(produtoId, StatusCarrinho.ATIVO)).thenReturn(false);
+	@Test
+	void deleteProduto_Sucesso_QuandoNaoEstaEmCarrinhoAtivo() {
+		Long produtoId = 1L;
+		when(itemCarrinhoRepository.existsByProdutoIdAndCarrinhoStatus(produtoId, StatusCarrinho.ATIVO))
+				.thenReturn(false);
 
-        produtoService.deleteProduto(produtoId);
+		produtoService.delete(produtoId);
 
-        verify(produtoRepository).deleteById(produtoId);
-    }
+		verify(produtoRepository).deleteById(produtoId);
+	}
 
-    @Test
-    void deleteProduto_Erro_QuandoEstaEmCarrinhoAtivo() {
-        Long produtoId = 1L;
-        when(itemCarrinhoRepository.existsByProdutoIdAndCarrinhoStatus(produtoId, StatusCarrinho.ATIVO)).thenReturn(true);
+	@Test
+	void deleteProduto_Erro_QuandoEstaEmCarrinhoAtivo() {
+		Long produtoId = 1L;
+		when(itemCarrinhoRepository.existsByProdutoIdAndCarrinhoStatus(produtoId, StatusCarrinho.ATIVO))
+				.thenReturn(true);
 
-        assertThrows(IllegalStateException.class, () -> {
-            produtoService.deleteProduto(produtoId);
-        });
+		assertThrows(IllegalStateException.class, () -> {
+			produtoService.delete(produtoId);
+		});
 
-        verify(produtoRepository, never()).deleteById(produtoId);
-    }
+		verify(produtoRepository, never()).deleteById(produtoId);
+	}
 }

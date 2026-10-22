@@ -7,60 +7,74 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import br.edu.fatecgru.mercado_inteligente.model.dto.ErrorResponse;
 import br.edu.fatecgru.mercado_inteligente.model.dto.MarcaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.MarcaResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
-import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
+import br.edu.fatecgru.mercado_inteligente.model.swagger.MarcaMultipartRequest;
 import br.edu.fatecgru.mercado_inteligente.service.MarcaService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@CrossOrigin(origins = "*")
 @RestController
-//Cria o geral, todos precisam desse
-@Tag(name = "Marcas", description = "Endpoints relacionados as Marcas")
 @RequestMapping("/api/marcas")
-
+@Tag(name = "Marcas", description = "Endpoints relacionados as Marcas")
 public class MarcaController {
 
 	@Autowired
 	private MarcaService marcaService;
 
 	@Autowired
-	private ImagemService imagemService;
+	private jakarta.validation.Validator validator;
 
-	// Lista todas as categorias
 	@GetMapping
 	@Operation(summary = "Listar todas as Marcas")
-	public List<Marca> listarTodos() {
-		return marcaService.listarTodos();
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Marcas listadas com sucesso") })
+	public ResponseEntity<List<MarcaResponseDTO>> listarTodos() {
+		List<MarcaResponseDTO> marcas = marcaService.listarTodos().stream().map(MarcaResponseDTO::fromEntity).toList();
+		return ResponseEntity.ok(marcas);
 	}
 
-	// Busca por ID
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar marca por ID")
-	public Marca buscarPorId(@PathVariable Long id) {
-		return marcaService.getById(id);
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Marca encontrada"),
+			@ApiResponse(responseCode = "404", description = "Marca não encontrada") })
+	public ResponseEntity<MarcaResponseDTO> buscarPorId(
+			@Parameter(description = "ID da marca", required = true) @PathVariable Long id) {
+		Marca marca = marcaService.getById(id);
+		if (marca == null) {
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Marca não encontrada com ID: " + id);
+		}
+		return ResponseEntity.ok(MarcaResponseDTO.fromEntity(marca));
 	}
 
-	// Busca de marca por nome
-	@GetMapping("/contem-nome/{nome}")
-	@Operation(summary = "Buscar marca por ID")
-	public List<Marca> buscarPorContemNome(@PathVariable String nome) {
-		return marcaService.getByContainsName(nome);
+	@GetMapping("/search")
+	@Operation(summary = "Buscar marcas por nome")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Marcas encontradas") })
+	public ResponseEntity<List<MarcaResponseDTO>> buscarPorNome(
+			@Parameter(description = "Nome ou parte do nome", required = true) @RequestParam String nome) {
+		List<MarcaResponseDTO> marcas = marcaService.getByContainsName(nome).stream().map(MarcaResponseDTO::fromEntity)
+				.toList();
+		return ResponseEntity.ok(marcas);
 	}
 
 	// Pasta das marcas para salvar as imagens
@@ -69,37 +83,44 @@ public class MarcaController {
 	// Salvar Marca
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Salvar Marca")
-	public ResponseEntity<?> insert(@RequestPart("marca") String marcaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	@Operation(summary = "Salvar Marca", description = "Cadastra uma nova marca no sistema. O nome da marca deve ser único.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = MarcaMultipartRequest.class))))
+	@ApiResponses(value = {
 
-		try {
+			@ApiResponse(responseCode = "201", description = "Marca criada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MarcaResponseDTO.class))),
 
-			ObjectMapper mapper = new ObjectMapper();
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 
-			MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))) })
 
-			Marca marca = marcaService.cadastrar(dto);
+	public ResponseEntity<MarcaResponseDTO> insert(
+			@Parameter(description = "Dados da marca em JSON", required = true) @RequestPart("marca") String marcaJson,
+			@Parameter(description = "Arquivo de imagem da marca") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
-			String nomeImagem = imagemService.salvarImagem(imagem, pastaMarcas);
+		ObjectMapper mapper = new ObjectMapper();
+		MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
 
-			if (nomeImagem != null) {
-
-				marca.setImagem(nomeImagem);
-
-				marcaService.save(marca);
-			}
-
-			MarcaResponseDTO response = new MarcaResponseDTO(marca.getId(), marca.getNome(), marca.getDescricao(),
-					marca.getImagem());
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
-		} catch (Exception e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
+		// Validação Manual
+		java.util.Set<jakarta.validation.ConstraintViolation<MarcaDTO>> violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
 		}
+
+		Marca marca = marcaService.cadastrar(dto, imagem);
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(MarcaResponseDTO.fromEntity(marca));
 	}
+
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PreAuthorize("hasRole('ADMIN')")
+	@Operation(
+
+			summary = "Alterar Marca",
+
+			description = "Atualiza os dados de uma marca existente. Se o nome for alterado, ele deve continuar sendo único no sistema.",
+
+			requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
 
 	// Alterar Marca
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -108,56 +129,63 @@ public class MarcaController {
 	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("marca") String marcaJson,
 			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
 
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
+					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
 
-			Marca atual = marcaService.getById(id);
+							schema = @Schema(implementation = MarcaMultipartRequest.class))))
+	@ApiResponses(value = {
 
-			if (atual == null) {
-				return ResponseEntity.notFound().build();
-			}
+			@ApiResponse(responseCode = "200", description = "Marca alterada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = MarcaResponseDTO.class))),
 
-			atual.setNome(dto.getNome());
-			atual.setDescricao(dto.getDescricao());
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 
-			// substitui imagem
-			String imagemAntiga = atual.getImagem();
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 
-			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaMarcas);
+			@ApiResponse(responseCode = "404", description = "Marca não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))) })
 
-			atual.setImagem(imagemAtualizada);
+	public ResponseEntity<MarcaResponseDTO> update(
+			@Parameter(description = "ID da marca", required = true) @PathVariable Long id,
+			@Parameter(description = "Dados atualizados da marca em JSON", required = true) @RequestPart("marca") String marcaJson,
+			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
-			return ResponseEntity.ok(marcaService.save(atual));
+		ObjectMapper mapper = new ObjectMapper();
+		MarcaDTO dto = mapper.readValue(marcaJson, MarcaDTO.class);
 
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body(e.getMessage());
+		// Validação Manual
+		java.util.Set<jakarta.validation.ConstraintViolation<MarcaDTO>> violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
 		}
+
+		Marca marca = marcaService.atualizar(id, dto, imagem);
+
+		return ResponseEntity.ok(MarcaResponseDTO.fromEntity(marca));
+
 	}
 
-	// Deletar Marca
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Deletar Marca")
-	public ResponseEntity<?> delete(@PathVariable Long id) {
-		try {
-			Marca marca = marcaService.getById(id);
+	@Operation(summary = "Deletar Marca", description = "Remove uma marca e seus produtos vinculados. A exclusão falhará se algum produto da marca estiver em um carrinho ativo.")
+	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Marca excluída com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Não é possível excluir (produtos em carrinhos ativos)"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Marca não encontrada") })
+	public ResponseEntity<Void> delete(@Parameter(description = "ID da marca", required = true) @PathVariable Long id) {
 
-			if (marca == null) {
-				return ResponseEntity.notFound().build();
-			}
+		marcaService.delete(id);
 
-			if (marca.getImagem() != null) {
-				imagemService.deletarImagem(marca.getImagem(), pastaMarcas);
-			}
-
-			marcaService.delete(id);
-
-			return ResponseEntity.noContent().build(); // 204
-
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
-		}
+		return ResponseEntity.noContent().build();
 	}
 
+	private org.springframework.validation.BindingResult createBindingResult(Object target,
+			java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
+		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(
+				target, "dto");
+		for (jakarta.validation.ConstraintViolation<?> violation : violations) {
+			bindingResult.addError(new org.springframework.validation.FieldError("dto",
+					violation.getPropertyPath().toString(), violation.getMessage()));
+		}
+		return bindingResult;
+	}
 }

@@ -34,3 +34,11 @@ build/
 
 ### env ###
 .env
+application-local.properties
+application-secrets.properties
+
+###endpoint###
+ENDPOINTS.md
+
+###application.properties###
+application.properties

@@ -11,6 +11,7 @@ public class FuncionarioResponseDTO {
 	private String telefone;
 	private String email;
 	private String imagem;
+	private String publicIdImagem;
 	private TipoFuncionario tipoFuncionario;
 
 	// Construtores
@@ -19,20 +20,21 @@ public class FuncionarioResponseDTO {
 	}
 
 	public FuncionarioResponseDTO(Long id, String nome, String sobrenome, String telefone, String email, String imagem,
-			TipoFuncionario tipoFuncionario) {
+			String publicIdImagem, TipoFuncionario tipoFuncionario) {
 		this.id = id;
 		this.nome = nome;
 		this.sobrenome = sobrenome;
 		this.telefone = telefone;
 		this.email = email;
 		this.imagem = imagem;
+		this.publicIdImagem = publicIdImagem;
 		this.tipoFuncionario = tipoFuncionario;
 	}
 
 	public static FuncionarioResponseDTO fromEntity(Funcionario funcionario) {
 		return new FuncionarioResponseDTO(funcionario.getId(), funcionario.getNome(), funcionario.getSobrenome(),
 				funcionario.getTelefone(), funcionario.getEmail(), funcionario.getImagem(),
-				funcionario.getTipoFuncionario());
+				funcionario.getPublicIdImagem(), funcionario.getTipoFuncionario());
 	}
 
 	// Getters e Setters
@@ -82,6 +84,14 @@ public class FuncionarioResponseDTO {
 
 	public void setImagem(String imagem) {
 		this.imagem = imagem;
+	}
+
+	public String getPublicIdImagem() {
+		return publicIdImagem;
+	}
+
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
 	}
 
 	public TipoFuncionario getTipoFuncionario() {

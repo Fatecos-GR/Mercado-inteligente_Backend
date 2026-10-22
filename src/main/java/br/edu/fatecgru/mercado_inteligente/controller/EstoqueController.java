@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,14 +20,14 @@ import br.edu.fatecgru.mercado_inteligente.model.dto.MovimentacaoResponseDTO;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Usuario;
 import br.edu.fatecgru.mercado_inteligente.service.EstoqueService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
-@CrossOrigin(origins = "*")
 @RestController
-@RequestMapping("/api/estoque")
+@RequestMapping("/api/estoques")
 @Tag(name = "Estoque", description = "Endpoints para gestão de estoque e inventário")
 @PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
 public class EstoqueController {
@@ -42,10 +41,11 @@ public class EstoqueController {
         @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-    public List<EstoqueResponseDTO> listarTodos() {
-        return estoqueService.listarTodos().stream()
+    public ResponseEntity<List<EstoqueResponseDTO>> listarTodos() {
+        List<EstoqueResponseDTO> estoque = estoqueService.listarTodos().stream()
                 .map(EstoqueMapper::toDTO)
                 .toList();
+        return ResponseEntity.ok(estoque);
     }
 
     @GetMapping("/produto/{id}")
@@ -55,7 +55,7 @@ public class EstoqueController {
         @ApiResponse(responseCode = "404", description = "Estoque não encontrado para o produto"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-    public ResponseEntity<EstoqueResponseDTO> buscarPorProdutoId(@PathVariable Long id) {
+    public ResponseEntity<EstoqueResponseDTO> buscarPorProdutoId(@Parameter(description = "ID do produto", required = true) @PathVariable Long id) {
         return ResponseEntity.ok(EstoqueMapper.toDTO(estoqueService.buscarPorProdutoId(id)));
     }
 
@@ -66,10 +66,11 @@ public class EstoqueController {
         @ApiResponse(responseCode = "404", description = "Produto ou estoque não encontrado"),
         @ApiResponse(responseCode = "403", description = "Acesso negado")
     })
-    public List<MovimentacaoResponseDTO> buscarMovimentacoes(@PathVariable Long produtoId) {
-        return estoqueService.buscarMovimentacoes(produtoId).stream()
+    public ResponseEntity<List<MovimentacaoResponseDTO>> buscarMovimentacoes(@Parameter(description = "ID do produto", required = true) @PathVariable Long produtoId) {
+        List<MovimentacaoResponseDTO> movimentacoes = estoqueService.buscarMovimentacoes(produtoId).stream()
                 .map(EstoqueMapper::toDTO)
                 .toList();
+        return ResponseEntity.ok(movimentacoes);
     }
 
     @PostMapping("/ajuste")

@@ -24,7 +24,11 @@ public class Fornecedor {
 	private String nome;
 
 	// Pode ser opcional
+	@Column(length = 500)
 	private String imagem;
+
+	@Column(length = 255)
+	private String publicIdImagem;
 
 	// Um fornecedo tem um endereço principal (sede)
 	@OneToOne(cascade = CascadeType.ALL)
@@ -36,10 +40,11 @@ public class Fornecedor {
 
 	}
 
-	public Fornecedor(Long id, String nome, String imagem, Endereco endereco) {
+	public Fornecedor(Long id, String nome, String imagem, String publicIdImagem, Endereco endereco) {
 		this.id = id;
 		this.nome = nome;
 		this.imagem = imagem;
+		this.publicIdImagem = publicIdImagem;
 		this.endereco = endereco;
 	}
 
@@ -66,6 +71,14 @@ public class Fornecedor {
 
 	public void setImagem(String imagem) {
 		this.imagem = imagem;
+	}
+
+	public String getPublicIdImagem() {
+		return publicIdImagem;
+	}
+
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
 	}
 
 	public Endereco getEndereco() {

@@ -1,77 +1,72 @@
 package br.edu.fatecgru.mercado_inteligente.service;
 
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
+
+import br.edu.fatecgru.mercado_inteligente.model.dto.ImagemDTO;
+
 @Service
 public class ImagemService {
 
-	// Salvar imagem
-	public String salvarImagem(MultipartFile imagem, String pasta) throws Exception {
+	private final Cloudinary cloudinary;
+
+	public ImagemService(Cloudinary cloudinary) {
+		this.cloudinary = cloudinary;
+	}
+
+	public ImagemDTO salvarImagem(MultipartFile imagem, String pasta) throws Exception {
+
 		if (imagem == null || imagem.isEmpty()) {
 			return null;
 		}
 
-		// Validar tipo do arquivo
 		String tipo = imagem.getContentType();
 
-		if (tipo == null || (!tipo.equals("image/png") && !tipo.equals("image/jpeg") && !tipo.equals("image/jpg"))) {
-
-			throw new RuntimeException("Formato de imagem inválido");
+		if (tipo == null || !tipo.startsWith("image/")) {
+			throw new IllegalArgumentException("Arquivo enviado não é uma imagem.");
 		}
 
-		String caminhoPasta = System.getProperty("user.dir") + "/uploads/" + pasta;
+		Map<?, ?> resultado = cloudinary.uploader().upload(imagem.getBytes(), ObjectUtils.asMap("folder", pasta));
 
-		File diretorio = new File(caminhoPasta);
-		if (!diretorio.exists()) {
-			diretorio.mkdirs();
-		}
+		String url = resultado.get("secure_url").toString();
+		String publicId = resultado.get("public_id").toString();
 
-		// Corrigir / padronizar nome da imagem
-		String nomeOriginal = imagem.getOriginalFilename().replaceAll("\\s+", "_");
-
-		String nomeArquivo = System.currentTimeMillis() + "_" + nomeOriginal;
-
-		Path caminho = Paths.get(caminhoPasta, nomeArquivo);
-		Files.write(caminho, imagem.getBytes());
-
-		return nomeArquivo;
+		return new ImagemDTO(url, publicId);
 	}
 
-	// Deletar imagem
-	public void deletarImagem(String nomeImagem, String pasta) {
-		if (nomeImagem == null || nomeImagem.isEmpty())
+	public void deletarImagem(String publicId) {
+
+		if (publicId == null || publicId.isBlank()) {
 			return;
+		}
 
 		try {
-			String caminhoPasta = System.getProperty("user.dir") + "/uploads/" + pasta;
 
-			Path caminho = Paths.get(caminhoPasta, nomeImagem);
+			cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
 
-			Files.deleteIfExists(caminho);
 		} catch (Exception e) {
 			System.out.println("Erro ao deletar imagem: " + e.getMessage());
 		}
 	}
 
-	// Substituir imagem
-	public String substituirImagem(String antiga, MultipartFile nova, String pasta) throws Exception {
-		if (nova == null || nova.isEmpty())
-			return antiga;
+	public ImagemDTO substituirImagem(String publicIdAntigo, MultipartFile novaImagem, String pasta) throws Exception {
 
-		String novaImagem = salvarImagem(nova, pasta);
-
-		try {
-			deletarImagem(antiga, pasta);
-		} catch (Exception e) {
-			System.out.println("Erro ao deletar imagem antiga: " + e.getMessage());
+		if (novaImagem == null || novaImagem.isEmpty()) {
+			return null;
 		}
 
-		return novaImagem;
+		ImagemDTO nova = salvarImagem(novaImagem, pasta);
+
+		if (publicIdAntigo != null && !publicIdAntigo.isBlank()) {
+			deletarImagem(publicIdAntigo);
+		}
+
+		return nova;
 	}
+
 }

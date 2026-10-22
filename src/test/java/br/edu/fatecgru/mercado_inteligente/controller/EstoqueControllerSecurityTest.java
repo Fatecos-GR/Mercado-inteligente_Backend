@@ -37,21 +37,21 @@ class EstoqueControllerSecurityTest {
     @DisplayName("Deve retornar 403 ao tentar listar estoque como CLIENTE")
     @WithMockUser(roles = "CLIENTE")
     void listarEstoqueComoCliente() throws Exception {
-        mockMvc.perform(get("/api/estoque")).andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/estoques")).andExpect(status().isForbidden());
     }
 
     @Test
     @DisplayName("Deve retornar 200 ao listar estoque como ADMIN")
     @WithMockUser(roles = "ADMIN")
     void listarEstoqueComoAdmin() throws Exception {
-        mockMvc.perform(get("/api/estoque")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/estoques")).andExpect(status().isOk());
     }
 
     @Test
     @DisplayName("Deve retornar 200 ao listar estoque como ESTOQUISTA")
     @WithMockUser(roles = "ESTOQUISTA")
     void listarEstoqueComoEstoquista() throws Exception {
-        mockMvc.perform(get("/api/estoque")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/estoques")).andExpect(status().isOk());
     }
 
     @Test
@@ -59,7 +59,7 @@ class EstoqueControllerSecurityTest {
     @WithMockUser(roles = "CLIENTE")
     void ajustarEstoqueComoCliente() throws Exception {
         String json = "{\"produtoId\":1, \"quantidade\":10, \"tipo\":\"ENTRADA\"}";
-        mockMvc.perform(post("/api/estoque/ajuste")
+        mockMvc.perform(post("/api/estoques/ajuste")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json))
                 .andExpect(status().isForbidden());
@@ -68,6 +68,6 @@ class EstoqueControllerSecurityTest {
     @Test
     @DisplayName("Deve retornar 401 ao tentar acessar sem autenticação")
     void acessoSemAutenticacao() throws Exception {
-        mockMvc.perform(get("/api/estoque")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/estoques")).andExpect(status().isUnauthorized());
     }
 }

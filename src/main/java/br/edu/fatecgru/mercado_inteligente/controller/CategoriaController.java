@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -22,15 +23,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import br.edu.fatecgru.mercado_inteligente.model.dto.CategoriaDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.CategoriaResponseDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ErrorResponse;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
+import br.edu.fatecgru.mercado_inteligente.model.swagger.CategoriaMultipartRequest;
 import br.edu.fatecgru.mercado_inteligente.service.CategoriaService;
-import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @CrossOrigin(origins = "*")
 @RestController
-//Cria o geral, todos precisam desse
 @RequestMapping("/api/categorias")
 @Tag(name = "Categorias", description = "Endpoints relacionados a categorias")
 public class CategoriaController {
@@ -39,124 +45,151 @@ public class CategoriaController {
 	private CategoriaService categoriaService;
 
 	@Autowired
-	private ImagemService imagemService;
+	private jakarta.validation.Validator validator;
 
-	// Lista todas as categorias
 	@GetMapping
 	@Operation(summary = "Listar todas as categorias")
-	public List<Categoria> listarTodos() {
-		return categoriaService.listarTodos();
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Categorias listadas com sucesso") })
+	public ResponseEntity<List<CategoriaResponseDTO>> listarTodos() {
+		List<CategoriaResponseDTO> categorias = categoriaService.listarTodos().stream()
+				.map(c -> new CategoriaResponseDTO(c.getId(), c.getNome(), c.getDescricao(), c.getImagem(),
+						c.getPublicIdImagem()))
+				.toList();
+		return ResponseEntity.ok(categorias);
 	}
 
-	// Busca por ID
 	@GetMapping("/{id}")
 	@Operation(summary = "Buscar categoria por ID")
-	public Categoria buscarPorId(@PathVariable Long id) {
-		return categoriaService.getById(id);
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Categoria encontrada"),
+			@ApiResponse(responseCode = "404", description = "Categoria não encontrada") })
+	public ResponseEntity<CategoriaResponseDTO> buscarPorId(
+			@Parameter(description = "ID da categoria", required = true) @PathVariable Long id) {
+		Categoria categoria = categoriaService.getById(id);
+		if (categoria == null) {
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Categoria não encontrada com ID: " + id);
+		}
+		return ResponseEntity.ok(new CategoriaResponseDTO(categoria.getId(), categoria.getNome(),
+				categoria.getDescricao(), categoria.getImagem(), categoria.getPublicIdImagem()));
 	}
 
-	// Busca de categoria pelo nome
-	@GetMapping("/contem-nome/{nome}")
-	@Operation(summary = "Buscar por nome")
-	public List<Categoria> buscarPorContemNome(@PathVariable String nome) {
-		return categoriaService.getByContainsName(nome);
+	@GetMapping("/search")
+	@Operation(summary = "Buscar categorias por nome")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Categorias encontradas") })
+	public ResponseEntity<List<CategoriaResponseDTO>> buscarPorNome(
+			@Parameter(description = "Nome ou parte do nome", required = true) @RequestParam String nome) {
+		List<CategoriaResponseDTO> categorias = categoriaService.getByContainsName(nome).stream()
+				.map(c -> new CategoriaResponseDTO(c.getId(), c.getNome(), c.getDescricao(), c.getImagem(),
+						c.getPublicIdImagem()))
+				.toList();
+		return ResponseEntity.ok(categorias);
 	}
 
-	// Pasta das categorias para salvar as imagens
 	String pastaCategorias = "categories/";
 
 	// Salvar Categoria
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Salvar Categoria")
-	public ResponseEntity<?> insert(@RequestPart("categoria") String categoriaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	@Operation(summary = "Salvar Categoria", description = "Cadastra uma nova categoria no sistema. O nome da categoria deve ser único.",
 
-		try {
+			requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = CategoriaMultipartRequest.class))))
+	@ApiResponses(value = {
 
-			ObjectMapper mapper = new ObjectMapper();
+			@ApiResponse(responseCode = "201", description = "Categoria criada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoriaResponseDTO.class))),
 
-			CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 
-			Categoria categoria = categoriaService.cadastrar(dto);
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
 
-			String nomeImagem = imagemService.salvarImagem(imagem, pastaCategorias);
+	})
+	public ResponseEntity<CategoriaResponseDTO> insert(
+			@Parameter(description = "Dados da categoria em JSON", required = true) @RequestPart("categoria") String categoriaJson,
+			@Parameter(description = "Arquivo de imagem da categoria") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
-			if (nomeImagem != null) {
+		ObjectMapper mapper = new ObjectMapper();
+		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
 
-				categoria.setImagem(nomeImagem);
-
-				categoriaService.save(categoria);
-			}
-
-			CategoriaResponseDTO response = new CategoriaResponseDTO(categoria.getId(), categoria.getNome(),
-					categoria.getDescricao(), categoria.getImagem());
-
-			return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
-		} catch (Exception e) {
-
-			return ResponseEntity.badRequest().body(e.getMessage());
+		java.util.Set<jakarta.validation.ConstraintViolation<CategoriaDTO>> violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
 		}
+
+		Categoria categoria = categoriaService.cadastrar(dto, imagem);
+
+		categoriaService.save(categoria);
+
+		CategoriaResponseDTO response = new CategoriaResponseDTO(categoria.getId(), categoria.getNome(),
+				categoria.getDescricao(), categoria.getImagem(), categoria.getPublicIdImagem());
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
 	// Alterar Categoria
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Alterar Categoria")
-	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("categoria") String categoriaJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	@Operation(summary = "Alterar Categoria", description = "Atualiza os dados de uma categoria existente. Se o nome for alterado, ele deve continuar sendo único no sistema.",
 
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
+			requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = CategoriaMultipartRequest.class))))
+	@ApiResponses(value = {
 
-			Categoria atual = categoriaService.getById(id);
+			@ApiResponse(responseCode = "200", description = "Categoria alterada com sucesso", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoriaResponseDTO.class))),
 
-			if (atual == null) {
-				return ResponseEntity.notFound().build();
-			}
+			@ApiResponse(responseCode = "400", description = "Dados inválidos ou nome já existente", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 
-			atual.setNome(dto.getNome());
-			atual.setDescricao(dto.getDescricao());
+			@ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
 
-			// substitui imagem
-			String imagemAntiga = atual.getImagem();
+			@ApiResponse(responseCode = "404", description = "Categoria não encontrada", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
 
-			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaCategorias);
+	})
+	public ResponseEntity<CategoriaResponseDTO> update(
+			@Parameter(description = "ID da categoria", required = true) @PathVariable Long id,
+			@Parameter(description = "Dados atualizados da categoria em JSON", required = true) @RequestPart("categoria") String categoriaJson,
+			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
-			atual.setImagem(imagemAtualizada);
+		ObjectMapper mapper = new ObjectMapper();
 
-			return ResponseEntity.ok(categoriaService.save(atual));
+		CategoriaDTO dto = mapper.readValue(categoriaJson, CategoriaDTO.class);
 
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body(e.getMessage());
+		// Validação Manual
+		java.util.Set<jakarta.validation.ConstraintViolation<CategoriaDTO>> violations = validator.validate(dto);
+		if (!violations.isEmpty()) {
+			throw new org.springframework.web.bind.MethodArgumentNotValidException(null,
+					createBindingResult(dto, violations));
 		}
+
+		Categoria categoria = categoriaService.atualizar(id, dto, imagem);
+
+		return ResponseEntity.ok(CategoriaResponseDTO.fromEntity(categoria));
+
 	}
 
-	// Deletar Categoria
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Deletar Categoria")
-	public ResponseEntity<?> delete(@PathVariable Long id) {
-		try {
-			Categoria categoria = categoriaService.getById(id);
+	@Operation(summary = "Deletar Categoria", description = "Remove uma categoria e seus produtos vinculados. A exclusão falhará se algum produto da categoria estiver em um carrinho ativo.")
+	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Categoria excluída com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Não é possível excluir (produtos em carrinhos ativos)"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Categoria não encontrada") })
+	public ResponseEntity<Void> delete(
+			@Parameter(description = "ID da categoria", required = true) @PathVariable Long id) {
 
-			if (categoria == null) {
-				return ResponseEntity.notFound().build();
-			}
+		categoriaService.delete(id);
 
-			if (categoria.getImagem() != null) {
-				imagemService.deletarImagem(categoria.getImagem(), pastaCategorias);
-			}
+		return ResponseEntity.noContent().build();
+	}
 
-			categoriaService.delete(id);
-
-			return ResponseEntity.noContent().build(); // 204
-
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
+	private org.springframework.validation.BindingResult createBindingResult(Object target,
+			java.util.Set<? extends jakarta.validation.ConstraintViolation<?>> violations) {
+		org.springframework.validation.BeanPropertyBindingResult bindingResult = new org.springframework.validation.BeanPropertyBindingResult(
+				target, "dto");
+		for (jakarta.validation.ConstraintViolation<?> violation : violations) {
+			bindingResult.addError(new org.springframework.validation.FieldError("dto",
+					violation.getPropertyPath().toString(), violation.getMessage()));
 		}
+		return bindingResult;
 	}
 
 }

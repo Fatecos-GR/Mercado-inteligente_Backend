@@ -19,7 +19,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -50,12 +51,20 @@ public class Usuario implements UserDetails {
 	@Column(nullable = false, unique = true)
 	private String email;
 
+	// Pode ser opcional
+	@Column(length = 500)
 	private String imagem;
 
-	// Cascade --> Ações feitas no usuário também afetam o endereço
-	@JsonManagedReference
-	@OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Endereco> enderecos = new ArrayList<>();
+	@Column(length = 255)
+	private String publicIdImagem;
+
+	// Relacionamento 1 para 1 com Endereço
+	@OneToOne(cascade = CascadeType.ALL)
+	@JoinColumn(name = "endereco_id", unique = true)
+	private Endereco endereco;
+
+	@Column(nullable = false)
+	private boolean ativo = true;
 
 	// Construtores
 	public Usuario() {
@@ -63,7 +72,7 @@ public class Usuario implements UserDetails {
 	}
 
 	public Usuario(Long id, String nome, String sobrenome, String telefone, String senha, String email, String imagem,
-			List<Endereco> enderecos) {
+			String publicIdImagem, Endereco endereco, boolean ativo) {
 		this.id = id;
 		this.nome = nome;
 		this.sobrenome = sobrenome;
@@ -71,7 +80,9 @@ public class Usuario implements UserDetails {
 		this.senha = senha;
 		this.email = email;
 		this.imagem = imagem;
-		this.enderecos = enderecos;
+		this.publicIdImagem = publicIdImagem;
+		this.endereco = endereco;
+		this.ativo = ativo;
 	}
 
 	// Getters e Setters
@@ -131,12 +142,28 @@ public class Usuario implements UserDetails {
 		this.imagem = imagem;
 	}
 
-	public List<Endereco> getEnderecos() {
-		return enderecos;
+	public String getPublicIdImagem() {
+		return publicIdImagem;
 	}
 
-	public void setEnderecos(List<Endereco> enderecos) {
-		this.enderecos = enderecos;
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
+	}
+
+	public Endereco getEndereco() {
+		return endereco;
+	}
+
+	public void setEndereco(Endereco endereco) {
+		this.endereco = endereco;
+	}
+
+	public boolean isAtivo() {
+		return ativo;
+	}
+
+	public void setAtivo(boolean ativo) {
+		this.ativo = ativo;
 	}
 
 	@Override
@@ -181,7 +208,7 @@ public class Usuario implements UserDetails {
 
 	@Override
 	public boolean isEnabled() {
-		return true;
+		return this.ativo;
 	}
 
 }

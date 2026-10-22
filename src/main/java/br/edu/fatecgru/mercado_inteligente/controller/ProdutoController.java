@@ -1,76 +1,71 @@
 package br.edu.fatecgru.mercado_inteligente.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import br.edu.fatecgru.mercado_inteligente.mapper.ProdutoMapper;
-import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoDTO;
+import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoRequestDTO;
 import br.edu.fatecgru.mercado_inteligente.model.dto.ProdutoResponseDTO;
-import br.edu.fatecgru.mercado_inteligente.model.entity.Categoria;
-import br.edu.fatecgru.mercado_inteligente.model.entity.Fornecedor;
-import br.edu.fatecgru.mercado_inteligente.model.entity.Marca;
 import br.edu.fatecgru.mercado_inteligente.model.entity.Produto;
-import br.edu.fatecgru.mercado_inteligente.repository.CategoriaRepository;
-import br.edu.fatecgru.mercado_inteligente.repository.FornecedorRepository;
-import br.edu.fatecgru.mercado_inteligente.repository.MarcaRepository;
-import br.edu.fatecgru.mercado_inteligente.service.ImagemService;
+import br.edu.fatecgru.mercado_inteligente.model.swagger.ProdutoMultipartRequest;
 import br.edu.fatecgru.mercado_inteligente.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 
-@CrossOrigin(origins = "*")
 @RestController
-//Cria o geral, todos precisam desse
 @RequestMapping("/api/produtos")
 @Tag(name = "Produtos", description = "Endpoints relacionados aos Produtos")
 public class ProdutoController {
 
 	@Autowired
-	private CategoriaRepository categoriaRepository;
-
-	@Autowired
-	private MarcaRepository marcaRepository;
-
-	@Autowired
-	private FornecedorRepository fornecedorRepository;
-
-	@Autowired
 	private ProdutoService produtoService;
 
 	@Autowired
-	private ImagemService imagemService;
+	private Validator validator;
 
-	// Lista todos
 	@GetMapping
 	@Operation(summary = "Listar todos os produtos")
 	public List<ProdutoResponseDTO> listarTodos() {
 		return produtoService.listarTodos().stream().map(ProdutoMapper::toDTO).toList();
 	}
 
-	// Busca produto por ID
 	@GetMapping("/{id}")
 	@Operation(summary = "Listar produto por ID")
-	public ResponseEntity<ProdutoResponseDTO> buscarPorId(@PathVariable Long id) {
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Produto encontrado"),
+			@ApiResponse(responseCode = "404", description = "Produto não encontrado") })
+	public ResponseEntity<ProdutoResponseDTO> buscarPorId(
+			@Parameter(description = "ID do produto", required = true) @PathVariable Long id) {
 		Produto produto = produtoService.getById(id);
 		if (produto == null) {
-			return ResponseEntity.notFound().build();
+			throw new br.edu.fatecgru.mercado_inteligente.exception.ResourceNotFoundException(
+					"Produto não encontrado com ID: " + id);
 		}
 		return ResponseEntity.ok(ProdutoMapper.toDTO(produto));
 	}
@@ -82,137 +77,122 @@ public class ProdutoController {
 		return produtoService.getByContainsName(nome).stream().map(ProdutoMapper::toDTO).toList();
 	}
 
-	// Busca por ID da categoria
 	@GetMapping("/categoria/{id}")
 	@Operation(summary = "Listar produto por ID da categoria")
 	public List<ProdutoResponseDTO> buscarPorIdCategoria(@PathVariable Long id) {
 		return produtoService.getByCategoryId(id).stream().map(ProdutoMapper::toDTO).toList();
 	}
 
-	// Busca por ID da marca
 	@GetMapping("/marca/{id}")
 	@Operation(summary = "Listar produto por ID da Marca")
 	public List<ProdutoResponseDTO> buscarPorIdMarca(@PathVariable Long id) {
 		return produtoService.getByBrandId(id).stream().map(ProdutoMapper::toDTO).toList();
 	}
 
-	// Pasta dos produtos para salvar as imagens
-	String pastaProdutos = "products/";
+	// Listar por menor preço
+	@GetMapping("/preco/maior")
+	public ResponseEntity<List<ProdutoResponseDTO>> listarPorMaiorPreco() {
+
+		List<ProdutoResponseDTO> produtos = produtoService.listarPorMaiorPreco().stream().map(ProdutoMapper::toDTO)
+				.toList();
+
+		return ResponseEntity.ok(produtos);
+	}
 
 	// Salvar produto
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Salvar Produto")
-	public ResponseEntity<?> insert(@RequestPart("produto") String produtoJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	@Operation(summary = "Salvar Produto",
 
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
+			requestBody = @RequestBody(required = true,
 
-			Produto produto = new Produto();
+					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
 
-			produto.setNome(dto.nome());
-			produto.setDescricao(dto.descricao());
-			produto.setPreco(dto.preco());
-			produto.setValidade(dto.validade());
+							schema = @Schema(implementation = ProdutoMultipartRequest.class))))
 
-			Categoria categoria = categoriaRepository.findById(dto.categoriaId())
-					.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+	@ApiResponses(value = { @ApiResponse(responseCode = "201", description = "Produto criado com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado") })
+	public ResponseEntity<ProdutoResponseDTO> insert(
+			@Parameter(description = "Dados do produto", required = true) @RequestPart("produto") String produtoJson,
+			@Parameter(description = "Arquivo de imagem do produto") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
-			Marca marca = marcaRepository.findById(dto.marcaId())
-					.orElseThrow(() -> new RuntimeException("Marca não encontrada"));
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new JavaTimeModule());
 
-			Fornecedor fornecedor = fornecedorRepository.findById(dto.fornecedorId())
-					.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+		ProdutoRequestDTO dto = mapper.readValue(produtoJson, ProdutoRequestDTO.class);
 
-			produto.setCategoria(categoria);
-			produto.setMarca(marca);
-			produto.setFornecedor(fornecedor);
+		Set<ConstraintViolation<ProdutoRequestDTO>> violations = validator.validate(dto);
 
-			String nomeImagem = imagemService.salvarImagem(imagem, pastaProdutos);
+		if (!violations.isEmpty()) {
 
-			produto.setImagem(nomeImagem);
-			Produto salvo = produtoService.saveProduto(produto);
-			return ResponseEntity.status(HttpStatus.CREATED).body(ProdutoMapper.toDTO(salvo));
+			String mensagem = violations.stream().map(ConstraintViolation::getMessage).findFirst()
+					.orElse("Dados inválidos");
 
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body(e.getMessage());
+			throw new IllegalArgumentException(mensagem);
 		}
+
+		Produto produto = produtoService.cadastrar(dto, imagem);
+
+		return ResponseEntity.status(HttpStatus.CREATED).body(ProdutoMapper.toDTO(produto));
 	}
 
 	// Alterar produto
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
-	@Operation(summary = "Alterar Produto")
-	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("produto") String produtoJson,
-			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
+	@Operation(summary = "Alterar Produto",
 
-		try {
-			ObjectMapper mapper = new ObjectMapper();
-			ProdutoDTO dto = mapper.readValue(produtoJson, ProdutoDTO.class);
+			requestBody = @RequestBody(required = true,
 
-			Produto atual = produtoService.getById(id);
+					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
 
-			if (atual == null) {
-				return ResponseEntity.notFound().build();
-			}
+							schema = @Schema(implementation = ProdutoMultipartRequest.class))))
 
-			atual.setNome(dto.nome());
-			atual.setDescricao(dto.descricao());
-			atual.setPreco(dto.preco());
-			atual.setValidade(dto.validade());
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Produto alterado com sucesso"),
+			@ApiResponse(responseCode = "400", description = "Dados inválidos"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Produto não encontrado") })
+	public ResponseEntity<ProdutoResponseDTO> update(
+			@Parameter(description = "ID do produto", required = true) @PathVariable Long id,
+			@Parameter(description = "Dados atualizados do produto em JSON", required = true) @RequestPart("produto") String produtoJson,
+			@Parameter(description = "Novo arquivo de imagem (opcional)") @RequestPart(value = "imagem", required = false) MultipartFile imagem)
+			throws Exception {
 
-			Categoria categoria = categoriaRepository.findById(dto.categoriaId())
-					.orElseThrow(() -> new RuntimeException("Categoria não encontrada"));
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.registerModule(new JavaTimeModule());
 
-			Marca marca = marcaRepository.findById(dto.marcaId())
-					.orElseThrow(() -> new RuntimeException("Marca não encontrada"));
+		ProdutoRequestDTO dto = mapper.readValue(produtoJson, ProdutoRequestDTO.class);
 
-			Fornecedor fornecedor = fornecedorRepository.findById(dto.fornecedorId())
-					.orElseThrow(() -> new RuntimeException("Fornecedor não encontrado"));
+		Set<ConstraintViolation<ProdutoRequestDTO>> violations = validator.validate(dto);
 
-			atual.setCategoria(categoria);
-			atual.setMarca(marca);
-			atual.setFornecedor(fornecedor);
+		if (!violations.isEmpty()) {
 
-			// substitui imagem
-			String imagemAntiga = atual.getImagem();
+			String mensagem = violations.stream().map(ConstraintViolation::getMessage).findFirst()
+					.orElse("Dados inválidos");
 
-			String imagemAtualizada = imagemService.substituirImagem(imagemAntiga, imagem, pastaProdutos);
-
-			atual.setImagem(imagemAtualizada);
-
-			Produto atualizado = produtoService.saveProduto(atual);
-			return ResponseEntity.ok(ProdutoMapper.toDTO(atualizado));
-
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body(e.getMessage());
+			throw new IllegalArgumentException(mensagem);
 		}
+
+		Produto produto = produtoService.atualizar(id, dto, imagem);
+
+		return ResponseEntity.ok(ProdutoMapper.toDTO(produto));
+
 	}
 
-	// Deletar produto
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Deletar Produto")
-	public ResponseEntity<?> delete(@PathVariable Long id) {
-		try {
-			Produto produto = produtoService.getById(id);
+	@ApiResponses(value = { @ApiResponse(responseCode = "204", description = "Produto excluído com sucesso"),
+			@ApiResponse(responseCode = "403", description = "Acesso negado"),
+			@ApiResponse(responseCode = "404", description = "Produto não encontrado") })
+	public ResponseEntity<Void> delete(
+			@Parameter(description = "ID do produto", required = true) @PathVariable Long id) {
 
-			if (produto == null) {
-				return ResponseEntity.notFound().build();
-			}
+		produtoService.delete(id);
 
-			if (produto.getImagem() != null) {
-				imagemService.deletarImagem(produto.getImagem(), pastaProdutos);
-			}
+		return ResponseEntity.noContent().build();
 
-			produtoService.deleteProduto(id);
-
-			return ResponseEntity.noContent().build(); // 204
-
-		} catch (Exception e) {
-			return ResponseEntity.status(500).body("Erro ao deletar: " + e.getMessage());
-		}
 	}
+
 }

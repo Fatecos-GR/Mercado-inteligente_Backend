@@ -2,7 +2,9 @@ package br.edu.fatecgru.mercado_inteligente.model.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -34,7 +36,16 @@ public class Produto {
 	private LocalDate validade;
 
 	// Pode ser opcional
+	@Column(length = 500)
 	private String imagem;
+
+	@Column(length = 255)
+	private String publicIdImagem;
+
+	@Column(precision = 10, scale = 2)
+	private BigDecimal precoAnterior;
+
+	private LocalDateTime dataReducaoPreco;
 
 	// Muitos produtos podem pertencer à mesma marca
 	@ManyToOne
@@ -51,7 +62,7 @@ public class Produto {
 	@JoinColumn(name = "fornecedor_id", nullable = false)
 	private Fornecedor fornecedor;
 
-	@jakarta.persistence.OneToOne(mappedBy = "produto")
+	@jakarta.persistence.OneToOne(mappedBy = "produto", cascade = CascadeType.ALL, orphanRemoval = true)
 	private Estoque estoque;
 
 	// Construtores
@@ -60,26 +71,27 @@ public class Produto {
 	}
 
 	public Produto(Long id, String nome, String descricao, BigDecimal preco, LocalDate validade, String imagem,
-			Marca marca, Categoria categoria, Fornecedor fornecedor) {
+			String publicIdImagem, Marca marca, Categoria categoria, Fornecedor fornecedor) {
 		this.id = id;
 		this.nome = nome;
 		this.descricao = descricao;
 		this.preco = preco;
 		this.validade = validade;
 		this.imagem = imagem;
+		this.publicIdImagem = publicIdImagem;
 		this.marca = marca;
 		this.categoria = categoria;
 		this.fornecedor = fornecedor;
 	}
 
 	// Getters e Setters
-    public Estoque getEstoque() {
-        return estoque;
-    }
+	public Estoque getEstoque() {
+		return estoque;
+	}
 
-    public void setEstoque(Estoque estoque) {
-        this.estoque = estoque;
-    }
+	public void setEstoque(Estoque estoque) {
+		this.estoque = estoque;
+	}
 
 	public Long getId() {
 		return id;
@@ -129,6 +141,14 @@ public class Produto {
 		this.imagem = imagem;
 	}
 
+	public String getPublicIdImagem() {
+		return publicIdImagem;
+	}
+
+	public void setPublicIdImagem(String publicIdImagem) {
+		this.publicIdImagem = publicIdImagem;
+	}
+
 	public Marca getMarca() {
 		return marca;
 	}
@@ -151,6 +171,22 @@ public class Produto {
 
 	public void setFornecedor(Fornecedor fornecedor) {
 		this.fornecedor = fornecedor;
+	}
+
+	public BigDecimal getPrecoAnterior() {
+		return precoAnterior;
+	}
+
+	public void setPrecoAnterior(BigDecimal precoAnterior) {
+		this.precoAnterior = precoAnterior;
+	}
+
+	public LocalDateTime getDataReducaoPreco() {
+		return dataReducaoPreco;
+	}
+
+	public void setDataReducaoPreco(LocalDateTime dataReducaoPreco) {
+		this.dataReducaoPreco = dataReducaoPreco;
 	}
 
 }

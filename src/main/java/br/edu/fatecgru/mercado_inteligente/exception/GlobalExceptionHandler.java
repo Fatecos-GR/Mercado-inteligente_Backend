@@ -64,11 +64,31 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.badRequest().body(response);
 	}
 
+	@ExceptionHandler(IllegalStateException.class)
+	public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException ex) {
+		ErrorResponse response = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage(), LocalDateTime.now(),
+				null);
+		return ResponseEntity.badRequest().body(response);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ErrorResponse> handleGeneralError(Exception ex) {
-		ErrorResponse response = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),
-				"Ocorreu um erro interno no servidor.", LocalDateTime.now(), null);
-		// Em produção, não retornar ex.getMessage() por segurança
+
+		ex.printStackTrace(); // imprime o erro completo no console
+
+		ErrorResponse response = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), ex.getMessage(),
+				LocalDateTime.now(), null);
+
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 	}
+
+	@ExceptionHandler(EmailJaCadastradoException.class)
+	public ResponseEntity<ErrorResponse> handleEmailJaCadastrado(EmailJaCadastradoException ex) {
+
+		ErrorResponse response = new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage(), LocalDateTime.now(),
+				null);
+
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+	}
+
 }
