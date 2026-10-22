@@ -77,6 +77,10 @@ public class MarcaController {
 		return ResponseEntity.ok(marcas);
 	}
 
+	// Pasta das marcas para salvar as imagens
+	String pastaMarcas = "brands/";
+
+	// Salvar Marca
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Marca", description = "Cadastra uma nova marca no sistema. O nome da marca deve ser único.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = MarcaMultipartRequest.class))))
@@ -118,7 +122,12 @@ public class MarcaController {
 
 			requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
 
-					required = true,
+	// Alterar Marca
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PreAuthorize("hasRole('ADMIN')")
+	@Operation(summary = "Alterar Marca")
+	public ResponseEntity<?> update(@PathVariable Long id, @RequestPart("marca") String marcaJson,
+			@RequestPart(value = "imagem", required = false) MultipartFile imagem) {
 
 					content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
 

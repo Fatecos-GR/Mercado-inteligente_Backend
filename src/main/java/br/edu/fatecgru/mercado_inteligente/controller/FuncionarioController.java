@@ -122,6 +122,10 @@ public class FuncionarioController {
 		return ResponseEntity.ok(dtos);
 	}
 
+	// Pasta dos funcionários para salvar as imagens
+	String pastaFuncionarios = "employees/";
+
+	// Método para cadastrar funcionário
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar novo funcionário (Apenas ADMIN)", description = "Cadastra um novo funcionário no sistema, definindo obrigatoriamente se é ADMIN ou ESTOQUISTA. Requer privilégios de administrador.",
@@ -176,6 +180,7 @@ public class FuncionarioController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(FuncionarioResponseDTO.fromEntity(funcionario));
 	}
 
+	// Método para alterar funcionário
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Atualizar funcionário",

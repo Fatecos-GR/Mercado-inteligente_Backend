@@ -39,9 +39,10 @@ public class Endereco {
 	// Campo opcional
 	private String complemento;
 
-	// Mapeamentos bidirecionais (apenas Java)
-	@OneToOne(mappedBy = "endereco")
-	@com.fasterxml.jackson.annotation.JsonIgnore
+	// Um usuário pode ter vários endereços, e todo endereço deve ter um ID de
+	// usuário
+	@ManyToOne
+	@JoinColumn(name = "usuario_id")
 	private Usuario usuario;
 
 	@OneToOne(mappedBy = "endereco")

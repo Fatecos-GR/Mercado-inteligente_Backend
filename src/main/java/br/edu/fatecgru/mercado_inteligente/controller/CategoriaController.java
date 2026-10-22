@@ -87,6 +87,7 @@ public class CategoriaController {
 
 	String pastaCategorias = "categories/";
 
+	// Salvar Categoria
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Categoria", description = "Cadastra uma nova categoria no sistema. O nome da categoria deve ser único.",
@@ -125,6 +126,7 @@ public class CategoriaController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(response);
 	}
 
+	// Alterar Categoria
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Categoria", description = "Atualiza os dados de uma categoria existente. Se o nome for alterado, ele deve continuar sendo único no sistema.",

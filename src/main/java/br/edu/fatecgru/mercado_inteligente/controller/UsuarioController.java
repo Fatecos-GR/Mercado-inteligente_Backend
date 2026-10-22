@@ -114,6 +114,7 @@ public class UsuarioController {
 		return ResponseEntity.ok(usuarioService.contarClientes());
 	}
 
+	// Método para cadastrar usuário
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar usuário (Apenas ADMIN)",
@@ -167,6 +168,7 @@ public class UsuarioController {
 
 	}
 
+	// Método para alterar usuário
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Alterar usuário",

@@ -52,19 +52,8 @@ public class ProdutoController {
 
 	@GetMapping
 	@Operation(summary = "Listar todos os produtos")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Produtos listados com sucesso") })
-	public ResponseEntity<List<ProdutoResponseDTO>> listarTodos() {
-		List<ProdutoResponseDTO> produtos = produtoService.listarTodos().stream().map(ProdutoMapper::toDTO).toList();
-		return ResponseEntity.ok(produtos);
-	}
-
-	@GetMapping("/descontos")
-	@Operation(summary = "Listar últimos produtos com redução de preço (Público)", description = "Retorna os últimos 5 produtos do catálogo que receberam descontos, ordenados do mais recente para o mais antigo.")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Lista de descontos obtida com sucesso") })
-	public ResponseEntity<List<ProdutoResponseDTO>> listarUltimosDescontos() {
-		List<ProdutoResponseDTO> descontos = produtoService.listarUltimosDescontos().stream()
-				.map(ProdutoMapper::toDTO).toList();
-		return ResponseEntity.ok(descontos);
+	public List<ProdutoResponseDTO> listarTodos() {
+		return produtoService.listarTodos().stream().map(ProdutoMapper::toDTO).toList();
 	}
 
 	@GetMapping("/{id}")
@@ -81,66 +70,23 @@ public class ProdutoController {
 		return ResponseEntity.ok(ProdutoMapper.toDTO(produto));
 	}
 
-	@GetMapping("/search")
-	@Operation(summary = "Buscar produtos por Nome")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Produtos encontrados") })
-	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorNome(
-			@Parameter(description = "Nome ou parte do nome", required = true) @RequestParam String nome) {
-		List<ProdutoResponseDTO> produtos = produtoService.getByContainsName(nome).stream().map(ProdutoMapper::toDTO)
-				.toList();
-		return ResponseEntity.ok(produtos);
+	// Busca produto por nome
+	@GetMapping("/contem-nome/{nome}")
+	@Operation(summary = "Listar produto por Nome")
+	public List<ProdutoResponseDTO> buscarPorContemNome(@PathVariable String nome) {
+		return produtoService.getByContainsName(nome).stream().map(ProdutoMapper::toDTO).toList();
 	}
 
 	@GetMapping("/categoria/{id}")
-	@Operation(summary = "Listar produtos por ID da categoria")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Produtos encontrados"),
-			@ApiResponse(responseCode = "404", description = "Categoria não encontrada") })
-	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorIdCategoria(
-			@Parameter(description = "ID da categoria", required = true) @PathVariable Long id) {
-		List<ProdutoResponseDTO> produtos = produtoService.getByCategoryId(id).stream().map(ProdutoMapper::toDTO)
-				.toList();
-		return ResponseEntity.ok(produtos);
+	@Operation(summary = "Listar produto por ID da categoria")
+	public List<ProdutoResponseDTO> buscarPorIdCategoria(@PathVariable Long id) {
+		return produtoService.getByCategoryId(id).stream().map(ProdutoMapper::toDTO).toList();
 	}
 
 	@GetMapping("/marca/{id}")
-	@Operation(summary = "Listar produtos por ID da Marca")
-	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Produtos encontrados"),
-			@ApiResponse(responseCode = "404", description = "Marca não encontrada") })
-	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorIdMarca(
-			@Parameter(description = "ID da marca", required = true) @PathVariable Long id) {
-		List<ProdutoResponseDTO> produtos = produtoService.getByBrandId(id).stream().map(ProdutoMapper::toDTO).toList();
-		return ResponseEntity.ok(produtos);
-	}
-
-	@GetMapping("/fornecedor/{id}")
-	@Operation(summary = "Listar produtos por ID do fornecedor")
-	@ApiResponses(value = {
-
-			@ApiResponse(responseCode = "200", description = "Produtos encontrados"),
-
-			@ApiResponse(responseCode = "404", description = "Fornecedor não encontrado")
-
-	})
-	public ResponseEntity<List<ProdutoResponseDTO>> buscarPorIdFornecedor(
-
-			@Parameter(description = "ID do fornecedor", required = true)
-
-			@PathVariable Long id) {
-
-		List<ProdutoResponseDTO> produtos = produtoService.getBySupplierId(id).stream().map(ProdutoMapper::toDTO)
-				.toList();
-
-		return ResponseEntity.ok(produtos);
-	}
-
-	// Listar por maior preço
-	@GetMapping("/preco/menor")
-	public ResponseEntity<List<ProdutoResponseDTO>> listarPorMenorPreco() {
-
-		List<ProdutoResponseDTO> produtos = produtoService.listarPorMenorPreco().stream().map(ProdutoMapper::toDTO)
-				.toList();
-
-		return ResponseEntity.ok(produtos);
+	@Operation(summary = "Listar produto por ID da Marca")
+	public List<ProdutoResponseDTO> buscarPorIdMarca(@PathVariable Long id) {
+		return produtoService.getByBrandId(id).stream().map(ProdutoMapper::toDTO).toList();
 	}
 
 	// Listar por menor preço
@@ -153,6 +99,7 @@ public class ProdutoController {
 		return ResponseEntity.ok(produtos);
 	}
 
+	// Salvar produto
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Salvar Produto",
@@ -191,6 +138,7 @@ public class ProdutoController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(ProdutoMapper.toDTO(produto));
 	}
 
+	// Alterar produto
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar Produto",

@@ -81,6 +81,10 @@ public class FornecedorController {
 		return ResponseEntity.ok(fornecedores);
 	}
 
+	// Pasta dos fornecedores para salvar as imagens
+	String pastaFornecedores = "suppliers/";
+
+	// Criar fornecedor
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Criar fornecedor (Apenas ADMIN)", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = FornecedorMultipartRequest.class))))
@@ -106,6 +110,7 @@ public class FornecedorController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(FornecedorResponseDTO.fromEntity(fornecedor));
 	}
 
+	// Atualizar fornecedor
 	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Alterar fornecedor (Apenas ADMIN)", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE, schema = @Schema(implementation = FornecedorMultipartRequest.class))))

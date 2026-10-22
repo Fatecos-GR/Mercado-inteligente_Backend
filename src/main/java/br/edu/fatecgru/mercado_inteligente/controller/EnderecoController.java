@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -87,7 +88,8 @@ public class EnderecoController {
 		return ResponseEntity.ok(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper.toDTO(endereco));
 	}
 
-	@PostMapping("/usuario/{id}")
+	// Adicionar endereço a um usuário
+	@PostMapping(value = "/{id}/enderecos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
 	@Operation(summary = "Adicionar ou atualizar endereço do usuário")
     @ApiResponses(value = {
@@ -100,18 +102,12 @@ public class EnderecoController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper.toDTO(endereco));
 	}
 
-	@PutMapping("/{id}")
-	@Operation(summary = "Atualizar endereço por ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Endereço atualizado com sucesso"),
-        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-        @ApiResponse(responseCode = "403", description = "Acesso negado"),
-        @ApiResponse(responseCode = "404", description = "Endereço não encontrado")
-    })
-	public ResponseEntity<EnderecoDTO> atualizar(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto,
-			@AuthenticationPrincipal Usuario usuarioLogado) {
-		Endereco endereco = enderecoService.atualizar(id, dto, usuarioLogado);
-		return ResponseEntity.ok(br.edu.fatecgru.mercado_inteligente.mapper.EnderecoMapper.toDTO(endereco));
+	// Alterar endereço
+	@PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@Operation(summary = "Atualizar endereço")
+	public ResponseEntity<Endereco> atualizar(@PathVariable Long id, @Valid @RequestBody EnderecoDTO dto) {
+
+		return ResponseEntity.ok(enderecoService.atualizar(id, dto));
 	}
 
 	@DeleteMapping("/{id}")
